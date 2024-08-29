@@ -1719,7 +1719,7 @@ void Model::open_output_files( void )
   _v_trajectory_file << "t;dt";
   _p_trajectory_file << "t;dt";
   _b_trajectory_file << "t;dt";
-  for (int i = 0; i < _ni; i++)
+  for (int i = 0; i < _nc; i++)
   {
     _c_trajectory_file << ";" << _c_ids[i];
     _b_trajectory_file << ";" << _c_ids[i];
@@ -1752,7 +1752,7 @@ void Model::write_output_files( double t, double dt )
   _v_trajectory_file << t << ";" << dt;
   _p_trajectory_file << t << ";" << dt;
   _b_trajectory_file << t << ";" << dt;
-  for (int i = 0; i < _ni; i++)
+  for (int i = 0; i < _nc; i++)
   {
     _c_trajectory_file << ";" << gsl_vector_get(_c, i);
     _b_trajectory_file << ";" << gsl_vector_get(_b, i);

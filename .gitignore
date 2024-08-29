@@ -5,6 +5,7 @@
 clean_folders.sh
 
 # Compilation products
+output/**
 build/**
 cmake/CmakeFiles/
 cmake/CMakeCache.txt

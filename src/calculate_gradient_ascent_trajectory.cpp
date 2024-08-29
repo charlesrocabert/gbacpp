@@ -50,7 +50,7 @@
  */
 int main(int argc, char const** argv)
 {
-  Model model = Model("/Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_CPP/csv_models", "EC12b", "genomescale");
+  Model model = Model("/Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_CPP/csv_models", "A", "small");
   model.load_model();
   model.initialize_variables();
   model.compute_gradient_ascent_trajectory("1", 0.01, 200);
