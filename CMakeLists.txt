@@ -94,8 +94,8 @@ add_library(
   src/lib/Macros.hpp
   src/lib/Enums.hpp
   src/lib/Structs.hpp
-  src/lib/GBA_Model.hpp
-  src/lib/GBA_Model.cpp
+  src/lib/Model.hpp
+  src/lib/Model.cpp
 )
 
 target_link_libraries(GBA_Evolution gsl gslcblas)
