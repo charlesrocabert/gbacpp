@@ -3,7 +3,7 @@
 
 #***************************************************************************
 # Copyright © 2024 Charles Rocabert
-# Web: https://github.com/charlesrocabert/GBA_MMSYN
+# Web: https://github.com/charlesrocabert/GBA_Evolution_2
 #
 # plot_trajectory.py
 # ------------------
@@ -37,5 +37,4 @@ p2 = ggplot(df2, aes(condition, value, color=name)) +
   theme_classic()
 
 plot_grid(p1, p2, ncol=1)
-
 

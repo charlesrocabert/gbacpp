@@ -785,9 +785,9 @@ void Model::load_conditions( void )
   std::string line;
   std::string id;
   std::string str_value;
-  /*-------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Read condition identifiers */
-  /*-------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   getline(file, line);
   line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
   std::stringstream flux1(line.c_str());
@@ -799,9 +799,9 @@ void Model::load_conditions( void )
     _condition_indices[id] = index;
     index++;
   }
-  /*-------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Read condition parameters  */
-  /*-------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   while(getline(file, line))
   {
     line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
@@ -810,9 +810,9 @@ void Model::load_conditions( void )
     _condition_params.push_back(id);
   }
   file.close();
-  /*-------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Load the conditions        */
-  /*-------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   _conditions = gsl_matrix_alloc(_condition_params.size(), _condition_ids.size());
   gsl_matrix_set_zero(_conditions);
   int row = 0;
@@ -926,9 +926,9 @@ void Model::load_directions_and_boundaries( void )
  */
 void Model::initialize_static_variables( void )
 {
-  /*------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Initialize constants      */
-  /*------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   assert(_sM==NULL);
   _sM = gsl_vector_alloc(_nj);
   gsl_vector_set_zero(_sM);
@@ -942,9 +942,9 @@ void Model::initialize_static_variables( void )
   }
   _r = _nj-1;
   _a = _nc-1;
-  /*------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Initialize reaction types */
-  /*------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   _type              = new rtype[_nj];
   gsl_vector* KI_vec = gsl_vector_alloc(_ni);
   gsl_vector* KA_vec = gsl_vector_alloc(_ni);
@@ -1231,13 +1231,13 @@ void Model::compute_tau( int j )
  */
 void Model::diMM( int j )
 {
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Define constants         */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   double term3 = gsl_vector_get(_kcat_f, j);
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate the derivative */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -1263,9 +1263,9 @@ void Model::diMM( int j )
  */
 void Model::diMMi( int j )
 {
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Define constants         */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   double constant_1 = 1.0;
   double constant_2 = 1.0;
   double term5      = gsl_vector_get(_kcat_f, j);
@@ -1274,9 +1274,9 @@ void Model::diMMi( int j )
     constant_1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
     constant_2 *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
   }
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate the derivative */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -1304,9 +1304,9 @@ void Model::diMMi( int j )
  */
 void Model::diMMa( int j )
 {
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Define constants         */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   double constant_1 = 1.0;
   double constant_2 = 1.0;
   double term6      = gsl_vector_get(_kcat_f, j);
@@ -1315,9 +1315,9 @@ void Model::diMMa( int j )
     constant_1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
     constant_2 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
   }
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate the derivative */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -1346,9 +1346,9 @@ void Model::diMMa( int j )
  */
 void Model::diMMia( int j )
 {
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Define constants         */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   double constant_1 = 1.0;
   double constant_2 = 1.0;
   double constant_3 = 1.0;
@@ -1359,9 +1359,9 @@ void Model::diMMia( int j )
     constant_2 *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
     constant_3 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
   }
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate the derivative */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -1393,14 +1393,14 @@ void Model::diMMia( int j )
  */
 void Model::drMM( int j )
 {
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Define constants         */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   double constant_1 = gsl_vector_get(_kcat_f, j);
   double constant_2 = gsl_vector_get(_kcat_b, j);
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate the derivative */
-  /*-----------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -1645,33 +1645,33 @@ void Model::calculate_second_order_terms( void )
  */
 void Model::check_model_consistency( void )
 {
-  /*--------------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Test density constraint                 */
-  /*--------------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test1 = true;
   if (fabs(_density-1.0) >= DENSITY_CONSTRAINT_TOL)
   {
     test1 = false;
   }
-  /*--------------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Test negative concentrations constraint */
-  /*--------------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test2 = true;
   if (gsl_vector_min(_c) < -NEGATIVE_C_TOL)
   {
     test2 = false;
   }
-  /*--------------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Test negative proteins constraint       */
-  /*--------------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test3 = true;
   if (gsl_vector_min(_p) < -NEGATIVE_P_TOL)
   {
     test3 = false;
   }
-  /*--------------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 4) Print error message if inconsistent     */
-  /*--------------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   _consistent = true;
   if (!(test1 && test2 && test3))
   {
@@ -1689,19 +1689,25 @@ void Model::block_reactions( void )
 {
   for (int j = 0; j < _nj-1; j++)
   {
-    /*** CASE 1: Reaction is irreversible and positive ***/
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /* 1) Reaction is irreversible and positive    */
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) < MIN_FLUX_FRACTION && gsl_vector_get(_GCC_f, j+1) < 0.0)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
       gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
     }
-    /*** CASE 2: Reaction is irreversible and negative ***/
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /* 2) Reaction is irreversible and negative    */
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     else if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) > -MIN_FLUX_FRACTION && gsl_vector_get(_GCC_f, j+1) > 0.0)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
       gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
     }
-    /*** CASE 3: Reaction is reversible and tends to zero ***/
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /* 3) Reaction is reversible and tends to zero */
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     else if (_directions[j+1] == "reversible" && fabs(gsl_vector_get(_f_trunc, j)) < MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
@@ -1725,9 +1731,9 @@ void Model::block_reactions( void )
  */
 void Model::open_trajectory_output_files( void )
 {
-  /*------------------*/
+  /*~~~~~~~~~~~~~~~~~~*/
   /* 1) Open files    */
-  /*------------------*/
+  /*~~~~~~~~~~~~~~~~~~*/
   std::stringstream model_trajectory_filename;
   std::stringstream f_trajectory_filename;
   std::stringstream c_trajectory_filename;
@@ -1746,9 +1752,9 @@ void Model::open_trajectory_output_files( void )
   _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _p_trajectory_file.open(p_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _b_trajectory_file.open(b_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  /*------------------*/
+  /*~~~~~~~~~~~~~~~~~~*/
   /* 2) Write headers */
-  /*------------------*/
+  /*~~~~~~~~~~~~~~~~~~*/
    _model_trajectory_file << "t;dt;mu;density;consistent\n";
   _f_trajectory_file << "t;dt";
   _c_trajectory_file << "t;dt";
@@ -1830,9 +1836,9 @@ void Model::close_trajectory_ouput_files( void )
  */
 void Model::open_optimum_output_files( void )
 {
-  /*------------------*/
+  /*~~~~~~~~~~~~~~~~~~*/
   /* 1) Open files    */
-  /*------------------*/
+  /*~~~~~~~~~~~~~~~~~~*/
   std::stringstream model_optimum_filename;
   std::stringstream f_optimum_filename;
   std::stringstream c_optimum_filename;
@@ -1851,9 +1857,9 @@ void Model::open_optimum_output_files( void )
   _v_optimum_file.open(v_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  /*------------------*/
+  /*~~~~~~~~~~~~~~~~~~*/
   /* 2) Write headers */
-  /*------------------*/
+  /*~~~~~~~~~~~~~~~~~~*/
    _model_optimum_file << "condition;mu;density;consistent;converged\n";
   _f_optimum_file << "condition";
   _c_optimum_file << "condition";
@@ -2146,5 +2152,4 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
     return(true);
   }
 }
-
 

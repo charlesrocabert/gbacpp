@@ -570,13 +570,13 @@
 				B6E3A7372C80753200106E8A /* CMakeLists.txt */,
 				B6E3A7352C80753200106E8A /* .gitignore */,
 				B6E3A7362C80753200106E8A /* clean_folders.sh */,
-				B6E3A7342C80753200106E8A /* xcode */,
 				B6E3A6BF2C80753200106E8A /* build */,
 				B6E3A6FE2C80753200106E8A /* cmake */,
 				B6E3A7282C80753200106E8A /* csv_models */,
 				B6E3A7292C80753200106E8A /* output */,
 				B6E3A7312C80753200106E8A /* src */,
 				B6E3A7392C80753200106E8A /* plot_trajectory.R */,
+				B6E3A7342C80753200106E8A /* xcode */,
 			);
 			name = GBA_Evolution_2;
 			path = ../..;
