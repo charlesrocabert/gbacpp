@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B61A093F2C8070BD009D4A4C"
-               BuildableName = "calculate_gradient_ascent_trajectory"
-               BlueprintName = "calculate_gradient_ascent_trajectory"
+               BlueprintIdentifier = "B6E3A7462C809E5F00106E8A"
+               BuildableName = "calculate_local_optimum"
+               BlueprintName = "calculate_local_optimum"
                ReferencedContainer = "container:GBA_Evolution_2.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,20 +46,16 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B61A093F2C8070BD009D4A4C"
-            BuildableName = "calculate_gradient_ascent_trajectory"
-            BlueprintName = "calculate_gradient_ascent_trajectory"
+            BlueprintIdentifier = "B6E3A7462C809E5F00106E8A"
+            BuildableName = "calculate_local_optimum"
+            BlueprintName = "calculate_local_optimum"
             ReferencedContainer = "container:GBA_Evolution_2.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-path /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/csv_models -name EC12b -size SMALL -condition 1 -dt 0.01 -maxt 200"
+            argument = "-path /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/csv_models -name EC12b -size SMALL -dt 0.01 -maxt 200"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = ""
-            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
@@ -73,9 +69,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B61A093F2C8070BD009D4A4C"
-            BuildableName = "calculate_gradient_ascent_trajectory"
-            BlueprintName = "calculate_gradient_ascent_trajectory"
+            BlueprintIdentifier = "B6E3A7462C809E5F00106E8A"
+            BuildableName = "calculate_local_optimum"
+            BlueprintName = "calculate_local_optimum"
             ReferencedContainer = "container:GBA_Evolution_2.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

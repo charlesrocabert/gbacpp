@@ -10,7 +10,7 @@
 /****************************************************************************
  * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
  * Copyright © 2024 Charles Rocabert
- * Web: https://github.com/charlesrocabert/GBA_Evolution_CPP
+ * Web: https://github.com/charlesrocabert/GBA_Evolution_2
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,10 +38,10 @@
  * \details  --
  * \param    std::string model_path
  * \param    std::string model_name
- * \param    std::string model_size
+ * \param    msize model_size
  * \return   \e void
  */
-Model::Model( std::string model_path, std::string model_name, std::string model_size )
+Model::Model( std::string model_path, std::string model_name, msize model_size )
 {
   /*----------------------------------------------- Model path and name */
   
@@ -352,18 +352,21 @@ void Model::calculate_second_order_GM( void )
 /**
  * \brief    Compute the gradient ascent trajectory
  * \details  --
- * \param    void
+ * \param    std::string condition
+ * \param    double initial_dt
+ * \param    double max_t
+ * \param    double save_trajectory
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent_trajectory( std::string condition, double initial_dt, int max_time )
+bool Model::compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, double save_trajectory )
 {
-  if (_model_size == "small")
+  if (_model_size == SMALL)
   {
-    return compute_gradient_ascent_trajectory_for_small_models(condition, initial_dt, max_time);
+    return compute_gradient_ascent_trajectory_for_small_models(condition, initial_dt, max_t, save_trajectory);
   }
-  else if (_model_size == "genomescale")
+  else if (_model_size == GENOME_SCALE)
   {
-    return compute_gradient_ascent_trajectory_for_genome_scale_models(condition, initial_dt, max_time);
+    return compute_gradient_ascent_trajectory_for_genome_scale_models(condition, initial_dt, max_t, save_trajectory);
   }
   else
   {
@@ -375,12 +378,21 @@ bool Model::compute_gradient_ascent_trajectory( std::string condition, double in
 /**
  * \brief    Compute local optimum for all conditions
  * \details  --
- * \param    void
+ * \param    std::string condition
+ * \param    double initial_dt
+ * \param    double max_t
  * \return   \e bool
  */
-void compute_local_optimum_for_all_conditions( double initial_dt, int max_time )
+void Model::compute_local_optimum_for_all_conditions( double initial_dt, double max_t )
 {
-  
+  open_optimum_output_files();
+  for (int i = 0; i < _condition_ids.size(); i++)
+  {
+    std::string condition = _condition_ids[i];
+    bool converged        = compute_gradient_ascent_trajectory(condition, initial_dt, max_t, false);
+    write_optimum_output_files(condition, converged);
+  }
+  close_optimum_ouput_files();
 }
 
 /*----------------------------
@@ -427,7 +439,7 @@ void Model::load_metabolite_identifiers( void )
     _metabolite_ids.push_back(id);
     _metabolite_indices[id] = index;
     index++;
-    if (id.starts_with(std::string_view{"x_"}))
+    if (id.substr(0, 2) == "x_")
     {
       _x_ids.push_back(id);
     }
@@ -520,14 +532,14 @@ void Model::load_M( void )
     {
       double value = stod(str_value);
       gsl_matrix_set(_Mx, Mx_row, col, value);
-      if (!id.starts_with(std::string_view{"x_"}))
+      if (id.substr(0, 2) != "x_")
       {
         gsl_matrix_set(_M, M_row, col, value);
       }
       col++;
     }
     Mx_row++;
-    if (!id.starts_with(std::string_view{"x_"}))
+    if (id.substr(0, 2) != "x_")
     {
       M_row++;
     }
@@ -1706,22 +1718,34 @@ void Model::block_reactions( void )
 }
 
 /**
- * \brief    Open output files
+ * \brief    Open trajectory output files
  * \details  Also writes headers
  * \param    void
  * \return   \e void
  */
-void Model::open_output_files( void )
+void Model::open_trajectory_output_files( void )
 {
   /*------------------*/
   /* 1) Open files    */
   /*------------------*/
-  _model_trajectory_file.open("./output/model_trajectory.csv", std::ios::out | std::ios::trunc);
-  _f_trajectory_file.open("./output/f_trajectory.csv", std::ios::out | std::ios::trunc);
-  _c_trajectory_file.open("./output/c_trajectory.csv", std::ios::out | std::ios::trunc);
-  _v_trajectory_file.open("./output/v_trajectory.csv", std::ios::out | std::ios::trunc);
-  _p_trajectory_file.open("./output/p_trajectory.csv", std::ios::out | std::ios::trunc);
-  _b_trajectory_file.open("./output/b_trajectory.csv", std::ios::out | std::ios::trunc);
+  std::stringstream model_trajectory_filename;
+  std::stringstream f_trajectory_filename;
+  std::stringstream c_trajectory_filename;
+  std::stringstream v_trajectory_filename;
+  std::stringstream p_trajectory_filename;
+  std::stringstream b_trajectory_filename;
+  model_trajectory_filename << "./output/" << _model_name << "_model_trajectory.csv";
+  f_trajectory_filename << "./output/" << _model_name << "_f_trajectory.csv";
+  c_trajectory_filename << "./output/" << _model_name << "_c_trajectory.csv";
+  v_trajectory_filename << "./output/" << _model_name << "_v_trajectory.csv";
+  p_trajectory_filename << "./output/" << _model_name << "_p_trajectory.csv";
+  b_trajectory_filename << "./output/" << _model_name << "_b_trajectory.csv";
+  _model_trajectory_file.open(model_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _f_trajectory_file.open(f_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _p_trajectory_file.open(p_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _b_trajectory_file.open(b_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   /*------------------*/
   /* 2) Write headers */
   /*------------------*/
@@ -1750,13 +1774,13 @@ void Model::open_output_files( void )
 }
 
 /**
- * \brief    Write data into output files
+ * \brief    Write data into trajectory output files
  * \details  --
  * \param    double t
  * \param    double dt
  * \return   \e void
  */
-void Model::write_output_files( double t, double dt )
+void Model::write_trajectory_output_files( double t, double dt )
 {
   _model_trajectory_file << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << "\n";
   _f_trajectory_file << t << ";" << dt;
@@ -1783,12 +1807,12 @@ void Model::write_output_files( double t, double dt )
 }
 
 /**
- * \brief    Close output files
+ * \brief    Close trajectory output files
  * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::close_ouput_files( void )
+void Model::close_trajectory_ouput_files( void )
 {
   _model_trajectory_file.close();
   _f_trajectory_file.close();
@@ -1799,17 +1823,128 @@ void Model::close_ouput_files( void )
 }
 
 /**
+ * \brief    Open optimum output files
+ * \details  Also writes headers
+ * \param    void
+ * \return   \e void
+ */
+void Model::open_optimum_output_files( void )
+{
+  /*------------------*/
+  /* 1) Open files    */
+  /*------------------*/
+  std::stringstream model_optimum_filename;
+  std::stringstream f_optimum_filename;
+  std::stringstream c_optimum_filename;
+  std::stringstream v_optimum_filename;
+  std::stringstream p_optimum_filename;
+  std::stringstream b_optimum_filename;
+  model_optimum_filename << "./output/" << _model_name << "_model_optimum.csv";
+  f_optimum_filename << "./output/" << _model_name << "_f_optimum.csv";
+  c_optimum_filename << "./output/" << _model_name << "_c_optimum.csv";
+  v_optimum_filename << "./output/" << _model_name << "_v_optimum.csv";
+  p_optimum_filename << "./output/" << _model_name << "_p_optimum.csv";
+  b_optimum_filename << "./output/" << _model_name << "_b_optimum.csv";
+  _model_optimum_file.open(model_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _f_optimum_file.open(f_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _c_optimum_file.open(c_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _v_optimum_file.open(v_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  /*------------------*/
+  /* 2) Write headers */
+  /*------------------*/
+   _model_optimum_file << "condition;mu;density;consistent;converged\n";
+  _f_optimum_file << "condition";
+  _c_optimum_file << "condition";
+  _v_optimum_file << "condition";
+  _p_optimum_file << "condition";
+  _b_optimum_file << "condition";
+  for (int i = 0; i < _nc; i++)
+  {
+    _c_optimum_file << ";" << _c_ids[i];
+    _b_optimum_file << ";" << _c_ids[i];
+  }
+  for (int j = 0; j < _nj; j++)
+  {
+    _f_optimum_file << ";" << _reaction_ids[j];
+    _v_optimum_file << ";" << _reaction_ids[j];
+    _p_optimum_file << ";" << _reaction_ids[j];
+  }
+  _f_optimum_file << "\n";
+  _c_optimum_file << "\n";
+  _v_optimum_file << "\n";
+  _p_optimum_file << "\n";
+  _b_optimum_file << "\n";
+}
+
+/**
+ * \brief    Write data into optimum output files
+ * \details  --
+ * \param    std::string condition
+ * \param    bool converged
+ * \return   \e void
+ */
+void Model::write_optimum_output_files( std::string condition, bool converged )
+{
+  _model_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << "\n";
+  _f_optimum_file << condition;
+  _c_optimum_file << condition;
+  _v_optimum_file << condition;
+  _p_optimum_file << condition;
+  _b_optimum_file << condition;
+  for (int i = 0; i < _nc; i++)
+  {
+    _c_optimum_file << ";" << gsl_vector_get(_c, i);
+    _b_optimum_file << ";" << gsl_vector_get(_b, i);
+  }
+  for (int j = 0; j < _nj; j++)
+  {
+    _f_optimum_file << ";" << gsl_vector_get(_f, j);
+    _v_optimum_file << ";" << gsl_vector_get(_v, j);
+    _p_optimum_file << ";" << gsl_vector_get(_p, j);
+  }
+  _f_optimum_file << "\n";
+  _c_optimum_file << "\n";
+  _v_optimum_file << "\n";
+  _p_optimum_file << "\n";
+  _b_optimum_file << "\n";
+}
+
+/**
+ * \brief    Close optimum output files
+ * \details  --
+ * \param    void
+ * \return   \e void
+ */
+void Model::close_optimum_ouput_files( void )
+{
+  _model_optimum_file.close();
+  _f_optimum_file.close();
+  _c_optimum_file.close();
+  _v_optimum_file.close();
+  _p_optimum_file.close();
+  _b_optimum_file.close();
+}
+
+/**
  * \brief    Compute the gradient ascent trajectory for small models exclusively
  * \details  Basic trajectory controls are implemented
- * \param    void
+ * \param    std::string condition
+ * \param    double initial_dt
+ * \param    double max_t
+ * \param    bool save_trajectory
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, int max_time )
+bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory )
 {
   assert(_condition_indices.find(condition) != _condition_indices.end());
   assert(initial_dt > 0.0);
-  assert(max_time > 0);
-  open_output_files();
+  assert(max_t > 0.0);
+  if (save_trajectory)
+  {
+    open_trajectory_output_files();
+  }
   set_condition(condition);
   initialize_f();
   calculate();
@@ -1827,14 +1962,8 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
   int    nb_successes        = 0;
-  while (t < max_time)
+  while (t < max_t)
   {
-    /*
-    if (nb_iterations%10==0)
-    {
-      std::cout << t << " " << _mu << " " << constant_mu_counter << std::endl;
-    }
-    */
     assert(dt > 1e-100);
     nb_iterations++;
     if (constant_mu_counter >= TRAJECTORY_STABLE_MU_COUNT)
@@ -1854,7 +1983,10 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
       nb_successes++;
       t = t+dt;
       dt_counter++;
-      write_output_files(t, dt);
+      if (save_trajectory)
+      {
+        write_trajectory_output_files(t, dt);
+      }
       if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
       {
         constant_mu_counter++;
@@ -1883,10 +2015,13 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
   gsl_vector_free(scaled_dmudt);
   previous_f_trunc = NULL;
   scaled_dmudt     = NULL;
-  close_ouput_files();
+  if (save_trajectory)
+  {
+    close_trajectory_ouput_files();
+  }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
   {
-    std::cout << "> Convergence not reached after T=" << max_time << " (nb iterations=" << nb_iterations << ")" << std::endl;
+    std::cout << "> Convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
     return(false);
   }
   else
@@ -1899,14 +2034,21 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
 /**
  * \brief    Compute the gradient ascent trajectory for genome-scale models
  * \details  More elaborated controls are implemented on the trajectory, and specific functions are used
- * \param    void
+ * \param    std::string condition
+ * \param    double initial_dt
+ * \param    double max_t
+ * \param    bool save_trajectory
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, int max_time )
+bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory )
 {
   assert(_condition_indices.find(condition) != _condition_indices.end());
   assert(initial_dt > 0.0);
-  assert(max_time > 0);
+  assert(max_t > 0.0);
+  if (save_trajectory)
+  {
+    open_trajectory_output_files();
+  }
   set_condition(condition);
   initialize_f();
   calculate_GM();
@@ -1924,7 +2066,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
   int    nb_successes        = 0;
-  while (t < max_time)
+  while (t < max_t)
   {
     /*------------------------------------------------*/
     /* 1) Check the size of dt                        */
@@ -1957,6 +2099,10 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
       nb_successes++;
       t = t+dt;
       dt_counter++;
+      if (save_trajectory)
+      {
+        write_trajectory_output_files(t, dt);
+      }
       if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
       {
         constant_mu_counter++;
@@ -1985,9 +2131,13 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   gsl_vector_free(scaled_dmudt);
   previous_f_trunc = NULL;
   scaled_dmudt     = NULL;
+  if (save_trajectory)
+  {
+    close_trajectory_ouput_files();
+  }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
   {
-    std::cout << "> Convergence not reached after T=" << max_time << " (nb iterations=" << nb_iterations << ")" << std::endl;
+    std::cout << "> Convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
     return(false);
   }
   else

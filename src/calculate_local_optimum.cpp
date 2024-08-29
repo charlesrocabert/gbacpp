@@ -1,10 +1,10 @@
 /**
- * \file      calculate_gradient_ascent_trajectory.cpp
+ * \file      calculate_local_optimum.cpp
  * \author    Charles Rocabert
- * \date      22-07-2024
+ * \date      29-08-2024
  * \copyright GBA_Evolution. Copyright © 2024 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
- * \brief     calculate_gradient_ascent_trajectory executable
+ * \brief     calculate_local_optimum executable
  */
 
 /****************************************************************************
@@ -43,7 +43,7 @@
 #include "./lib/Structs.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, std::string &condition, double &initial_dt, double &max_t );
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, double &initial_dt, double &max_t );
 void printUsage( void );
 void printHeader( void );
 
@@ -63,10 +63,9 @@ int main(int argc, char const** argv)
   std::string path       = "";
   std::string name       = "";
   msize       size       = SMALL;
-  std::string condition  = "";
   double      initial_dt = 0.0;
   double      max_t      = 0.0;
-  readArgs(argc, argv, path, name, size, condition, initial_dt, max_t);
+  readArgs(argc, argv, path, name, size, initial_dt, max_t);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
@@ -74,7 +73,7 @@ int main(int argc, char const** argv)
   Model* model = new Model(path, name, size);
   model->load_model();
   model->initialize_variables();
-  model->compute_gradient_ascent_trajectory(condition, initial_dt, max_t, true);
+  model->compute_local_optimum_for_all_conditions(initial_dt, max_t);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Free memory and exit                        */
@@ -92,12 +91,11 @@ int main(int argc, char const** argv)
  * \param    std::string &path
  * \param    std::string &name
  * \param    msize &size
- * \param    std::string &condition
  * \param    double &initial_dt
  * \param    double &max_t
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, std::string &condition, double &initial_dt, double &max_t )
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, double &initial_dt, double &max_t )
 {
   if (argc == 1)
   {
@@ -166,18 +164,6 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
         counter++;
       }
     }
-    else if (strcmp(argv[i], "-condition") == 0 || strcmp(argv[i], "--condition") == 0)
-    {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> condition value is missing");
-      }
-      else
-      {
-        condition = argv[i+1];
-        counter++;
-      }
-    }
     else if (strcmp(argv[i], "-dt") == 0 || strcmp(argv[i], "--initial-dt") == 0)
     {
       if (i+1 == argc)
@@ -203,7 +189,7 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
       }
     }
   }
-  if (counter < 6)
+  if (counter < 5)
   {
     throw std::invalid_argument("> You must provide all the mandatory arguments (see -h or --help)");
   }
@@ -235,8 +221,8 @@ void printUsage( void )
   std::cout << " certain conditions; See the GNU General Public License for details  \n";
   std::cout << "*********************************************************************\n";
   std::cout << "\n";
-  std::cout << "Usage: calculate_gradient_ascent_trajectory -h or --help\n";
-  std::cout << "   or: calculate_gradient_ascent_trajectory [options]\n";
+  std::cout << "Usage: calculate_local_optimum -h or --help\n";
+  std::cout << "   or: calculate_local_optimum [options]\n";
   std::cout << "Options are:\n";
   std::cout << "  -h, --help\n";
   std::cout << "        print this help, then exit\n";
@@ -248,8 +234,6 @@ void printUsage( void )
   std::cout << "        specify the name of the GBA model to be loaded\n";
   std::cout << "  -size, --model-size\n";
   std::cout << "        specify the size of the GBA model (SMALL / GENOME_SCALE)\n";
-  std::cout << "  -condition, --condition\n";
-  std::cout << "        specify the external condition identifier\n";
   std::cout << "  -dt, --initial-dt\n";
   std::cout << "        specify the initial gradient timestep\n";
   std::cout << "  -maxt, --max-time\n";

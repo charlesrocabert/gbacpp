@@ -22,7 +22,20 @@ library("cowplot")
 directory = dirname(getActiveDocumentContext()$path)
 setwd(directory)
 
-d = read.table("./output/model_trajectory.csv", h=T, sep=";")
+d1 = read.table("./output/EC12b_model_optimum.csv", h=T, sep=";")
+d2 = read.table("./output/EC12b_f_optimum.csv", h=T, sep=";")
 
-p1 = ggplot(d, aes(t, mu)) + geom_line() + theme_classic()
+p1 = ggplot(d, aes(condition, mu)) +
+  geom_line() +
+  ggtitle("Growth rate") +
+  theme_classic()
+
+df2 = d2 %>% rowwise() %>% pivot_longer(-condition)
+p2 = ggplot(df2, aes(condition, value, color=name)) +
+  geom_line() +
+  ggtitle("Fluxes") +
+  theme_classic()
+
+plot_grid(p1, p2, ncol=1)
+
 

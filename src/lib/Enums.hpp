@@ -10,7 +10,7 @@
 /****************************************************************************
  * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
  * Copyright © 2024 Charles Rocabert
- * Web: https://github.com/charlesrocabert/GBA_Evolution_CPP
+ * Web: https://github.com/charlesrocabert/GBA_Evolution_2
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,16 @@
 #ifndef __GBA_Evolution__Enums__
 #define __GBA_Evolution__Enums__
 
+
+/**
+ * \brief   Model size
+ * \details --
+ */
+enum msize
+{
+  SMALL        = 0, /*!< Small toy-model    */
+  GENOME_SCALE = 1  /*!< Genome-scale model */
+};
 
 /**
  * \brief   Reaction type

@@ -10,7 +10,7 @@
 /****************************************************************************
  * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
  * Copyright © 2024 Charles Rocabert
- * Web: https://github.com/charlesrocabert/GBA_Evolution_CPP
+ * Web: https://github.com/charlesrocabert/GBA_Evolution_2
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ public:
    * CONSTRUCTORS
    *----------------------------*/
   Model( void ) = delete;
-  Model( std::string model_path, std::string model_name, std::string model_size );
+  Model( std::string model_path, std::string model_name, msize model_size );
   Model( const Model& model ) = delete;
   
   /*----------------------------
@@ -95,8 +95,8 @@ public:
   void calculate_first_order_GM( void );
   void calculate_second_order_GM( void );
   
-  bool compute_gradient_ascent_trajectory( std::string condition, double initial_dt, int max_time );
-  void compute_local_optimum_for_all_conditions( double initial_dt, int max_time );
+  bool compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, double save_trajectory );
+  void compute_local_optimum_for_all_conditions( double initial_dt, double max_t );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -154,12 +154,16 @@ protected:
   void check_model_consistency( void );
   void block_reactions( void );
   
-  void open_output_files( void );
-  void write_output_files( double t, double dt );
-  void close_ouput_files( void );
+  void open_trajectory_output_files( void );
+  void write_trajectory_output_files( double t, double dt );
+  void close_trajectory_ouput_files( void );
   
-  bool compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, int max_time );
-  bool compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, int max_time );
+  void open_optimum_output_files( void );
+  void write_optimum_output_files( std::string condition, bool converged );
+  void close_optimum_ouput_files( void );
+  
+  bool compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory );
+  bool compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory );
   
   /*----------------------------
    * PROTECTED ATTRIBUTES
@@ -169,7 +173,7 @@ protected:
   
   std::string _model_path; /*!<  Model path */
   std::string _model_name; /*!<  Model name */
-  std::string _model_size; /*!<  Model size */
+  msize       _model_size; /*!<  Model size */
   
   /*----------------------------------------------- Identifier lists */
   
@@ -254,12 +258,19 @@ protected:
   
   /*----------------------------------------------- Output files */
   
-  std::ofstream _model_trajectory_file; /*!< General model output file */
-  std::ofstream _f_trajectory_file;     /*!< f vector output file      */
-  std::ofstream _c_trajectory_file;     /*!< c vector output file      */
-  std::ofstream _v_trajectory_file;     /*!< v vector output file      */
-  std::ofstream _p_trajectory_file;     /*!< p vector output file      */
-  std::ofstream _b_trajectory_file;     /*!< b vector output file      */
+  std::ofstream _model_trajectory_file; /*!< Model trajectory output file    */
+  std::ofstream _f_trajectory_file;     /*!< f vector trajectory output file */
+  std::ofstream _c_trajectory_file;     /*!< c vector trajectory output file */
+  std::ofstream _v_trajectory_file;     /*!< v vector trajectory output file */
+  std::ofstream _p_trajectory_file;     /*!< p vector trajectory output file */
+  std::ofstream _b_trajectory_file;     /*!< b vector trajectory output file */
+  
+  std::ofstream _model_optimum_file; /*!< Model optimum output file    */
+  std::ofstream _f_optimum_file;     /*!< f vector optimum output file */
+  std::ofstream _c_optimum_file;     /*!< c vector optimum output file */
+  std::ofstream _v_optimum_file;     /*!< v vector optimum output file */
+  std::ofstream _p_optimum_file;     /*!< p vector optimum output file */
+  std::ofstream _b_optimum_file;     /*!< b vector optimum output file */
 };
 
 /*----------------------------

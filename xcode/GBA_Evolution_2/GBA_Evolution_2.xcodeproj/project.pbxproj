@@ -13,10 +13,25 @@
 		B6E3A7412C80754B00106E8A /* Model.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72D2C80753200106E8A /* Model.hpp */; };
 		B6E3A7422C80754B00106E8A /* Structs.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72E2C80753200106E8A /* Structs.hpp */; };
 		B6E3A7432C80754B00106E8A /* calculate_gradient_ascent_trajectory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A7302C80753200106E8A /* calculate_gradient_ascent_trajectory.cpp */; };
+		B6E3A7482C809E5F00106E8A /* Enums.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72A2C80753200106E8A /* Enums.hpp */; };
+		B6E3A7492C809E5F00106E8A /* Macros.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72B2C80753200106E8A /* Macros.hpp */; };
+		B6E3A74A2C809E5F00106E8A /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72C2C80753200106E8A /* Model.cpp */; };
+		B6E3A74B2C809E5F00106E8A /* Model.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72D2C80753200106E8A /* Model.hpp */; };
+		B6E3A74C2C809E5F00106E8A /* Structs.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72E2C80753200106E8A /* Structs.hpp */; };
+		B6E3A7542C809E7300106E8A /* calculate_local_optimum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A7442C80858700106E8A /* calculate_local_optimum.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		B61A093E2C8070BD009D4A4C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		B6E3A74F2C809E5F00106E8A /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -134,10 +149,19 @@
 		B6E3A7382C80753200106E8A /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		B6E3A7392C80753200106E8A /* plot_trajectory.R */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.rez; path = plot_trajectory.R; sourceTree = "<group>"; };
 		B6E3A73A2C80753200106E8A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		B6E3A7442C80858700106E8A /* calculate_local_optimum.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = calculate_local_optimum.cpp; sourceTree = "<group>"; };
+		B6E3A7532C809E5F00106E8A /* calculate_local_optimum */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = calculate_local_optimum; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		B61A093D2C8070BD009D4A4C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B6E3A74E2C809E5F00106E8A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -159,6 +183,7 @@
 			isa = PBXGroup;
 			children = (
 				B61A09402C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */,
+				B6E3A7532C809E5F00106E8A /* calculate_local_optimum */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -516,6 +541,7 @@
 			children = (
 				B6E3A72F2C80753200106E8A /* lib */,
 				B6E3A7302C80753200106E8A /* calculate_gradient_ascent_trajectory.cpp */,
+				B6E3A7442C80858700106E8A /* calculate_local_optimum.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -581,6 +607,23 @@
 			productReference = B61A09402C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */;
 			productType = "com.apple.product-type.tool";
 		};
+		B6E3A7462C809E5F00106E8A /* calculate_local_optimum */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B6E3A7502C809E5F00106E8A /* Build configuration list for PBXNativeTarget "calculate_local_optimum" */;
+			buildPhases = (
+				B6E3A7472C809E5F00106E8A /* Sources */,
+				B6E3A74E2C809E5F00106E8A /* Frameworks */,
+				B6E3A74F2C809E5F00106E8A /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = calculate_local_optimum;
+			productName = calculate_gradient_ascent_trajectory;
+			productReference = B6E3A7532C809E5F00106E8A /* calculate_local_optimum */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -615,6 +658,7 @@
 			projectRoot = "";
 			targets = (
 				B61A093F2C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */,
+				B6E3A7462C809E5F00106E8A /* calculate_local_optimum */,
 			);
 		};
 /* End PBXProject section */
@@ -630,6 +674,19 @@
 				B6E3A7412C80754B00106E8A /* Model.hpp in Sources */,
 				B6E3A7422C80754B00106E8A /* Structs.hpp in Sources */,
 				B6E3A7432C80754B00106E8A /* calculate_gradient_ascent_trajectory.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B6E3A7472C809E5F00106E8A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B6E3A7542C809E7300106E8A /* calculate_local_optimum.cpp in Sources */,
+				B6E3A7482C809E5F00106E8A /* Enums.hpp in Sources */,
+				B6E3A7492C809E5F00106E8A /* Macros.hpp in Sources */,
+				B6E3A74A2C809E5F00106E8A /* Model.cpp in Sources */,
+				B6E3A74B2C809E5F00106E8A /* Model.hpp in Sources */,
+				B6E3A74C2C809E5F00106E8A /* Structs.hpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -793,6 +850,22 @@
 			};
 			name = Release;
 		};
+		B6E3A7512C809E5F00106E8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		B6E3A7522C809E5F00106E8A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -810,6 +883,15 @@
 			buildConfigurations = (
 				B61A09452C8070BD009D4A4C /* Debug */,
 				B61A09462C8070BD009D4A4C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B6E3A7502C809E5F00106E8A /* Build configuration list for PBXNativeTarget "calculate_local_optimum" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B6E3A7512C809E5F00106E8A /* Debug */,
+				B6E3A7522C809E5F00106E8A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

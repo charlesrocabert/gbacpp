@@ -72,8 +72,11 @@ set(EXECUTABLE_OUTPUT_PATH ../build/bin)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the executables                                                       #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-set(SIMULATION_EXECUTABLE calculate_gradient_ascent_trajectory)
-add_executable(${SIMULATION_EXECUTABLE} src/calculate_gradient_ascent_trajectory.cpp)
+set(TRAJECTORY_EXECUTABLE calculate_gradient_ascent_trajectory)
+add_executable(${TRAJECTORY_EXECUTABLE} src/calculate_gradient_ascent_trajectory.cpp)
+
+set(OPTIMUM_EXECUTABLE calculate_local_optimum)
+add_executable(${OPTIMUM_EXECUTABLE} src/calculate_local_optimum.cpp)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -82,7 +85,8 @@ add_executable(${SIMULATION_EXECUTABLE} src/calculate_gradient_ascent_trajectory
 find_package(GSL REQUIRED)
 if(GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
-  target_link_libraries(${SIMULATION_EXECUTABLE} ${GSL_LIBRARIES})
+  target_link_libraries(${TRAJECTORY_EXECUTABLE} ${GSL_LIBRARIES})
+  target_link_libraries(${OPTIMUM_EXECUTABLE} ${GSL_LIBRARIES})
 endif(GSL_FOUND)
 
 
@@ -100,7 +104,8 @@ add_library(
 
 target_link_libraries(GBA_Evolution gsl gslcblas)
 
-target_link_libraries(${SIMULATION_EXECUTABLE} GBA_Evolution)
+target_link_libraries(${TRAJECTORY_EXECUTABLE} GBA_Evolution)
+target_link_libraries(${OPTIMUM_EXECUTABLE} GBA_Evolution)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -111,3 +116,4 @@ configure_file(
   "${PROJECT_BINARY_DIR}/Config.h"
 )
 include_directories("${PROJECT_BINARY_DIR}")
+
