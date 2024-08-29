@@ -5,13 +5,12 @@
 clean_folders.sh
 
 # Compilation products
-build/*
+build/**
 cmake/CmakeFiles/
 cmake/CMakeCache.txt
 cmake/cmake_install.cmake
 cmake/Makefile
 cmake/Config.h
-xcode/**
 
 # Prerequisites
 *.d
