@@ -1,2 +1,2 @@
-# GBA_Evolution_CPP
+# GBA_Evolution_2
 C++ version of GBA evolution
