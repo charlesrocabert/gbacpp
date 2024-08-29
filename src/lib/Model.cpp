@@ -388,6 +388,18 @@ void compute_local_optimum_for_all_conditions( double initial_dt, int max_time )
  *----------------------------*/
 
 /**
+ * \brief    Test file existence
+ * \details  --
+ * \param    std::string filename
+ * \return   \e bool
+ */
+bool Model::is_file_exist( std::string filename )
+{
+    std::ifstream infile(filename.c_str());
+    return infile.good();
+}
+
+/**
  * \brief    Load metabolite identifiers
  * \details  --
  * \param    void
@@ -399,7 +411,7 @@ void Model::load_metabolite_identifiers( void )
   assert(_x_ids.size()==0);
   assert(_c_ids.size()==0);
   assert(_metabolite_indices.size()==0);
-  assert(std::filesystem::exists(_model_path+"/"+_model_name+"/M.csv"));
+  assert(is_file_exist(_model_path+"/"+_model_name+"/M.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/M.csv", std::ios::in);
   assert(file);
   std::string line;
@@ -437,7 +449,7 @@ void Model::load_reaction_identifiers( void )
 {
   assert(_reaction_ids.size()==0);
   assert(_reaction_indices.size()==0);
-  assert(std::filesystem::exists(_model_path+"/"+_model_name+"/M.csv"));
+  assert(is_file_exist(_model_path+"/"+_model_name+"/M.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/M.csv", std::ios::in);
   assert(file);
   std::string line;
@@ -488,7 +500,7 @@ void Model::load_M( void )
   int Mx_row = 0;
   int M_row  = 0;
   int col    = 0;
-  assert(std::filesystem::exists(_model_path+"/"+_model_name+"/M.csv"));
+  assert(is_file_exist(_model_path+"/"+_model_name+"/M.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/M.csv", std::ios::in);
   assert(file);
   std::string line;
@@ -536,7 +548,7 @@ void Model::load_KM_forward( void )
   gsl_matrix_set_zero(_KM_f);
   int row = 0;
   int col = 0;
-  assert(std::filesystem::exists(_model_path+"/"+_model_name+"/KM_forward.csv"));
+  assert(is_file_exist(_model_path+"/"+_model_name+"/KM_forward.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/KM_forward.csv", std::ios::in);
   assert(file);
   std::string line;
@@ -574,11 +586,11 @@ void Model::load_KM_backward( void )
   assert(_KM_b==NULL);
   _KM_b = gsl_matrix_alloc(_ni, _nj);
   gsl_matrix_set_zero(_KM_b);
-  if (std::filesystem::exists(_model_path+"/"+_model_name+"/KM_backward.csv"))
+  if (is_file_exist(_model_path+"/"+_model_name+"/KM_backward.csv"))
   {
     int row = 0;
     int col = 0;
-    assert(std::filesystem::exists(_model_path+"/"+_model_name+"/KM_backward.csv"));
+    assert(is_file_exist(_model_path+"/"+_model_name+"/KM_backward.csv"));
     std::ifstream file(_model_path+"/"+_model_name+"/KM_backward.csv", std::ios::in);
     assert(file);
     std::string line;
@@ -617,11 +629,11 @@ void Model::load_KI( void )
   assert(_KI==NULL);
   _KI = gsl_matrix_alloc(_ni, _nj);
   gsl_matrix_set_zero(_KI);
-  if (std::filesystem::exists(_model_path+"/"+_model_name+"/KI.csv"))
+  if (is_file_exist(_model_path+"/"+_model_name+"/KI.csv"))
   {
     int row = 0;
     int col = 0;
-    assert(std::filesystem::exists(_model_path+"/"+_model_name+"/KI.csv"));
+    assert(is_file_exist(_model_path+"/"+_model_name+"/KI.csv"));
     std::ifstream file(_model_path+"/"+_model_name+"/KI.csv", std::ios::in);
     assert(file);
     std::string line;
@@ -660,11 +672,11 @@ void Model::load_KA( void )
   assert(_KA==NULL);
   _KA = gsl_matrix_alloc(_ni, _nj);
   gsl_matrix_set_zero(_KA);
-  if (std::filesystem::exists(_model_path+"/"+_model_name+"/KA.csv"))
+  if (is_file_exist(_model_path+"/"+_model_name+"/KA.csv"))
   {
     int row = 0;
     int col = 0;
-    assert(std::filesystem::exists(_model_path+"/"+_model_name+"/KA.csv"));
+    assert(is_file_exist(_model_path+"/"+_model_name+"/KA.csv"));
     std::ifstream file(_model_path+"/"+_model_name+"/KA.csv", std::ios::in);
     assert(file);
     std::string line;
@@ -707,7 +719,7 @@ void Model::load_kcat( void )
   gsl_vector_set_zero(_kcat_f);
   gsl_vector_set_zero(_kcat_b);
   int col = 0;
-  assert(std::filesystem::exists(_model_path+"/"+_model_name+"/kcat.csv"));
+  assert(is_file_exist(_model_path+"/"+_model_name+"/kcat.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/kcat.csv", std::ios::in);
   assert(file);
   std::string line;
@@ -755,7 +767,7 @@ void Model::load_conditions( void )
   assert(_condition_params.size()==0);
   assert(_condition_indices.size()==0);
   assert(_conditions==NULL);
-  assert(std::filesystem::exists(_model_path+"/"+_model_name+"/conditions.csv"));
+  assert(is_file_exist(_model_path+"/"+_model_name+"/conditions.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/conditions.csv", std::ios::in);
   assert(file);
   std::string line;
@@ -822,7 +834,7 @@ void Model::load_f0( void )
   assert(_f0==NULL);
   _f0 = gsl_vector_alloc(_nj);
   gsl_vector_set_zero(_f0);
-  assert(std::filesystem::exists(_model_path+"/"+_model_name+"/f0.csv"));
+  assert(is_file_exist(_model_path+"/"+_model_name+"/f0.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/f0.csv", std::ios::in);
   assert(file);
   std::string line;
@@ -857,7 +869,7 @@ void Model::load_directions_and_boundaries( void )
   assert(_boundaries==NULL);
   _directions = new std::string[_nj];
   _boundaries = new boundaries[_nj];
-  assert(std::filesystem::exists(_model_path+"/"+_model_name+"/direction.csv"));
+  assert(is_file_exist(_model_path+"/"+_model_name+"/direction.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/direction.csv", std::ios::in);
   assert(file);
   std::string line;

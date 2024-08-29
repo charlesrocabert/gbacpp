@@ -108,6 +108,8 @@ protected:
    * PROTECTED METHODS
    *----------------------------*/
   
+  bool is_file_exist( std::string filename );
+  
   void load_metabolite_identifiers( void );
   void load_reaction_identifiers( void );
   void load_vector_sizes( void );
@@ -289,7 +291,7 @@ inline void Model::set_condition( std::string condition )
 {
   assert(_condition_indices.find(condition) != _condition_indices.end());
   int cond_index = _condition_indices[condition];
-  for(int i = 0; i < _condition_params.size(); i++)
+  for(int i = 0; i < (int)_condition_params.size(); i++)
   {
     std::string param = _condition_params[i];
     if (param == "rho")
