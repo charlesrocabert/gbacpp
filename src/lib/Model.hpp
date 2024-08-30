@@ -123,6 +123,7 @@ protected:
   void load_kcat( void );
   void load_conditions( void );
   void load_f0( void );
+  void reload_f0( void );
   void load_directions_and_boundaries( void );
   
   void initialize_static_variables( void );
@@ -165,7 +166,7 @@ protected:
   void close_optimum_ouput_files( void );
   
   bool compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory );
-  bool compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory );
+  bool compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, bool reload );
   
   /*----------------------------
    * PROTECTED ATTRIBUTES

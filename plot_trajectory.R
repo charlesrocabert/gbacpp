@@ -14,6 +14,19 @@
 library("tidyverse")
 library("rstudioapi")
 library("cowplot")
+library("ggpmisc")
+
+compare_mass_fractions <- function( observed_m, b_trajectory, index )
+{
+  observed_m = filter(observed_m, ID%in%names(b_trajectory))
+  X          = t(b_trajectory[index,observed_m$ID])
+  D          = data.frame(observed_m$ID, observed_m$Fraction, X*100)
+  names(D)   = c("ID", "observed", "predicted")
+  D          = D[order(D$predicted, decreasing=T),]
+  D$ID       = factor(D$ID, levels=D$ID)
+  return(D)
+}
+
 
 ##################
 #      MAIN      #
@@ -25,16 +38,15 @@ setwd(directory)
 d1 = read.table("./output/MMSYN_state_trajectory.csv", h=T, sep=";")
 d2 = read.table("./output/MMSYN_b_trajectory.csv", h=T, sep=";")
 d3 = read.table("./output/MMSYN_p_trajectory.csv", h=T, sep=";")
-d4 = read.table("./output/MMSYN_c_trajectory.csv", h=T, sep=";")
 m  = read.table("../GBA_MMSYN/data/source/Breuer-et-al-2019/MMSYN_mass_fractions.csv", h=T, sep=";", check.names=F)
 
 d3$P   = rowSums(d3[,-which(names(d3)%in%c("t","dt","index"))])
 d3$phi = d3$Ribosome/d3$P
 d3$mu  = d1$mu
 
-d1$index = seq(1, dim(d1)[1])*100
-d2$index = seq(1, dim(d2)[1])*100
-d3$index = seq(1, dim(d3)[1])*100
+d1$index = seq(1, dim(d1)[1])*500
+d2$index = seq(1, dim(d2)[1])*500
+d3$index = seq(1, dim(d3)[1])*500
 
 d1$t[1] = d1$t[2]
 reg = lm(log10(d1$mu)~log10(d1$t))
@@ -51,7 +63,7 @@ p2 = ggplot(d1, aes(index, log10(dt))) +
   theme_classic()
 p3 = ggplot(d1, aes(index, log10(mu_diff))) +
   geom_smooth(se=F) +
-  geom_hline(yintercept=-10, color="red") +
+  geom_hline(yintercept=-10, color="red", lty=2) +
   geom_line(lty=2) +
   theme_classic()
 p4 = ggplot(d2, aes(t, Protein*100)) +
@@ -61,7 +73,58 @@ p5 = ggplot(d3, aes(mu, phi)) +
   geom_line() +
   theme_classic()
 
-plot_grid(p1, p2, p3, p4, p5, ncol=2)
+D = compare_mass_fractions(m, d2, dim(d2)[1])
+
+p6 = ggplot(D, aes(ID, log10(predicted))) +
+  geom_bar(stat="identity") +
+  geom_point(aes(ID, log10(observed)), col="red") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+# plot(seq(1, dim(D)[1]), log10(D$observed))
+# reg = lm(log10(D$observed)~seq(1, dim(D)[1]))
+# print(summary(reg))
+# abline(reg)
+
+p7 = ggplot(D, aes(observed, predicted)) +
+  geom_smooth(method="lm", se=F) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  theme_classic()
+
+mf_lss  = c()
+mf_r2   = c()
+mf_pval = c()
+for(i in seq(1, dim(d2)[1]))
+{
+  df = compare_mass_fractions(m, d2, i)
+  df$rank = seq(1, dim(df)[1])
+  lss = sum((log10(df$observed)-log10(df$predicted))^2)/dim(df)[1]
+  reg = lm(log10(df$observed)~df$rank)
+  r2 = summary(reg)$adj.r.squared
+  pval = summary(reg)$coefficients[2,4]
+  mf_lss = c(mf_lss, lss)
+  mf_r2 = c(mf_r2, r2)
+  mf_pval = c(mf_pval, pval)
+}
+d1$mf_lss = mf_lss
+d1$mf_r2  = mf_r2
+d1$mf_pval  = mf_pval
+
+p8 = ggplot(d1, aes(t, log10(mf_lss))) +
+  geom_line() +
+  theme_classic()
+
+p9 = ggplot(d1, aes(t, (mf_r2))) +
+  geom_line() +
+  theme_classic()
+
+p10 = ggplot(d1, aes(t, log10(mf_pval))) +
+  geom_line() +
+  theme_classic()
+
+plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, ncol=2)
 
 
 # df2 = d2 %>% rowwise() %>% pivot_longer(-t)

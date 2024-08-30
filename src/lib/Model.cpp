@@ -366,7 +366,7 @@ bool Model::compute_gradient_ascent_trajectory( std::string condition, double in
   }
   else if (_model_size == GENOME_SCALE)
   {
-    return compute_gradient_ascent_trajectory_for_genome_scale_models(condition, initial_dt, max_t, save_trajectory);
+    return compute_gradient_ascent_trajectory_for_genome_scale_models(condition, initial_dt, max_t, save_trajectory, false);
   }
   else
   {
@@ -887,6 +887,40 @@ void Model::load_conditions( void )
  * \return   \e void
  */
 void Model::load_f0( void )
+{
+  assert(_f0==NULL);
+  _f0 = gsl_vector_alloc(_nj);
+  gsl_vector_set_zero(_f0);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/f0.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/f0.csv", std::ios::in);
+  assert(file);
+  std::string line;
+  std::string reaction_id;
+  std::string str_value;
+  getline(file, line);
+  while(getline(file, line))
+  {
+    std::stringstream flux(line.c_str());
+    getline(flux, reaction_id, ';');
+    getline(flux, str_value, ';');
+    assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
+    double value = stod(str_value);
+    gsl_vector_set(_f0, _reaction_indices[reaction_id], value);
+    if (fabs(value) > FLUX_BOUNDARY)
+    {
+      throw std::invalid_argument("> f0 value is higher than the flux boundary");
+    }
+  }
+  file.close();
+}
+
+/**
+ * \brief    Re-load f0
+ * \details  Re-load the vector from the last trajectory point
+ * \param    void
+ * \return   \e void
+ */
+void Model::reload_f0( void )
 {
   assert(_f0==NULL);
   _f0 = gsl_vector_alloc(_nj);
@@ -2116,7 +2150,7 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
  * \param    bool save_trajectory
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory )
+bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, bool reload )
 {
   assert(_condition_indices.find(condition) != _condition_indices.end());
   assert(initial_dt > 0.0);
@@ -2153,7 +2187,6 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
     {
       throw std::invalid_argument("> dt is too small");
     }
-    nb_iterations++;
     if (nb_iterations%1000==0)
     {
       std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
@@ -2180,7 +2213,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
       t = t+dt;
       dt_counter++;
       _mu_diff = fabs(_mu-previous_mu);
-      if (save_trajectory && nb_iterations%100==0)
+      if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT==0)
       {
         write_trajectory_output_files(t, dt);
       }
@@ -2207,6 +2240,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
       dt         /= DECREASING_DT_FACTOR;
       dt_counter  = 0;
     }
+    nb_iterations++;
   }
   gsl_vector_free(previous_f_trunc);
   gsl_vector_free(scaled_dmudt);
