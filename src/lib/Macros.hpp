@@ -34,12 +34,12 @@
 #define MIN_PARAMETER              1e-10 /*!< Tolerance to test equality of parameters with zero                   */
 #define MIN_CONCENTRATION          1e-10 /*!< Minimum concentration value                                          */
 #define MIN_FLUX_FRACTION          1e-10 /*!< Minimum flux fraction                                                */
-#define DENSITY_CONSTRAINT_TOL     1e-5 /*!< Density tolerance threshold (|1-rho| < tol)                          */
-#define NEGATIVE_C_TOL             1e-5 /*!< Negative C tolerance threshold (C > -tol)                            */
-#define NEGATIVE_P_TOL             1e-5 /*!< Negative P tolerance threshold (P > -tol)                            */
+#define DENSITY_CONSTRAINT_TOL     1e-5  /*!< Density tolerance threshold (|1-rho| < tol)                          */
+#define NEGATIVE_C_TOL             1e-10 /*!< Negative C tolerance threshold (C > -tol)                            */
+#define NEGATIVE_P_TOL             1e-10 /*!< Negative P tolerance threshold (P > -tol)                            */
 #define DECREASING_DT_FACTOR       5.0   /*!< Factor dividing dt                                                   */
 #define INCREASING_DT_FACTOR       2.0   /*!< Factor multiplying dt                                                */
-#define INCREASING_DT_COUNT        500   /*!< Number of constant dt iterations to increase it                       */
+#define INCREASING_DT_COUNT        100   /*!< Number of constant dt iterations to increase it                       */
 #define TRAJECTORY_STABLE_MU_COUNT 1000  /*!< Number of stable mu values required to consider a trajectory stable  */
 #define TRAJECTORY_CONVERGENCE_TOL 1e-10  /*!< Analytical trajectory convergence tolerance                          */
 #define EXPORT_DATA_COUNT          500  /*!< Data is exported at this period in number of iterations              */
