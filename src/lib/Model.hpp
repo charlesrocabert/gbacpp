@@ -98,6 +98,8 @@ public:
   bool compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, double save_trajectory );
   void compute_local_optimum_for_all_conditions( double initial_dt, double max_t );
   
+  void save_report( std::string filename );
+  
   /*----------------------------
    * PUBLIC ATTRIBUTES
    *----------------------------*/
@@ -223,18 +225,19 @@ protected:
   
   /*----------------------------------------------- GBA first order variables */
   
-  gsl_vector* _f0;         /*!< Initial state                      */
-  gsl_vector* _f;          /*!< Flux fractions vector              */
-  gsl_vector* _f_trunc;    /*!< Truncated flux fractions vector    */
-  gsl_vector* _c;          /*!< Internal metabolite concentrations */
-  gsl_vector* _xc;         /*!< Metabolite concentrations          */
-  gsl_vector* _tau_j;      /*!< Tau values (turnover times)        */
-  gsl_vector* _v;          /*!< Fluxes vector                      */
-  gsl_vector* _p;          /*!< Protein concentrations vector      */
-  gsl_vector* _b;          /*!< Biomass fractions vector           */
-  double      _density;    /*!< Cell's relative density            */
-  double      _mu;         /*!< Growth rate                        */
-  bool        _consistent; /*!< Is the model consistent?           */
+  gsl_vector* _f0;                    /*!< Initial state                      */
+  gsl_vector* _f;                     /*!< Flux fractions vector              */
+  gsl_vector* _f_trunc;               /*!< Truncated flux fractions vector    */
+  gsl_vector* _c;                     /*!< Internal metabolite concentrations */
+  gsl_vector* _xc;                    /*!< Metabolite concentrations          */
+  gsl_vector* _tau_j;                 /*!< Tau values (turnover times)        */
+  gsl_vector* _v;                     /*!< Fluxes vector                      */
+  gsl_vector* _p;                     /*!< Protein concentrations vector      */
+  gsl_vector* _b;                     /*!< Biomass fractions vector           */
+  double      _density;               /*!< Cell's relative density            */
+  double      _mu;                    /*!< Growth rate                        */
+  bool        _consistent;            /*!< Is the model consistent?           */
+  bool        _adjust_concentrations; /*!< Adjust concentration vector c      */
   
   /*----------------------------------------------- GBA second order variables */
   
@@ -255,17 +258,18 @@ protected:
   gsl_matrix*     _dmu_f_term3;  /*!< Variable for the calculation of dmu_f */
   gsl_vector*     _dmu_f_term4;  /*!< Variable for the calculation of dmu_f */
   gsl_vector*     _dmu_f_term5;  /*!< Variable for the calculation of dmu_f */
+  double          _mu_diff;      /*!< Next mu to current mu differential    */
   
   /*----------------------------------------------- Output files */
   
-  std::ofstream _model_trajectory_file; /*!< Model trajectory output file    */
+  std::ofstream _state_trajectory_file; /*!< Model trajectory output file    */
   std::ofstream _f_trajectory_file;     /*!< f vector trajectory output file */
   std::ofstream _c_trajectory_file;     /*!< c vector trajectory output file */
   std::ofstream _v_trajectory_file;     /*!< v vector trajectory output file */
   std::ofstream _p_trajectory_file;     /*!< p vector trajectory output file */
   std::ofstream _b_trajectory_file;     /*!< b vector trajectory output file */
   
-  std::ofstream _model_optimum_file; /*!< Model optimum output file    */
+  std::ofstream _state_optimum_file; /*!< Model optimum output file    */
   std::ofstream _f_optimum_file;     /*!< f vector optimum output file */
   std::ofstream _c_optimum_file;     /*!< c vector optimum output file */
   std::ofstream _v_optimum_file;     /*!< v vector optimum output file */
@@ -301,6 +305,7 @@ inline double Model::get_mu( void )
 inline void Model::set_condition( std::string condition )
 {
   assert(_condition_indices.find(condition) != _condition_indices.end());
+  _current_condition = condition;
   int cond_index = _condition_indices[condition];
   for(int i = 0; i < (int)_condition_params.size(); i++)
   {

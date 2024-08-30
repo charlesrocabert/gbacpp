@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>MMSYN_tests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
 		<key>calculate_gradient_ascent_trajectory.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
@@ -17,6 +22,11 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>B60959562C80D40200A8BEB1</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>B61A08F02C806E72009D4A4C</key>
 		<dict>
 			<key>primary</key>

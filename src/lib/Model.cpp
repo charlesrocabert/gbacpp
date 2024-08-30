@@ -395,6 +395,51 @@ void Model::compute_local_optimum_for_all_conditions( double initial_dt, double 
   close_optimum_ouput_files();
 }
 
+/**
+ * \brief    Save a report of the model state
+ * \details  --
+ * \param    std::string filename
+ * \return   \e bool
+ */
+void Model::save_report( std::string filename )
+{
+  std::ofstream report_file(filename.c_str(), std::ios::out | std::ios::trunc);
+  report_file << _model_path << "/" << _model_name << " (" << _model_size << ")\n\n";
+  report_file << "Condition  = " << _current_condition << "\n";
+  report_file << "Rho        = " << _current_rho << "\n";
+  report_file << "Density    = " << _density << "\n";
+  report_file << "Mu         = " << _mu << "\n";
+  report_file << "Consistent = " << _consistent << "\n\n";
+  report_file << "F vector:\n--------\n\n";
+  for( int j = 0; j < _nj; j++)
+  {
+    report_file << _reaction_ids[j] << " " << gsl_vector_get(_f, j);
+    if (fabs(gsl_vector_get(_f, j)) < MIN_CONCENTRATION)
+    {
+      report_file << " --------------------- TOO_LOW\n";
+    }
+    else
+    {
+      report_file << "\n";
+    }
+  }
+  report_file << "\nC vector:\n--------\n\n";
+  for( int i = 0; i < _nc; i++)
+  {
+    report_file << _c_ids[i] << " " << gsl_vector_get(_c, i);
+    if (gsl_vector_get(_c, i) < MIN_CONCENTRATION)
+    {
+      report_file << " --------------------- TOO_LOW\n";
+    }
+    else
+    {
+      report_file << "\n";
+    }
+  }
+  report_file << "\n";
+  report_file.close();
+}
+
 /*----------------------------
  * PROTECTED METHODS
  *----------------------------*/
@@ -881,8 +926,8 @@ void Model::load_directions_and_boundaries( void )
   assert(_boundaries==NULL);
   _directions = new std::string[_nj];
   _boundaries = new boundaries[_nj];
-  assert(is_file_exist(_model_path+"/"+_model_name+"/direction.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/direction.csv", std::ios::in);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/directions.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/directions.csv", std::ios::in);
   assert(file);
   std::string line;
   std::string reaction_id;
@@ -1023,7 +1068,7 @@ void Model::initialize_dynamic_variables( void )
   _dmu_f       = gsl_vector_alloc(_nj);
   _GCC_f       = gsl_vector_alloc(_nj);
   _dmu_f_term2 = gsl_vector_alloc(_nj);
-  _dmu_f_term3 = gsl_matrix_alloc(_nc, _nj);
+  _dmu_f_term3 = gsl_matrix_alloc(_nj, _nj); //(_nc, _nj);
   _dmu_f_term4 = gsl_vector_alloc(_nj);
   _dmu_f_term5 = gsl_vector_alloc(_nj);
   /*** Initialize all variables to zero ***/
@@ -1057,6 +1102,16 @@ void Model::initialize_dynamic_variables( void )
 void Model::compute_c( void )
 {
   gsl_blas_dgemv(CblasNoTrans, _current_rho, _M, _f, 0.0, _c);
+  if (_adjust_concentrations)
+  {
+    for (int i = 0; i < _nc; i++)
+    {
+      if (gsl_vector_get(_c, i) < MIN_CONCENTRATION)
+      {
+        gsl_vector_set(_c, i, MIN_CONCENTRATION);
+      }
+    }
+  }
 }
 
 /**
@@ -1692,7 +1747,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 1) Reaction is irreversible and positive    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) < MIN_FLUX_FRACTION && gsl_vector_get(_GCC_f, j+1) < 0.0)
+    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) <= MIN_FLUX_FRACTION && gsl_vector_get(_GCC_f, j+1) < 0.0)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
       gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
@@ -1700,7 +1755,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 2) Reaction is irreversible and negative    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    else if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) > -MIN_FLUX_FRACTION && gsl_vector_get(_GCC_f, j+1) > 0.0)
+    else if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) >= -MIN_FLUX_FRACTION && gsl_vector_get(_GCC_f, j+1) > 0.0)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
       gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
@@ -1708,10 +1763,10 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 3) Reaction is reversible and tends to zero */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    else if (_directions[j+1] == "reversible" && fabs(gsl_vector_get(_f_trunc, j)) < MIN_FLUX_FRACTION)
+    else if (_directions[j+1] == "reversible" && fabs(gsl_vector_get(_f_trunc, j)) <= MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
-      if (gsl_vector_get(_f_trunc, j) > 0.0)
+      if (gsl_vector_get(_f_trunc, j) >= 0.0)
       {
         gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
       }
@@ -1734,19 +1789,19 @@ void Model::open_trajectory_output_files( void )
   /*~~~~~~~~~~~~~~~~~~*/
   /* 1) Open files    */
   /*~~~~~~~~~~~~~~~~~~*/
-  std::stringstream model_trajectory_filename;
+  std::stringstream state_trajectory_filename;
   std::stringstream f_trajectory_filename;
   std::stringstream c_trajectory_filename;
   std::stringstream v_trajectory_filename;
   std::stringstream p_trajectory_filename;
   std::stringstream b_trajectory_filename;
-  model_trajectory_filename << "./output/" << _model_name << "_model_trajectory.csv";
+  state_trajectory_filename << "./output/" << _model_name << "_state_trajectory.csv";
   f_trajectory_filename << "./output/" << _model_name << "_f_trajectory.csv";
   c_trajectory_filename << "./output/" << _model_name << "_c_trajectory.csv";
   v_trajectory_filename << "./output/" << _model_name << "_v_trajectory.csv";
   p_trajectory_filename << "./output/" << _model_name << "_p_trajectory.csv";
   b_trajectory_filename << "./output/" << _model_name << "_b_trajectory.csv";
-  _model_trajectory_file.open(model_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _f_trajectory_file.open(f_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::trunc);
@@ -1755,7 +1810,7 @@ void Model::open_trajectory_output_files( void )
   /*~~~~~~~~~~~~~~~~~~*/
   /* 2) Write headers */
   /*~~~~~~~~~~~~~~~~~~*/
-   _model_trajectory_file << "t;dt;mu;density;consistent\n";
+  _state_trajectory_file << "t;dt;mu;density;consistent;mu_diff\n";
   _f_trajectory_file << "t;dt";
   _c_trajectory_file << "t;dt";
   _v_trajectory_file << "t;dt";
@@ -1788,17 +1843,31 @@ void Model::open_trajectory_output_files( void )
  */
 void Model::write_trajectory_output_files( double t, double dt )
 {
-  _model_trajectory_file << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << "\n";
-  _f_trajectory_file << t << ";" << dt;
+  /*------------------------------------*/
+  /* 1) Update state file               */
+  /*------------------------------------*/
+  _state_trajectory_file << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
+  _state_trajectory_file.flush();
+  /*------------------------------------*/
+  /* 2) Update metabolites related file */
+  /*------------------------------------*/
   _c_trajectory_file << t << ";" << dt;
-  _v_trajectory_file << t << ";" << dt;
-  _p_trajectory_file << t << ";" << dt;
   _b_trajectory_file << t << ";" << dt;
   for (int i = 0; i < _nc; i++)
   {
     _c_trajectory_file << ";" << gsl_vector_get(_c, i);
     _b_trajectory_file << ";" << gsl_vector_get(_b, i);
   }
+  _c_trajectory_file << "\n";
+  _b_trajectory_file << "\n";
+  _c_trajectory_file.flush();
+  _b_trajectory_file.flush();
+  /*------------------------------------*/
+  /* 2) Update reactions related file   */
+  /*------------------------------------*/
+  _f_trajectory_file << t << ";" << dt;
+  _v_trajectory_file << t << ";" << dt;
+  _p_trajectory_file << t << ";" << dt;
   for (int j = 0; j < _nj; j++)
   {
     _f_trajectory_file << ";" << gsl_vector_get(_f, j);
@@ -1806,10 +1875,11 @@ void Model::write_trajectory_output_files( double t, double dt )
     _p_trajectory_file << ";" << gsl_vector_get(_p, j);
   }
   _f_trajectory_file << "\n";
-  _c_trajectory_file << "\n";
   _v_trajectory_file << "\n";
   _p_trajectory_file << "\n";
-  _b_trajectory_file << "\n";
+  _f_trajectory_file.flush();
+  _v_trajectory_file.flush();
+  _p_trajectory_file.flush();
 }
 
 /**
@@ -1820,7 +1890,7 @@ void Model::write_trajectory_output_files( double t, double dt )
  */
 void Model::close_trajectory_ouput_files( void )
 {
-  _model_trajectory_file.close();
+  _state_trajectory_file.close();
   _f_trajectory_file.close();
   _c_trajectory_file.close();
   _v_trajectory_file.close();
@@ -1839,19 +1909,19 @@ void Model::open_optimum_output_files( void )
   /*~~~~~~~~~~~~~~~~~~*/
   /* 1) Open files    */
   /*~~~~~~~~~~~~~~~~~~*/
-  std::stringstream model_optimum_filename;
+  std::stringstream state_optimum_filename;
   std::stringstream f_optimum_filename;
   std::stringstream c_optimum_filename;
   std::stringstream v_optimum_filename;
   std::stringstream p_optimum_filename;
   std::stringstream b_optimum_filename;
-  model_optimum_filename << "./output/" << _model_name << "_model_optimum.csv";
+  state_optimum_filename << "./output/" << _model_name << "_state_optimum.csv";
   f_optimum_filename << "./output/" << _model_name << "_f_optimum.csv";
   c_optimum_filename << "./output/" << _model_name << "_c_optimum.csv";
   v_optimum_filename << "./output/" << _model_name << "_v_optimum.csv";
   p_optimum_filename << "./output/" << _model_name << "_p_optimum.csv";
   b_optimum_filename << "./output/" << _model_name << "_b_optimum.csv";
-  _model_optimum_file.open(model_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _state_optimum_file.open(state_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _f_optimum_file.open(f_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _c_optimum_file.open(c_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _v_optimum_file.open(v_optimum_filename.str(), std::ios::out | std::ios::trunc);
@@ -1860,7 +1930,7 @@ void Model::open_optimum_output_files( void )
   /*~~~~~~~~~~~~~~~~~~*/
   /* 2) Write headers */
   /*~~~~~~~~~~~~~~~~~~*/
-   _model_optimum_file << "condition;mu;density;consistent;converged\n";
+  _state_optimum_file << "condition;mu;density;consistent;converged\n";
   _f_optimum_file << "condition";
   _c_optimum_file << "condition";
   _v_optimum_file << "condition";
@@ -1893,7 +1963,7 @@ void Model::open_optimum_output_files( void )
  */
 void Model::write_optimum_output_files( std::string condition, bool converged )
 {
-  _model_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << "\n";
+  _state_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << "\n";
   _f_optimum_file << condition;
   _c_optimum_file << condition;
   _v_optimum_file << condition;
@@ -1925,7 +1995,7 @@ void Model::write_optimum_output_files( std::string condition, bool converged )
  */
 void Model::close_optimum_ouput_files( void )
 {
-  _model_optimum_file.close();
+  _state_optimum_file.close();
   _f_optimum_file.close();
   _c_optimum_file.close();
   _v_optimum_file.close();
@@ -2055,6 +2125,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   {
     open_trajectory_output_files();
   }
+  _adjust_concentrations = false;
   set_condition(condition);
   initialize_f();
   calculate_GM();
@@ -2062,6 +2133,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   {
     throw std::invalid_argument("> Model initial state f0 is inconsistent");
   }
+  save_report("./output/initial_report.txt");
   gsl_vector* previous_f_trunc = gsl_vector_alloc(_nj-1);
   gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
   gsl_vector_memcpy(previous_f_trunc, _f_trunc);
@@ -2082,6 +2154,10 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
       throw std::invalid_argument("> dt is too small");
     }
     nb_iterations++;
+    if (nb_iterations%1000==0)
+    {
+      std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
+    }
     /*------------------------------------------------*/
     /* 2) Check trajectory convergence                */
     /*------------------------------------------------*/
@@ -2089,27 +2165,26 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
     {
       break;
     }
-    set_f();
-    calculate_second_order_GM();
+    previous_mu = _mu;
     block_reactions();
-    previous_mu           = _mu;
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
     gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
     gsl_vector_scale(scaled_dmudt, dt);
     gsl_vector_add(_f_trunc, scaled_dmudt);
     set_f();
-    calculate_first_order_GM();
-    if (_consistent)
+    calculate_GM();
+    if (_consistent && _mu >= previous_mu)
     {
       gsl_vector_memcpy(previous_f_trunc, _f_trunc);
       nb_successes++;
       t = t+dt;
       dt_counter++;
-      if (save_trajectory)
+      _mu_diff = fabs(_mu-previous_mu);
+      if (save_trajectory && nb_iterations%100==0)
       {
         write_trajectory_output_files(t, dt);
       }
-      if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
+      if (_mu_diff < TRAJECTORY_CONVERGENCE_TOL)
       {
         constant_mu_counter++;
       }
@@ -2117,7 +2192,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
       {
         constant_mu_counter = 0;
       }
-      if (dt_counter == 1000)
+      if (dt_counter == INCREASING_DT_COUNT)
       {
         dt         *= INCREASING_DT_FACTOR;
         dt_counter  = 0;
