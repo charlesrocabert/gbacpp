@@ -35,10 +35,13 @@ compare_mass_fractions <- function( observed_m, b_trajectory, index )
 directory = dirname(getActiveDocumentContext()$path)
 setwd(directory)
 
-d1 = read.table("./output/MMSYN_state_trajectory.csv", h=T, sep=";")
-d2 = read.table("./output/MMSYN_b_trajectory.csv", h=T, sep=";")
-d3 = read.table("./output/MMSYN_p_trajectory.csv", h=T, sep=";")
-m  = read.table("../GBA_MMSYN/data/source/Breuer-et-al-2019/MMSYN_mass_fractions.csv", h=T, sep=";", check.names=F)
+model_name = "MMSYN_FCR_noRNA_noDNA_nodUTPase"
+
+d1 = read.table(paste0("./output/",model_name,"_state_trajectory.csv"), h=T, sep=";")
+d2 = read.table(paste0("./output/",model_name,"_b_trajectory.csv"), h=T, sep=";")
+d3 = read.table(paste0("./output/",model_name,"_p_trajectory.csv"), h=T, sep=";")
+d4 = read.table(paste0("./output/",model_name,"_f_trajectory.csv"), h=T, sep=";")
+m  = read.table("../GBA_MMSYN/data/source/Breuer-et-al-2019/mass_fractions.csv", h=T, sep=";", check.names=F)
 
 d3$P   = rowSums(d3[,-which(names(d3)%in%c("t","dt","index"))])
 d3$phi = d3$Ribosome/d3$P
@@ -52,8 +55,8 @@ d1$t[1] = d1$t[2]
 reg = lm(log10(d1$mu)~log10(d1$t))
 d1$fit = 10^reg$coefficients[[1]]*d1$t^reg$coefficients[[2]]
 
-p1 = ggplot(d1, aes(t, mu)) +
-  geom_line(aes(t, fit), col="red", lty=2) +
+p1 = ggplot(d1, aes(index, mu)) +
+  geom_line(aes(index, fit), col="red", lty=2) +
   geom_line() +
   #scale_y_log10() +
   theme_classic() 
@@ -88,6 +91,7 @@ p6 = ggplot(D, aes(ID, log10(predicted))) +
 
 p7 = ggplot(D, aes(observed, predicted)) +
   geom_smooth(method="lm", se=F) +
+  geom_abline(slope=1, intercept=0, lty=2) +
   geom_point() +
   scale_x_log10() +
   scale_y_log10() +
@@ -112,16 +116,17 @@ d1$mf_lss = mf_lss
 d1$mf_r2  = mf_r2
 d1$mf_pval  = mf_pval
 
-p8 = ggplot(d1, aes(t, log10(mf_lss))) +
+p8 = ggplot(d1, aes(index, log10(mf_lss))) +
   geom_line() +
   theme_classic()
 
-p9 = ggplot(d1, aes(t, (mf_r2))) +
+p9 = ggplot(d1, aes(index, (mf_r2))) +
   geom_line() +
   theme_classic()
 
-p10 = ggplot(d1, aes(t, log10(mf_pval))) +
+p10 = ggplot(d1, aes(index, log10(mf_pval))) +
   geom_line() +
+  geom_hline(yintercept=log10(0.05), col="red", lty=2) +
   theme_classic()
 
 plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, ncol=2)
@@ -136,4 +141,5 @@ plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, ncol=2)
 #   theme_classic() +
 #   theme(legend.position="none")
 # p4
+
 
