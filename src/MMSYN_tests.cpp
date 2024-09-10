@@ -53,7 +53,7 @@
  */
 int main(int argc, char const** argv)
 {
-  Model* model = new Model("./csv_models", "MMSYN_FCR_noRNA_noDNA_nodUTPase", GENOME_SCALE);
+  Model* model = new Model("./csv_models", "MMSYN", GENOME_SCALE);
   model->load_model();
   model->initialize_variables();
   model->compute_gradient_ascent_trajectory("1", 0.1, 200, true);

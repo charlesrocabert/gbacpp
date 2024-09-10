@@ -34,7 +34,7 @@
 #define MIN_PARAMETER              1e-10 /*!< Tolerance to test equality of parameters with zero                   */
 #define MIN_CONCENTRATION          1e-10 /*!< Minimum concentration value                                          */
 #define MIN_FLUX_FRACTION          1e-10 /*!< Minimum flux fraction                                                */
-#define DENSITY_CONSTRAINT_TOL     1e-5  /*!< Density tolerance threshold (|1-rho| < tol)                          */
+#define DENSITY_CONSTRAINT_TOL     1e-10  /*!< Density tolerance threshold (|1-rho| < tol)                          */
 #define NEGATIVE_C_TOL             1e-10 /*!< Negative C tolerance threshold (C > -tol)                            */
 #define NEGATIVE_P_TOL             1e-10 /*!< Negative P tolerance threshold (P > -tol)                            */
 #define DECREASING_DT_FACTOR       5.0   /*!< Factor dividing dt                                                   */

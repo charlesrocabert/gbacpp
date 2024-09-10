@@ -452,8 +452,11 @@ void Model::save_report( std::string filename )
  */
 bool Model::is_file_exist( std::string filename )
 {
-    std::ifstream infile(filename.c_str());
-    return infile.good();
+  bool is_file_exist = false;
+  std::ifstream infile(filename.c_str());
+  is_file_exist = infile.good();
+  infile.close();
+  return is_file_exist;
 }
 
 /**
@@ -1102,7 +1105,7 @@ void Model::initialize_dynamic_variables( void )
   _dmu_f       = gsl_vector_alloc(_nj);
   _GCC_f       = gsl_vector_alloc(_nj);
   _dmu_f_term2 = gsl_vector_alloc(_nj);
-  _dmu_f_term3 = gsl_matrix_alloc(_nj, _nj); //(_nc, _nj);
+  _dmu_f_term3 = gsl_matrix_alloc(_nj, _nj);
   _dmu_f_term4 = gsl_vector_alloc(_nj);
   _dmu_f_term5 = gsl_vector_alloc(_nj);
   /*** Initialize all variables to zero ***/
@@ -1781,18 +1784,24 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 1) Reaction is irreversible and positive    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) <= MIN_FLUX_FRACTION && gsl_vector_get(_GCC_f, j+1) < 0.0)
+    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) <= MIN_FLUX_FRACTION)
     {
-      gsl_vector_set(_GCC_f, j+1, 0.0);
       gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
+      if (gsl_vector_get(_GCC_f, j+1) < 0.0)
+      {
+        gsl_vector_set(_GCC_f, j+1, 0.0);
+      }
     }
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 2) Reaction is irreversible and negative    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    else if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) >= -MIN_FLUX_FRACTION && gsl_vector_get(_GCC_f, j+1) > 0.0)
+    if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) >= -MIN_FLUX_FRACTION)
     {
-      gsl_vector_set(_GCC_f, j+1, 0.0);
       gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
+      if (gsl_vector_get(_GCC_f, j+1) > 0.0)
+      {
+        gsl_vector_set(_GCC_f, j+1, 0.0);
+      }
     }
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 3) Reaction is reversible and tends to zero */
@@ -2055,6 +2064,7 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
   {
     open_trajectory_output_files();
   }
+  _adjust_concentrations = false;
   set_condition(condition);
   initialize_f();
   calculate();
@@ -2087,7 +2097,7 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
     gsl_vector_add(_f_trunc, scaled_dmudt);
     set_f();
     calculate();
-    if (_consistent)
+    if (_consistent && _mu >= previous_mu)
     {
       gsl_vector_memcpy(previous_f_trunc, _f_trunc);
       nb_successes++;
@@ -2148,6 +2158,7 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
  * \param    double initial_dt
  * \param    double max_t
  * \param    bool save_trajectory
+ * \param    bool reload
  * \return   \e bool
  */
 bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, bool reload )
@@ -2216,6 +2227,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
       if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT==0)
       {
         write_trajectory_output_files(t, dt);
+        system("/usr/local/bin/Rscript /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/plot_trajectory.R >/dev/null 2>&1");
       }
       if (_mu_diff < TRAJECTORY_CONVERGENCE_TOL)
       {

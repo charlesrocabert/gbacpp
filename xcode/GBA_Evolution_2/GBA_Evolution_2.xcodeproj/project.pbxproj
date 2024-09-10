@@ -61,34 +61,13 @@
 		B60959552C80D36B00A8BEB1 /* MMSYN_tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MMSYN_tests.cpp; sourceTree = "<group>"; };
 		B60959632C80D40200A8BEB1 /* MMSYN_tests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MMSYN_tests; sourceTree = BUILT_PRODUCTS_DIR; };
 		B61A09402C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = calculate_gradient_ascent_trajectory; sourceTree = BUILT_PRODUCTS_DIR; };
-		B666F3322C860A3C001B763B /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
-		B666F3332C860A3C001B763B /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
-		B666F3342C860A3C001B763B /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
-		B666F3352C860A3C001B763B /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
-		B666F3362C860A3C001B763B /* KM_backward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_backward.csv; sourceTree = "<group>"; };
-		B666F3372C860A3C001B763B /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
-		B666F3382C860A3C001B763B /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
-		B666F33A2C860A3C001B763B /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
-		B666F33B2C860A3C001B763B /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
-		B666F33C2C860A3C001B763B /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
-		B666F33D2C860A3C001B763B /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
-		B666F33E2C860A3C001B763B /* KM_backward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_backward.csv; sourceTree = "<group>"; };
-		B666F33F2C860A3C001B763B /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
-		B666F3402C860A3C001B763B /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
-		B666F3422C860A3C001B763B /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
-		B666F3432C860A3C001B763B /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
-		B666F3442C860A3C001B763B /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
-		B666F3452C860A3C001B763B /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
-		B666F3462C860A3C001B763B /* KM_backward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_backward.csv; sourceTree = "<group>"; };
-		B666F3472C860A3C001B763B /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
-		B666F3482C860A3C001B763B /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
-		B666F34A2C860A3C001B763B /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
-		B666F34B2C860A3C001B763B /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
-		B666F34C2C860A3C001B763B /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
-		B666F34D2C860A3C001B763B /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
-		B666F34E2C860A3C001B763B /* KM_backward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_backward.csv; sourceTree = "<group>"; };
-		B666F34F2C860A3C001B763B /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
-		B666F3502C860A3C001B763B /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
+		B65015392C89716100604166 /* conditions.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
+		B650153A2C89716100604166 /* directions.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
+		B650153B2C89716100604166 /* f0.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
+		B650153C2C89716100604166 /* kcat.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
+		B650153D2C89716100604166 /* KM_backward.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = KM_backward.csv; sourceTree = "<group>"; };
+		B650153E2C89716100604166 /* KM_forward.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
+		B650153F2C89716100604166 /* M.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
 		B670A3A92C81863E00FAE7C4 /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
 		B670A3AA2C81864A00FAE7C4 /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
 		B670A3AB2C81865100FAE7C4 /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
@@ -242,60 +221,18 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		B666F3392C860A3C001B763B /* MMSYN_FCR_noRNA_noDNA_nodUTPase */ = {
+		B65015402C89716100604166 /* MMSYN */ = {
 			isa = PBXGroup;
 			children = (
-				B666F3322C860A3C001B763B /* conditions.csv */,
-				B666F3332C860A3C001B763B /* directions.csv */,
-				B666F3342C860A3C001B763B /* f0.csv */,
-				B666F3352C860A3C001B763B /* kcat.csv */,
-				B666F3362C860A3C001B763B /* KM_backward.csv */,
-				B666F3372C860A3C001B763B /* KM_forward.csv */,
-				B666F3382C860A3C001B763B /* M.csv */,
+				B65015392C89716100604166 /* conditions.csv */,
+				B650153A2C89716100604166 /* directions.csv */,
+				B650153B2C89716100604166 /* f0.csv */,
+				B650153C2C89716100604166 /* kcat.csv */,
+				B650153D2C89716100604166 /* KM_backward.csv */,
+				B650153E2C89716100604166 /* KM_forward.csv */,
+				B650153F2C89716100604166 /* M.csv */,
 			);
-			path = MMSYN_FCR_noRNA_noDNA_nodUTPase;
-			sourceTree = "<group>";
-		};
-		B666F3412C860A3C001B763B /* MMSYN_FCR_noRNA_noDNA_nodUTPase_byproducts */ = {
-			isa = PBXGroup;
-			children = (
-				B666F33A2C860A3C001B763B /* conditions.csv */,
-				B666F33B2C860A3C001B763B /* directions.csv */,
-				B666F33C2C860A3C001B763B /* f0.csv */,
-				B666F33D2C860A3C001B763B /* kcat.csv */,
-				B666F33E2C860A3C001B763B /* KM_backward.csv */,
-				B666F33F2C860A3C001B763B /* KM_forward.csv */,
-				B666F3402C860A3C001B763B /* M.csv */,
-			);
-			path = MMSYN_FCR_noRNA_noDNA_nodUTPase_byproducts;
-			sourceTree = "<group>";
-		};
-		B666F3492C860A3C001B763B /* MMSYN_FCR_noRNA */ = {
-			isa = PBXGroup;
-			children = (
-				B666F3422C860A3C001B763B /* conditions.csv */,
-				B666F3432C860A3C001B763B /* directions.csv */,
-				B666F3442C860A3C001B763B /* f0.csv */,
-				B666F3452C860A3C001B763B /* kcat.csv */,
-				B666F3462C860A3C001B763B /* KM_backward.csv */,
-				B666F3472C860A3C001B763B /* KM_forward.csv */,
-				B666F3482C860A3C001B763B /* M.csv */,
-			);
-			path = MMSYN_FCR_noRNA;
-			sourceTree = "<group>";
-		};
-		B666F3512C860A3C001B763B /* MMSYN_FCR_noRNA_byproducts */ = {
-			isa = PBXGroup;
-			children = (
-				B666F34A2C860A3C001B763B /* conditions.csv */,
-				B666F34B2C860A3C001B763B /* directions.csv */,
-				B666F34C2C860A3C001B763B /* f0.csv */,
-				B666F34D2C860A3C001B763B /* kcat.csv */,
-				B666F34E2C860A3C001B763B /* KM_backward.csv */,
-				B666F34F2C860A3C001B763B /* KM_forward.csv */,
-				B666F3502C860A3C001B763B /* M.csv */,
-			);
-			path = MMSYN_FCR_noRNA_byproducts;
+			path = MMSYN;
 			sourceTree = "<group>";
 		};
 		B6E3A6B02C80753200106E8A /* client-vscode */ = {
@@ -618,10 +555,7 @@
 		B6E3A7282C80753200106E8A /* csv_models */ = {
 			isa = PBXGroup;
 			children = (
-				B666F3492C860A3C001B763B /* MMSYN_FCR_noRNA */,
-				B666F3512C860A3C001B763B /* MMSYN_FCR_noRNA_byproducts */,
-				B666F3392C860A3C001B763B /* MMSYN_FCR_noRNA_noDNA_nodUTPase */,
-				B666F3412C860A3C001B763B /* MMSYN_FCR_noRNA_noDNA_nodUTPase_byproducts */,
+				B65015402C89716100604166 /* MMSYN */,
 				B6E3A7062C80753200106E8A /* A */,
 				B6E3A70E2C80753200106E8A /* B */,
 				B6E3A7162C80753200106E8A /* C */,

@@ -15,7 +15,6 @@ GLCpts;forward
 GLYCt;forward
 GSNabc;forward
 H2Ot;forward
-Ht;forward
 Kt6;forward
 LIPTA;forward
 L_LACt2r;forward
@@ -57,7 +56,6 @@ DGSNK;forward
 ENO;forward
 FAKr;forward
 FBA;forward
-FMNAT;forward
 FTHFCL;forward
 GALU;forward
 GAPD;forward
@@ -65,7 +63,6 @@ GK1;forward
 GLYK;forward
 GUAPRT;forward
 LDH_L;forward
-NADHK;forward
 NADS;forward
 NCTPPRT;forward
 NNATr;forward
@@ -105,7 +102,6 @@ TKT2;forward
 TMDK1;forward
 TMPK;forward
 TPI;forward
-TRDR;forward
 UDPG4E;forward
 UDPGALM;forward
 UMPK;forward
@@ -113,5 +109,7 @@ UPPRT;forward
 AATRS;forward
 ACP_transl;forward
 PdhC_transl;forward
+dUTPase_transl;forward
+DNAP;forward
 tRNAP;forward
 Ribosome;forward
