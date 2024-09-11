@@ -12,7 +12,6 @@
 		B609595B2C80D40200A8BEB1 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72C2C80753200106E8A /* Model.cpp */; };
 		B609595C2C80D40200A8BEB1 /* Model.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72D2C80753200106E8A /* Model.hpp */; };
 		B609595D2C80D40200A8BEB1 /* Structs.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72E2C80753200106E8A /* Structs.hpp */; };
-		B60959642C80D41C00A8BEB1 /* MMSYN_tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B60959552C80D36B00A8BEB1 /* MMSYN_tests.cpp */; };
 		B6E3A73E2C80754B00106E8A /* Enums.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72A2C80753200106E8A /* Enums.hpp */; };
 		B6E3A73F2C80754B00106E8A /* Macros.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72B2C80753200106E8A /* Macros.hpp */; };
 		B6E3A7402C80754B00106E8A /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72C2C80753200106E8A /* Model.cpp */; };
@@ -58,7 +57,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		B60959552C80D36B00A8BEB1 /* MMSYN_tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MMSYN_tests.cpp; sourceTree = "<group>"; };
 		B60959632C80D40200A8BEB1 /* MMSYN_tests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MMSYN_tests; sourceTree = BUILT_PRODUCTS_DIR; };
 		B61A09402C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = calculate_gradient_ascent_trajectory; sourceTree = BUILT_PRODUCTS_DIR; };
 		B65015392C89716100604166 /* conditions.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
@@ -591,7 +589,6 @@
 				B6E3A72F2C80753200106E8A /* lib */,
 				B6E3A7302C80753200106E8A /* calculate_gradient_ascent_trajectory.cpp */,
 				B6E3A7442C80858700106E8A /* calculate_local_optimum.cpp */,
-				B60959552C80D36B00A8BEB1 /* MMSYN_tests.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -736,7 +733,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B60959642C80D41C00A8BEB1 /* MMSYN_tests.cpp in Sources */,
 				B60959592C80D40200A8BEB1 /* Enums.hpp in Sources */,
 				B609595A2C80D40200A8BEB1 /* Macros.hpp in Sources */,
 				B609595B2C80D40200A8BEB1 /* Model.cpp in Sources */,

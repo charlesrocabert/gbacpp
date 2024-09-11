@@ -43,7 +43,7 @@
 #include "./lib/Structs.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, std::string &condition, double &initial_dt, double &max_t );
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, std::string &condition, double &initial_dt, double &max_t, bool &save, std::string &output_path );
 void printUsage( void );
 void printHeader( void );
 
@@ -66,7 +66,9 @@ int main(int argc, char const** argv)
   std::string condition  = "";
   double      initial_dt = 0.0;
   double      max_t      = 0.0;
-  readArgs(argc, argv, path, name, size, condition, initial_dt, max_t);
+  bool        save       = false;
+  std::string output     = "";
+  readArgs(argc, argv, path, name, size, condition, initial_dt, max_t, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
@@ -74,7 +76,7 @@ int main(int argc, char const** argv)
   Model* model = new Model(path, name, size);
   model->load_model();
   model->initialize_variables();
-  model->compute_gradient_ascent_trajectory(condition, initial_dt, max_t, true);
+  model->compute_gradient_ascent_trajectory(condition, initial_dt, max_t, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Free memory and exit                        */
@@ -95,9 +97,11 @@ int main(int argc, char const** argv)
  * \param    std::string &condition
  * \param    double &initial_dt
  * \param    double &max_t
+ * \param    bool &save
+ * \param    std::string &output
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, std::string &condition, double &initial_dt, double &max_t )
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, std::string &condition, double &initial_dt, double &max_t, bool &save, std::string &output )
 {
   if (argc == 1)
   {
@@ -202,6 +206,28 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
         counter++;
       }
     }
+    else if (strcmp(argv[i], "-save") == 0 || strcmp(argv[i], "--save-trajectory") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> output path value is missing");
+      }
+      else
+      {
+        save = true;
+      }
+    }
+    else if (strcmp(argv[i], "-output") == 0 || strcmp(argv[i], "--output-path") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> output path value is missing");
+      }
+      else
+      {
+        output = argv[i+1];
+      }
+    }
   }
   if (counter < 6)
   {
@@ -242,18 +268,22 @@ void printUsage( void )
   std::cout << "        print this help, then exit\n";
   std::cout << "  -v, --version\n";
   std::cout << "        print the current version, then exit\n";
-  std::cout << "  -path, --model-path\n";
+  std::cout << "  -path, --model-path (MANDATORY)\n";
   std::cout << "        specify the path of the GBA model to be loaded\n";
-  std::cout << "  -name, --model-name\n";
+  std::cout << "  -name, --model-name (MANDATORY)\n";
   std::cout << "        specify the name of the GBA model to be loaded\n";
-  std::cout << "  -size, --model-size\n";
+  std::cout << "  -size, --model-size (MANDATORY)\n";
   std::cout << "        specify the size of the GBA model (SMALL / GENOME_SCALE)\n";
-  std::cout << "  -condition, --condition\n";
+  std::cout << "  -condition, --condition (MANDATORY)\n";
   std::cout << "        specify the external condition identifier\n";
-  std::cout << "  -dt, --initial-dt\n";
+  std::cout << "  -dt, --initial-dt (MANDATORY)\n";
   std::cout << "        specify the initial gradient timestep\n";
-  std::cout << "  -maxt, --max-time\n";
+  std::cout << "  -maxt, --max-time (MANDATORY)\n";
   std::cout << "        specify the maximal time\n";
+  std::cout << "  -save, --save-trajectory\n";
+  std::cout << "        specify if the trajectory should be saved as output files\n";
+  std::cout << "  -output, --output-path\n";
+  std::cout << "        specify the path of output files\n";
   std::cout << "\n";
 }
 

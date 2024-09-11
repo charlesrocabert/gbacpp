@@ -78,9 +78,6 @@ add_executable(${TRAJECTORY_EXECUTABLE} src/calculate_gradient_ascent_trajectory
 set(OPTIMUM_EXECUTABLE calculate_local_optimum)
 add_executable(${OPTIMUM_EXECUTABLE} src/calculate_local_optimum.cpp)
 
-set(MMSYN_EXECUTABLE MMSYN_tests)
-add_executable(${MMSYN_EXECUTABLE} src/MMSYN_tests.cpp)
-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Find and link external libraries                                             #
@@ -90,7 +87,6 @@ if(GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
   target_link_libraries(${TRAJECTORY_EXECUTABLE} ${GSL_LIBRARIES})
   target_link_libraries(${OPTIMUM_EXECUTABLE} ${GSL_LIBRARIES})
-  target_link_libraries(${MMSYN_EXECUTABLE} ${GSL_LIBRARIES})
 endif(GSL_FOUND)
 
 
@@ -110,7 +106,6 @@ target_link_libraries(GBA_Evolution gsl gslcblas)
 
 target_link_libraries(${TRAJECTORY_EXECUTABLE} GBA_Evolution)
 target_link_libraries(${OPTIMUM_EXECUTABLE} GBA_Evolution)
-target_link_libraries(${MMSYN_EXECUTABLE} GBA_Evolution)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

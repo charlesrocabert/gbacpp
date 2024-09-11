@@ -315,18 +315,19 @@ void Model::calculate_GM( void )
  * \param    std::string condition
  * \param    double initial_dt
  * \param    double max_t
- * \param    double save_trajectory
+ * \param    bool save_trajectory
+ * \param    std::string output_path
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, double save_trajectory )
+bool Model::compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
   if (_model_size == SMALL)
   {
-    return compute_gradient_ascent_trajectory_for_small_models(condition, initial_dt, max_t, save_trajectory);
+    return compute_gradient_ascent_trajectory_for_small_models(condition, initial_dt, max_t, save_trajectory, output_path);
   }
   else if (_model_size == GENOME_SCALE)
   {
-    return compute_gradient_ascent_trajectory_for_genome_scale_models(condition, initial_dt, max_t, save_trajectory, false);
+    return compute_gradient_ascent_trajectory_for_genome_scale_models(condition, initial_dt, max_t, save_trajectory, output_path);
   }
   else
   {
@@ -349,7 +350,7 @@ void Model::compute_local_optimum_for_all_conditions( double initial_dt, double 
   for (int i = 0; i < _condition_ids.size(); i++)
   {
     std::string condition = _condition_ids[i];
-    bool converged        = compute_gradient_ascent_trajectory(condition, initial_dt, max_t, false);
+    bool converged        = compute_gradient_ascent_trajectory(condition, initial_dt, max_t, false, "");
     write_optimum_output_files(condition, converged);
   }
   close_optimum_ouput_files();
@@ -1784,10 +1785,10 @@ void Model::block_reactions( void )
 /**
  * \brief    Open trajectory output files
  * \details  Also writes headers
- * \param    void
+ * \param    std::string output_path
  * \return   \e void
  */
-void Model::open_trajectory_output_files( void )
+void Model::open_trajectory_output_files( std::string output_path )
 {
   /*~~~~~~~~~~~~~~~~~~*/
   /* 1) Open files    */
@@ -1798,12 +1799,12 @@ void Model::open_trajectory_output_files( void )
   std::stringstream v_trajectory_filename;
   std::stringstream p_trajectory_filename;
   std::stringstream b_trajectory_filename;
-  state_trajectory_filename << "./output/" << _model_name << "_state_trajectory.csv";
-  f_trajectory_filename << "./output/" << _model_name << "_f_trajectory.csv";
-  c_trajectory_filename << "./output/" << _model_name << "_c_trajectory.csv";
-  v_trajectory_filename << "./output/" << _model_name << "_v_trajectory.csv";
-  p_trajectory_filename << "./output/" << _model_name << "_p_trajectory.csv";
-  b_trajectory_filename << "./output/" << _model_name << "_b_trajectory.csv";
+  state_trajectory_filename << output_path << "/" << _model_name << "_state_trajectory.csv";
+  f_trajectory_filename << output_path << "/" << _model_name << "_f_trajectory.csv";
+  c_trajectory_filename << output_path << "/" << _model_name << "_c_trajectory.csv";
+  v_trajectory_filename << output_path << "/" << _model_name << "_v_trajectory.csv";
+  p_trajectory_filename << output_path << "/" << _model_name << "_p_trajectory.csv";
+  b_trajectory_filename << output_path << "/" << _model_name << "_b_trajectory.csv";
   _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _f_trajectory_file.open(f_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
@@ -2013,16 +2014,17 @@ void Model::close_optimum_ouput_files( void )
  * \param    double initial_dt
  * \param    double max_t
  * \param    bool save_trajectory
+ * \param    std::string output_path
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory )
+bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
   assert(_condition_indices.find(condition) != _condition_indices.end());
   assert(initial_dt > 0.0);
   assert(max_t > 0.0);
   if (save_trajectory)
   {
-    open_trajectory_output_files();
+    open_trajectory_output_files(output_path);
   }
   _adjust_concentrations = false;
   set_condition(condition);
@@ -2119,17 +2121,17 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
  * \param    double initial_dt
  * \param    double max_t
  * \param    bool save_trajectory
- * \param    bool reload
+ * \param    std::string output_path
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, bool reload )
+bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
   assert(_condition_indices.find(condition) != _condition_indices.end());
   assert(initial_dt > 0.0);
   assert(max_t > 0.0);
   if (save_trajectory)
   {
-    open_trajectory_output_files();
+    open_trajectory_output_files(output_path);
   }
   _adjust_concentrations = false;
   set_condition(condition);

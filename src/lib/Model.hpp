@@ -93,7 +93,7 @@ public:
   void calculate( void );
   void calculate_GM( void );
   
-  bool compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, double save_trajectory );
+  bool compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
   void compute_local_optimum_for_all_conditions( double initial_dt, double max_t );
   
   void save_report( std::string filename );
@@ -155,7 +155,7 @@ protected:
   void check_model_consistency( void );
   void block_reactions( void );
   
-  void open_trajectory_output_files( void );
+  void open_trajectory_output_files( std::string output_path );
   void write_trajectory_output_files( double t, double dt );
   void close_trajectory_ouput_files( void );
   
@@ -163,8 +163,8 @@ protected:
   void write_optimum_output_files( std::string condition, bool converged );
   void close_optimum_ouput_files( void );
   
-  bool compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory );
-  bool compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, bool reload );
+  bool compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
+  bool compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
   
   /*----------------------------
    * PROTECTED ATTRIBUTES
