@@ -347,7 +347,7 @@ bool Model::compute_gradient_ascent_trajectory( std::string condition, double in
 void Model::compute_local_optimum_for_all_conditions( double initial_dt, double max_t )
 {
   open_optimum_output_files();
-  for (int i = 0; i < _condition_ids.size(); i++)
+  for (int i = 0; i < (int)_condition_ids.size(); i++)
   {
     std::string condition = _condition_ids[i];
     bool converged        = compute_gradient_ascent_trajectory(condition, initial_dt, max_t, false, "");
@@ -438,11 +438,9 @@ void Model::load_metabolite_identifiers( void )
   std::string line;
   std::string id;
   getline(file, line);
-  line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
   int index = 0;
   while(getline(file, line))
   {
-    line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
     std::stringstream flux(line.c_str());
     getline(flux, id, ';');
     _metabolite_ids.push_back(id);
@@ -476,13 +474,11 @@ void Model::load_reaction_identifiers( void )
   std::string line;
   std::string id;
   getline(file, line);
-  line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
   std::stringstream flux(line.c_str());
   getline(flux, id, ';');
   int index = 0;
   while(getline(flux, id, ';'))
   {
-    line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
     _reaction_ids.push_back(id);
     _reaction_indices[id] = index;
     index++;
@@ -531,7 +527,6 @@ void Model::load_M( void )
   getline(file, line);
   while(getline(file, line))
   {
-    line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
     std::stringstream flux(line.c_str());
     /*** get metabolite id ***/
     getline(flux, id, ';');
@@ -579,7 +574,6 @@ void Model::load_KM_forward( void )
   getline(file, line);
   while(getline(file, line))
   {
-    line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
     std::stringstream flux(line.c_str());
     /*** get metabolite id ***/
     getline(flux, id, ';');
@@ -621,7 +615,6 @@ void Model::load_KM_backward( void )
     getline(file, line);
     while(getline(file, line))
     {
-      line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
       std::stringstream flux(line.c_str());
       /*** get metabolite id ***/
       getline(flux, id, ';');
@@ -664,7 +657,6 @@ void Model::load_KI( void )
     getline(file, line);
     while(getline(file, line))
     {
-      line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
       std::stringstream flux(line.c_str());
       /*** get metabolite id ***/
       getline(flux, id, ';');
@@ -707,7 +699,6 @@ void Model::load_KA( void )
     getline(file, line);
     while(getline(file, line))
     {
-      line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
       std::stringstream flux(line.c_str());
       /*** get metabolite id ***/
       getline(flux, id, ';');
@@ -750,7 +741,6 @@ void Model::load_kcat( void )
   getline(file, line);
   /*** Load kcat forward values ***/
   getline(file, line);
-  line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
   std::stringstream flux1(line.c_str());
   getline(flux1, id, ';');
   col = 0;
@@ -762,7 +752,6 @@ void Model::load_kcat( void )
   }
   /*** Load kcat backward values ***/
   getline(file, line);
-  line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
   std::stringstream flux2(line.c_str());
   getline(flux2, id, ';');
   col = 0;
@@ -798,7 +787,6 @@ void Model::load_conditions( void )
   /* 1) Read condition identifiers */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   getline(file, line);
-  line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
   std::stringstream flux1(line.c_str());
   getline(flux1, id, ';');
   int index = 0;
@@ -813,7 +801,6 @@ void Model::load_conditions( void )
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   while(getline(file, line))
   {
-    line.erase(std::remove(line.begin(), line.end(), '\r'),line.end());
     std::stringstream flux(line.c_str());
     getline(flux, id, ';');
     _condition_params.push_back(id);
