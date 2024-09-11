@@ -37,7 +37,6 @@
 #include <vector>
 #include <unordered_map>
 #include <cmath>
-#include <unistd.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
