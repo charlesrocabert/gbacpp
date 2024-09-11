@@ -92,8 +92,6 @@ public:
   void initialize_variables( void );
   void calculate( void );
   void calculate_GM( void );
-  void calculate_first_order_GM( void );
-  void calculate_second_order_GM( void );
   
   bool compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, double save_trajectory );
   void compute_local_optimum_for_all_conditions( double initial_dt, double max_t );

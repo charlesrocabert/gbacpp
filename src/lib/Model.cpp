@@ -310,46 +310,6 @@ void Model::calculate_GM( void )
 }
 
 /**
- * \brief    Calculate first order variables for genome-scale models
- * \details  Specific methods are applied
- * \param    void
- * \return   \e void
- */
-void Model::calculate_first_order_GM( void )
-{
-  compute_c();
-  compute_xc();
-  for (int j = 0; j < _nj; j++)
-  {
-    GMMM(j);
-  }
-  compute_mu();
-  compute_v();
-  compute_p();
-  compute_b();
-  compute_density();
-  check_model_consistency();
-}
-
-/**
- * \brief    Calculate second order variables for genome-scale models
- * \details  Specific methods are applied
- * \param    void
- * \return   \e void
- */
-void Model::calculate_second_order_GM( void )
-{
-  compute_c();
-  compute_xc();
-  for (int j = 0; j < _nj; j++)
-  {
-    dGMMM(j);
-  }
-  compute_dmu_f();
-  compute_GCC_f();
-}
-
-/**
  * \brief    Compute the gradient ascent trajectory
  * \details  --
  * \param    std::string condition
@@ -2137,6 +2097,7 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
   scaled_dmudt     = NULL;
   if (save_trajectory)
   {
+    write_trajectory_output_files(t, dt);
     close_trajectory_ouput_files();
   }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
@@ -2227,7 +2188,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
       if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT==0)
       {
         write_trajectory_output_files(t, dt);
-        system("/usr/local/bin/Rscript /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/plot_trajectory.R >/dev/null 2>&1");
+        //system("/usr/local/bin/Rscript /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/plot_trajectory.R >/dev/null 2>&1");
       }
       if (_mu_diff < TRAJECTORY_CONVERGENCE_TOL)
       {
@@ -2260,6 +2221,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   scaled_dmudt     = NULL;
   if (save_trajectory)
   {
+    write_trajectory_output_files(t, dt);
     close_trajectory_ouput_files();
   }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
