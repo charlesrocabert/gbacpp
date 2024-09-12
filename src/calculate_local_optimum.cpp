@@ -42,7 +42,7 @@
 #include "./lib/Structs.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, double &initial_dt, double &max_t );
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, double &initial_dt, double &max_t, bool &save, std::string &output_path, bool &parallel_computing );
 void printUsage( void );
 void printHeader( void );
 
@@ -64,15 +64,16 @@ int main(int argc, char const** argv)
   msize       size       = SMALL;
   double      initial_dt = 0.0;
   double      max_t      = 0.0;
-  readArgs(argc, argv, path, name, size, initial_dt, max_t);
+  bool        save       = false;
+  std::string output     = "";
+  bool        parallel   = false;
+  readArgs(argc, argv, path, name, size, initial_dt, max_t, save, output, parallel);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  Model* model = new Model(path, name, size);
-  model->load_model();
-  model->initialize_variables();
-  model->compute_local_optimum_for_all_conditions(initial_dt, max_t);
+  Model* model = new Model(path, name, size, parallel);
+  model->compute_local_optimum_for_all_conditions(initial_dt, max_t, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Free memory and exit                        */
@@ -92,9 +93,12 @@ int main(int argc, char const** argv)
  * \param    msize &size
  * \param    double &initial_dt
  * \param    double &max_t
+ * \param    bool &save
+ * \param    std::string &output
+ * \param    bool &parallel
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, double &initial_dt, double &max_t )
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, double &initial_dt, double &max_t, bool &save, std::string &output, bool &parallel )
 {
   if (argc == 1)
   {
@@ -187,6 +191,39 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
         counter++;
       }
     }
+        else if (strcmp(argv[i], "-save") == 0 || strcmp(argv[i], "--save-trajectory") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> output path value is missing");
+      }
+      else
+      {
+        save = true;
+      }
+    }
+    else if (strcmp(argv[i], "-output") == 0 || strcmp(argv[i], "--output-path") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> output path value is missing");
+      }
+      else
+      {
+        output = argv[i+1];
+      }
+    }
+    else if (strcmp(argv[i], "-parallel") == 0 || strcmp(argv[i], "--parallel-computing") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> parallel computing value is missing");
+      }
+      else
+      {
+        parallel = true;
+      }
+    }
   }
   if (counter < 5)
   {
@@ -237,6 +274,12 @@ void printUsage( void )
   std::cout << "        specify the initial gradient timestep\n";
   std::cout << "  -maxt, --max-time\n";
   std::cout << "        specify the maximal time\n";
+  std::cout << "  -save, --save-trajectory\n";
+  std::cout << "        specify if the trajectory should be saved as output files\n";
+  std::cout << "  -output, --output-path\n";
+  std::cout << "        specify the path of output files\n";
+  std::cout << "  -parallel, --parallel-computing\n";
+  std::cout << "        specify if the computation should be parallel\n";
   std::cout << "\n";
 }
 

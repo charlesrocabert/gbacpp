@@ -377,15 +377,17 @@ bool Model::compute_gradient_ascent_trajectory( std::string condition, double in
  * \param    std::string condition
  * \param    double initial_dt
  * \param    double max_t
+ * \param    bool save_trajectory
+ * \param    std::string output_path
  * \return   \e bool
  */
-void Model::compute_local_optimum_for_all_conditions( double initial_dt, double max_t )
+void Model::compute_local_optimum_for_all_conditions( double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
   open_optimum_output_files();
   for (int i = 0; i < (int)_condition_ids.size(); i++)
   {
     std::string condition = _condition_ids[i];
-    bool converged        = compute_gradient_ascent_trajectory(condition, initial_dt, max_t, false, "");
+    bool converged        = compute_gradient_ascent_trajectory(condition, initial_dt, max_t, save_trajectory, output_path);
     write_optimum_output_files(condition, converged);
   }
   close_optimum_ouput_files();
