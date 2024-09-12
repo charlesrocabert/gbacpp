@@ -82,7 +82,7 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Save the optimum in case of convergence     */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  model->open_optimum_output_files(output);
+  model->open_optimum_output_files(output, condition);
   model->write_optimum_output_files(condition, converged);
   model->close_optimum_ouput_files();
   

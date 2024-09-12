@@ -383,7 +383,7 @@ bool Model::compute_gradient_ascent_trajectory( std::string condition, double in
  */
 void Model::compute_local_optimum_for_all_conditions( double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
-  open_optimum_output_files(output_path);
+  open_optimum_output_files(output_path, "");
   for (int i = 0; i < (int)_condition_ids.size(); i++)
   {
     std::string condition = _condition_ids[i];
@@ -566,32 +566,46 @@ void Model::close_trajectory_ouput_files( void )
  * \param    std::string output_path
  * \return   \e void
  */
-void Model::open_optimum_output_files( std::string output_path )
+void Model::open_optimum_output_files( std::string output_path, std::string condition )
 {
-  /*~~~~~~~~~~~~~~~~~~*/
-  /* 1) Open files    */
-  /*~~~~~~~~~~~~~~~~~~*/
+  /*~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Create filenames */
+  /*~~~~~~~~~~~~~~~~~~~~~*/
   std::stringstream state_optimum_filename;
   std::stringstream f_optimum_filename;
   std::stringstream c_optimum_filename;
   std::stringstream v_optimum_filename;
   std::stringstream p_optimum_filename;
   std::stringstream b_optimum_filename;
-  state_optimum_filename << output_path << "/" << _model_name << "_state_optimum.csv";
-  f_optimum_filename << output_path << "/" << _model_name << "_f_optimum.csv";
-  c_optimum_filename << output_path << "/" << _model_name << "_c_optimum.csv";
-  v_optimum_filename << output_path << "/" << _model_name << "_v_optimum.csv";
-  p_optimum_filename << output_path << "/" << _model_name << "_p_optimum.csv";
-  b_optimum_filename << output_path << "/" << _model_name << "_b_optimum.csv";
+  if (condition != "")
+  {
+    state_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_state_optimum.csv";
+    f_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_f_optimum.csv";
+    c_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_c_optimum.csv";
+    v_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_v_optimum.csv";
+    p_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_p_optimum.csv";
+    b_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_b_optimum.csv";
+  }
+  else
+  {
+    state_optimum_filename << output_path << "/" << _model_name << "_state_optimum.csv";
+    f_optimum_filename << output_path << "/" << _model_name << "_f_optimum.csv";
+    c_optimum_filename << output_path << "/" << _model_name << "_c_optimum.csv";
+    v_optimum_filename << output_path << "/" << _model_name << "_v_optimum.csv";
+    p_optimum_filename << output_path << "/" << _model_name << "_p_optimum.csv";
+    b_optimum_filename << output_path << "/" << _model_name << "_b_optimum.csv";
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Create files     */
+  /*~~~~~~~~~~~~~~~~~~~~~*/
+  /*** Open files ***/
   _state_optimum_file.open(state_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _f_optimum_file.open(f_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _c_optimum_file.open(c_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _v_optimum_file.open(v_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  /*~~~~~~~~~~~~~~~~~~*/
-  /* 2) Write headers */
-  /*~~~~~~~~~~~~~~~~~~*/
+  /*** Write headers ***/
   _state_optimum_file << "condition;mu;density;consistent;converged\n";
   _f_optimum_file << "condition";
   _c_optimum_file << "condition";

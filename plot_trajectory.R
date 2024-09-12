@@ -19,7 +19,7 @@ library("ggpmisc")
 compare_mass_fractions <- function( observed_m, b_trajectory, index )
 {
   observed_m = filter(observed_m, ID%in%names(b_trajectory))
-  observed_m$Fraction = observed_m$Fraction/sum(observed_m$Fraction)*100
+  #observed_m$Fraction = observed_m$Fraction/sum(observed_m$Fraction)*100
   #print(observed_m)
   #stop()
   X          = t(b_trajectory[index,observed_m$ID])
@@ -41,12 +41,15 @@ compare_mass_fractions <- function( observed_m, b_trajectory, index )
 #setwd(directory)
 setwd("/Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/")
 
-model_name = "MMSYN"
+args = commandArgs(trailingOnly=TRUE)
 
-d1 = read.table(paste0("./output/",model_name,"_state_trajectory.csv"), h=T, sep=";")
-d2 = read.table(paste0("./output/",model_name,"_b_trajectory.csv"), h=T, sep=";")
-d3 = read.table(paste0("./output/",model_name,"_p_trajectory.csv"), h=T, sep=";")
-d4 = read.table(paste0("./output/",model_name,"_f_trajectory.csv"), h=T, sep=";")
+model_name = "MMSYN"
+condition  = args[1]
+
+d1 = read.table(paste0("./output/",model_name,"_",condition,"_state_trajectory.csv"), h=T, sep=";")
+d2 = read.table(paste0("./output/",model_name,"_",condition,"_b_trajectory.csv"), h=T, sep=";")
+d3 = read.table(paste0("./output/",model_name,"_",condition,"_p_trajectory.csv"), h=T, sep=";")
+d4 = read.table(paste0("./output/",model_name,"_",condition,"_f_trajectory.csv"), h=T, sep=";")
 m  = read.table("../GBA_MMSYN/data/source/Breuer-et-al-2019/mass_fractions.csv", h=T, sep=";", check.names=F)
 p  = read.table("../GBA_MMSYN/data/source/Peter-MMSYN/MMSYN_proteomics.csv", h=T, sep=";", check.names=F)
 
@@ -145,7 +148,7 @@ p10 = ggplot(d1, aes(index, log10(mf_pval))) +
   theme_classic()
 
 p = plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, ncol=2)
-ggsave("test.pdf", p, width=15/2, height=15/2)
+ggsave(paste0("trajectory_",condition,".pdf"), p, width=15/2, height=15/2)
 
 
 # df2 = d2 %>% rowwise() %>% pivot_longer(-t)
