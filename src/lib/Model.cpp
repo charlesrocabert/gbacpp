@@ -2204,10 +2204,6 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   int    nb_successes        = 0;
   while (t < max_t)
   {
-    if (nb_iterations==5000)
-    {
-      return false;
-    }
     /*------------------------------------------------*/
     /* 1) Check the size of dt                        */
     /*------------------------------------------------*/
