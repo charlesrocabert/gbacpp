@@ -1838,9 +1838,10 @@ void Model::block_reactions( void )
  * \brief    Open trajectory output files
  * \details  Also writes headers
  * \param    std::string output_path
+ * \param    std::string condition
  * \return   \e void
  */
-void Model::open_trajectory_output_files( std::string output_path )
+void Model::open_trajectory_output_files( std::string output_path, std::string condition )
 {
   /*~~~~~~~~~~~~~~~~~~*/
   /* 1) Open files    */
@@ -1851,12 +1852,12 @@ void Model::open_trajectory_output_files( std::string output_path )
   std::stringstream v_trajectory_filename;
   std::stringstream p_trajectory_filename;
   std::stringstream b_trajectory_filename;
-  state_trajectory_filename << output_path << "/" << _model_name << "_state_trajectory.csv";
-  f_trajectory_filename << output_path << "/" << _model_name << "_f_trajectory.csv";
-  c_trajectory_filename << output_path << "/" << _model_name << "_c_trajectory.csv";
-  v_trajectory_filename << output_path << "/" << _model_name << "_v_trajectory.csv";
-  p_trajectory_filename << output_path << "/" << _model_name << "_p_trajectory.csv";
-  b_trajectory_filename << output_path << "/" << _model_name << "_b_trajectory.csv";
+  state_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_state_trajectory.csv";
+  f_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_f_trajectory.csv";
+  c_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_c_trajectory.csv";
+  v_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_v_trajectory.csv";
+  p_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_p_trajectory.csv";
+  b_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_b_trajectory.csv";
   _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _f_trajectory_file.open(f_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
@@ -1866,12 +1867,12 @@ void Model::open_trajectory_output_files( std::string output_path )
   /*~~~~~~~~~~~~~~~~~~*/
   /* 2) Write headers */
   /*~~~~~~~~~~~~~~~~~~*/
-  _state_trajectory_file << "t;dt;mu;density;consistent;mu_diff\n";
-  _f_trajectory_file << "t;dt";
-  _c_trajectory_file << "t;dt";
-  _v_trajectory_file << "t;dt";
-  _p_trajectory_file << "t;dt";
-  _b_trajectory_file << "t;dt";
+  _state_trajectory_file << "condition;t;dt;mu;density;consistent;mu_diff\n";
+  _f_trajectory_file << "condition;t;dt";
+  _c_trajectory_file << "condition;t;dt";
+  _v_trajectory_file << "condition;t;dt";
+  _p_trajectory_file << "condition;t;dt";
+  _b_trajectory_file << "condition;t;dt";
   for (int i = 0; i < _nc; i++)
   {
     _c_trajectory_file << ";" << _c_ids[i];
@@ -1893,22 +1894,23 @@ void Model::open_trajectory_output_files( std::string output_path )
 /**
  * \brief    Write data into trajectory output files
  * \details  --
+ * \param    std::string condition
  * \param    double t
  * \param    double dt
  * \return   \e void
  */
-void Model::write_trajectory_output_files( double t, double dt )
+void Model::write_trajectory_output_files( std::string condition, double t, double dt )
 {
   /*------------------------------------*/
   /* 1) Update state file               */
   /*------------------------------------*/
-  _state_trajectory_file << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
+  _state_trajectory_file << condition << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
   _state_trajectory_file.flush();
   /*------------------------------------*/
   /* 2) Update metabolites related file */
   /*------------------------------------*/
-  _c_trajectory_file << t << ";" << dt;
-  _b_trajectory_file << t << ";" << dt;
+  _c_trajectory_file << condition << ";" << t << ";" << dt;
+  _b_trajectory_file << condition << ";" << t << ";" << dt;
   for (int i = 0; i < _nc; i++)
   {
     _c_trajectory_file << ";" << gsl_vector_get(_c, i);
@@ -1921,9 +1923,9 @@ void Model::write_trajectory_output_files( double t, double dt )
   /*------------------------------------*/
   /* 2) Update reactions related file   */
   /*------------------------------------*/
-  _f_trajectory_file << t << ";" << dt;
-  _v_trajectory_file << t << ";" << dt;
-  _p_trajectory_file << t << ";" << dt;
+  _f_trajectory_file << condition << ";" << t << ";" << dt;
+  _v_trajectory_file << condition << ";" << t << ";" << dt;
+  _p_trajectory_file << condition << ";" << t << ";" << dt;
   for (int j = 0; j < _nj; j++)
   {
     _f_trajectory_file << ";" << gsl_vector_get(_f, j);
@@ -2076,7 +2078,7 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
   assert(max_t > 0.0);
   if (save_trajectory)
   {
-    open_trajectory_output_files(output_path);
+    open_trajectory_output_files(output_path, condition);
   }
   _adjust_concentrations = false;
   set_condition(condition);
@@ -2119,7 +2121,7 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
       dt_counter++;
       if (save_trajectory)
       {
-        write_trajectory_output_files(t, dt);
+        write_trajectory_output_files(condition, t, dt);
       }
       if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
       {
@@ -2151,7 +2153,7 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
   scaled_dmudt     = NULL;
   if (save_trajectory)
   {
-    write_trajectory_output_files(t, dt);
+    write_trajectory_output_files(condition, t, dt);
     close_trajectory_ouput_files();
   }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
@@ -2183,7 +2185,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   assert(max_t > 0.0);
   if (save_trajectory)
   {
-    open_trajectory_output_files(output_path);
+    open_trajectory_output_files(output_path, condition);
   }
   _adjust_concentrations = false;
   set_condition(condition);
@@ -2193,7 +2195,6 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   {
     throw std::invalid_argument("> Model initial state f0 is inconsistent");
   }
-  save_report("./output/initial_report.txt");
   gsl_vector* previous_f_trunc = gsl_vector_alloc(_nj-1);
   gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
   gsl_vector_memcpy(previous_f_trunc, _f_trunc);
@@ -2241,8 +2242,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
       _mu_diff = fabs(_mu-previous_mu);
       if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT==0)
       {
-        write_trajectory_output_files(t, dt);
-        //system("/usr/local/bin/Rscript /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/plot_trajectory.R >/dev/null 2>&1");
+        write_trajectory_output_files(condition, t, dt);
       }
       if (_mu_diff < TRAJECTORY_CONVERGENCE_TOL)
       {
@@ -2275,7 +2275,7 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   scaled_dmudt     = NULL;
   if (save_trajectory)
   {
-    write_trajectory_output_files(t, dt);
+    write_trajectory_output_files(condition, t, dt);
     close_trajectory_ouput_files();
   }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)

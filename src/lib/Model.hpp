@@ -155,8 +155,8 @@ protected:
   void check_model_consistency( void );
   void block_reactions( void );
   
-  void open_trajectory_output_files( std::string output_path );
-  void write_trajectory_output_files( double t, double dt );
+  void open_trajectory_output_files( std::string output_path, std::string condition );
+  void write_trajectory_output_files( std::string condition, double t, double dt );
   void close_trajectory_ouput_files( void );
   
   void open_optimum_output_files( void );
