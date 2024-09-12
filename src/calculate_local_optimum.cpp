@@ -56,6 +56,8 @@ void printHeader( void );
  */
 int main(int argc, char const** argv)
 {
+  std::clock_t begin = clock();
+  
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Read parameters                             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -79,7 +81,10 @@ int main(int argc, char const** argv)
   /* 3) Free memory and exit                        */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   delete model;
-  model = NULL;
+  model       = NULL;
+  clock_t end = clock();
+  double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
+  std::cout << "Elapsed time: " << elapsed_secs << " seconds" << std::endl;
   return EXIT_SUCCESS;
 }
 
