@@ -383,7 +383,7 @@ bool Model::compute_gradient_ascent_trajectory( std::string condition, double in
  */
 void Model::compute_local_optimum_for_all_conditions( double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
-  open_optimum_output_files();
+  open_optimum_output_files(output_path);
   for (int i = 0; i < (int)_condition_ids.size(); i++)
   {
     std::string condition = _condition_ids[i];
@@ -436,6 +436,233 @@ void Model::save_report( std::string filename )
   }
   report_file << "\n";
   report_file.close();
+}
+
+/**
+ * \brief    Open trajectory output files
+ * \details  Also writes headers
+ * \param    std::string output_path
+ * \param    std::string condition
+ * \return   \e void
+ */
+void Model::open_trajectory_output_files( std::string output_path, std::string condition )
+{
+  /*~~~~~~~~~~~~~~~~~~*/
+  /* 1) Open files    */
+  /*~~~~~~~~~~~~~~~~~~*/
+  std::stringstream state_trajectory_filename;
+  std::stringstream f_trajectory_filename;
+  std::stringstream c_trajectory_filename;
+  std::stringstream v_trajectory_filename;
+  std::stringstream p_trajectory_filename;
+  std::stringstream b_trajectory_filename;
+  state_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_state_trajectory.csv";
+  f_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_f_trajectory.csv";
+  c_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_c_trajectory.csv";
+  v_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_v_trajectory.csv";
+  p_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_p_trajectory.csv";
+  b_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_b_trajectory.csv";
+  _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _f_trajectory_file.open(f_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _p_trajectory_file.open(p_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _b_trajectory_file.open(b_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  /*~~~~~~~~~~~~~~~~~~*/
+  /* 2) Write headers */
+  /*~~~~~~~~~~~~~~~~~~*/
+  _state_trajectory_file << "condition;t;dt;mu;density;consistent;mu_diff\n";
+  _f_trajectory_file << "condition;t;dt";
+  _c_trajectory_file << "condition;t;dt";
+  _v_trajectory_file << "condition;t;dt";
+  _p_trajectory_file << "condition;t;dt";
+  _b_trajectory_file << "condition;t;dt";
+  for (int i = 0; i < _nc; i++)
+  {
+    _c_trajectory_file << ";" << _c_ids[i];
+    _b_trajectory_file << ";" << _c_ids[i];
+  }
+  for (int j = 0; j < _nj; j++)
+  {
+    _f_trajectory_file << ";" << _reaction_ids[j];
+    _v_trajectory_file << ";" << _reaction_ids[j];
+    _p_trajectory_file << ";" << _reaction_ids[j];
+  }
+  _f_trajectory_file << "\n";
+  _c_trajectory_file << "\n";
+  _v_trajectory_file << "\n";
+  _p_trajectory_file << "\n";
+  _b_trajectory_file << "\n";
+}
+
+/**
+ * \brief    Write data into trajectory output files
+ * \details  --
+ * \param    std::string condition
+ * \param    double t
+ * \param    double dt
+ * \return   \e void
+ */
+void Model::write_trajectory_output_files( std::string condition, double t, double dt )
+{
+  /*------------------------------------*/
+  /* 1) Update state file               */
+  /*------------------------------------*/
+  _state_trajectory_file << condition << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
+  _state_trajectory_file.flush();
+  /*------------------------------------*/
+  /* 2) Update metabolites related file */
+  /*------------------------------------*/
+  _c_trajectory_file << condition << ";" << t << ";" << dt;
+  _b_trajectory_file << condition << ";" << t << ";" << dt;
+  for (int i = 0; i < _nc; i++)
+  {
+    _c_trajectory_file << ";" << gsl_vector_get(_c, i);
+    _b_trajectory_file << ";" << gsl_vector_get(_b, i);
+  }
+  _c_trajectory_file << "\n";
+  _b_trajectory_file << "\n";
+  _c_trajectory_file.flush();
+  _b_trajectory_file.flush();
+  /*------------------------------------*/
+  /* 2) Update reactions related file   */
+  /*------------------------------------*/
+  _f_trajectory_file << condition << ";" << t << ";" << dt;
+  _v_trajectory_file << condition << ";" << t << ";" << dt;
+  _p_trajectory_file << condition << ";" << t << ";" << dt;
+  for (int j = 0; j < _nj; j++)
+  {
+    _f_trajectory_file << ";" << gsl_vector_get(_f, j);
+    _v_trajectory_file << ";" << gsl_vector_get(_v, j);
+    _p_trajectory_file << ";" << gsl_vector_get(_p, j);
+  }
+  _f_trajectory_file << "\n";
+  _v_trajectory_file << "\n";
+  _p_trajectory_file << "\n";
+  _f_trajectory_file.flush();
+  _v_trajectory_file.flush();
+  _p_trajectory_file.flush();
+}
+
+/**
+ * \brief    Close trajectory output files
+ * \details  --
+ * \param    void
+ * \return   \e void
+ */
+void Model::close_trajectory_ouput_files( void )
+{
+  _state_trajectory_file.close();
+  _f_trajectory_file.close();
+  _c_trajectory_file.close();
+  _v_trajectory_file.close();
+  _p_trajectory_file.close();
+  _b_trajectory_file.close();
+}
+
+/**
+ * \brief    Open optimum output files
+ * \details  Also writes headers
+ * \param    std::string output_path
+ * \return   \e void
+ */
+void Model::open_optimum_output_files( std::string output_path )
+{
+  /*~~~~~~~~~~~~~~~~~~*/
+  /* 1) Open files    */
+  /*~~~~~~~~~~~~~~~~~~*/
+  std::stringstream state_optimum_filename;
+  std::stringstream f_optimum_filename;
+  std::stringstream c_optimum_filename;
+  std::stringstream v_optimum_filename;
+  std::stringstream p_optimum_filename;
+  std::stringstream b_optimum_filename;
+  state_optimum_filename << output_path << "/" << _model_name << "_state_optimum.csv";
+  f_optimum_filename << output_path << "/" << _model_name << "_f_optimum.csv";
+  c_optimum_filename << output_path << "/" << _model_name << "_c_optimum.csv";
+  v_optimum_filename << output_path << "/" << _model_name << "_v_optimum.csv";
+  p_optimum_filename << output_path << "/" << _model_name << "_p_optimum.csv";
+  b_optimum_filename << output_path << "/" << _model_name << "_b_optimum.csv";
+  _state_optimum_file.open(state_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _f_optimum_file.open(f_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _c_optimum_file.open(c_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _v_optimum_file.open(v_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  /*~~~~~~~~~~~~~~~~~~*/
+  /* 2) Write headers */
+  /*~~~~~~~~~~~~~~~~~~*/
+  _state_optimum_file << "condition;mu;density;consistent;converged\n";
+  _f_optimum_file << "condition";
+  _c_optimum_file << "condition";
+  _v_optimum_file << "condition";
+  _p_optimum_file << "condition";
+  _b_optimum_file << "condition";
+  for (int i = 0; i < _nc; i++)
+  {
+    _c_optimum_file << ";" << _c_ids[i];
+    _b_optimum_file << ";" << _c_ids[i];
+  }
+  for (int j = 0; j < _nj; j++)
+  {
+    _f_optimum_file << ";" << _reaction_ids[j];
+    _v_optimum_file << ";" << _reaction_ids[j];
+    _p_optimum_file << ";" << _reaction_ids[j];
+  }
+  _f_optimum_file << "\n";
+  _c_optimum_file << "\n";
+  _v_optimum_file << "\n";
+  _p_optimum_file << "\n";
+  _b_optimum_file << "\n";
+}
+
+/**
+ * \brief    Write data into optimum output files
+ * \details  --
+ * \param    std::string condition
+ * \param    bool converged
+ * \return   \e void
+ */
+void Model::write_optimum_output_files( std::string condition, bool converged )
+{
+  _state_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << "\n";
+  _f_optimum_file << condition;
+  _c_optimum_file << condition;
+  _v_optimum_file << condition;
+  _p_optimum_file << condition;
+  _b_optimum_file << condition;
+  for (int i = 0; i < _nc; i++)
+  {
+    _c_optimum_file << ";" << gsl_vector_get(_c, i);
+    _b_optimum_file << ";" << gsl_vector_get(_b, i);
+  }
+  for (int j = 0; j < _nj; j++)
+  {
+    _f_optimum_file << ";" << gsl_vector_get(_f, j);
+    _v_optimum_file << ";" << gsl_vector_get(_v, j);
+    _p_optimum_file << ";" << gsl_vector_get(_p, j);
+  }
+  _f_optimum_file << "\n";
+  _c_optimum_file << "\n";
+  _v_optimum_file << "\n";
+  _p_optimum_file << "\n";
+  _b_optimum_file << "\n";
+}
+
+/**
+ * \brief    Close optimum output files
+ * \details  --
+ * \param    void
+ * \return   \e void
+ */
+void Model::close_optimum_ouput_files( void )
+{
+  _state_optimum_file.close();
+  _f_optimum_file.close();
+  _c_optimum_file.close();
+  _v_optimum_file.close();
+  _p_optimum_file.close();
+  _b_optimum_file.close();
 }
 
 /*----------------------------
@@ -1832,233 +2059,6 @@ void Model::block_reactions( void )
       }
     }
   }
-}
-
-/**
- * \brief    Open trajectory output files
- * \details  Also writes headers
- * \param    std::string output_path
- * \param    std::string condition
- * \return   \e void
- */
-void Model::open_trajectory_output_files( std::string output_path, std::string condition )
-{
-  /*~~~~~~~~~~~~~~~~~~*/
-  /* 1) Open files    */
-  /*~~~~~~~~~~~~~~~~~~*/
-  std::stringstream state_trajectory_filename;
-  std::stringstream f_trajectory_filename;
-  std::stringstream c_trajectory_filename;
-  std::stringstream v_trajectory_filename;
-  std::stringstream p_trajectory_filename;
-  std::stringstream b_trajectory_filename;
-  state_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_state_trajectory.csv";
-  f_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_f_trajectory.csv";
-  c_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_c_trajectory.csv";
-  v_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_v_trajectory.csv";
-  p_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_p_trajectory.csv";
-  b_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_b_trajectory.csv";
-  _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _f_trajectory_file.open(f_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _p_trajectory_file.open(p_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _b_trajectory_file.open(b_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  /*~~~~~~~~~~~~~~~~~~*/
-  /* 2) Write headers */
-  /*~~~~~~~~~~~~~~~~~~*/
-  _state_trajectory_file << "condition;t;dt;mu;density;consistent;mu_diff\n";
-  _f_trajectory_file << "condition;t;dt";
-  _c_trajectory_file << "condition;t;dt";
-  _v_trajectory_file << "condition;t;dt";
-  _p_trajectory_file << "condition;t;dt";
-  _b_trajectory_file << "condition;t;dt";
-  for (int i = 0; i < _nc; i++)
-  {
-    _c_trajectory_file << ";" << _c_ids[i];
-    _b_trajectory_file << ";" << _c_ids[i];
-  }
-  for (int j = 0; j < _nj; j++)
-  {
-    _f_trajectory_file << ";" << _reaction_ids[j];
-    _v_trajectory_file << ";" << _reaction_ids[j];
-    _p_trajectory_file << ";" << _reaction_ids[j];
-  }
-  _f_trajectory_file << "\n";
-  _c_trajectory_file << "\n";
-  _v_trajectory_file << "\n";
-  _p_trajectory_file << "\n";
-  _b_trajectory_file << "\n";
-}
-
-/**
- * \brief    Write data into trajectory output files
- * \details  --
- * \param    std::string condition
- * \param    double t
- * \param    double dt
- * \return   \e void
- */
-void Model::write_trajectory_output_files( std::string condition, double t, double dt )
-{
-  /*------------------------------------*/
-  /* 1) Update state file               */
-  /*------------------------------------*/
-  _state_trajectory_file << condition << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
-  _state_trajectory_file.flush();
-  /*------------------------------------*/
-  /* 2) Update metabolites related file */
-  /*------------------------------------*/
-  _c_trajectory_file << condition << ";" << t << ";" << dt;
-  _b_trajectory_file << condition << ";" << t << ";" << dt;
-  for (int i = 0; i < _nc; i++)
-  {
-    _c_trajectory_file << ";" << gsl_vector_get(_c, i);
-    _b_trajectory_file << ";" << gsl_vector_get(_b, i);
-  }
-  _c_trajectory_file << "\n";
-  _b_trajectory_file << "\n";
-  _c_trajectory_file.flush();
-  _b_trajectory_file.flush();
-  /*------------------------------------*/
-  /* 2) Update reactions related file   */
-  /*------------------------------------*/
-  _f_trajectory_file << condition << ";" << t << ";" << dt;
-  _v_trajectory_file << condition << ";" << t << ";" << dt;
-  _p_trajectory_file << condition << ";" << t << ";" << dt;
-  for (int j = 0; j < _nj; j++)
-  {
-    _f_trajectory_file << ";" << gsl_vector_get(_f, j);
-    _v_trajectory_file << ";" << gsl_vector_get(_v, j);
-    _p_trajectory_file << ";" << gsl_vector_get(_p, j);
-  }
-  _f_trajectory_file << "\n";
-  _v_trajectory_file << "\n";
-  _p_trajectory_file << "\n";
-  _f_trajectory_file.flush();
-  _v_trajectory_file.flush();
-  _p_trajectory_file.flush();
-}
-
-/**
- * \brief    Close trajectory output files
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::close_trajectory_ouput_files( void )
-{
-  _state_trajectory_file.close();
-  _f_trajectory_file.close();
-  _c_trajectory_file.close();
-  _v_trajectory_file.close();
-  _p_trajectory_file.close();
-  _b_trajectory_file.close();
-}
-
-/**
- * \brief    Open optimum output files
- * \details  Also writes headers
- * \param    void
- * \return   \e void
- */
-void Model::open_optimum_output_files( void )
-{
-  /*~~~~~~~~~~~~~~~~~~*/
-  /* 1) Open files    */
-  /*~~~~~~~~~~~~~~~~~~*/
-  std::stringstream state_optimum_filename;
-  std::stringstream f_optimum_filename;
-  std::stringstream c_optimum_filename;
-  std::stringstream v_optimum_filename;
-  std::stringstream p_optimum_filename;
-  std::stringstream b_optimum_filename;
-  state_optimum_filename << "./output/" << _model_name << "_state_optimum.csv";
-  f_optimum_filename << "./output/" << _model_name << "_f_optimum.csv";
-  c_optimum_filename << "./output/" << _model_name << "_c_optimum.csv";
-  v_optimum_filename << "./output/" << _model_name << "_v_optimum.csv";
-  p_optimum_filename << "./output/" << _model_name << "_p_optimum.csv";
-  b_optimum_filename << "./output/" << _model_name << "_b_optimum.csv";
-  _state_optimum_file.open(state_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  _f_optimum_file.open(f_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  _c_optimum_file.open(c_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  _v_optimum_file.open(v_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  /*~~~~~~~~~~~~~~~~~~*/
-  /* 2) Write headers */
-  /*~~~~~~~~~~~~~~~~~~*/
-  _state_optimum_file << "condition;mu;density;consistent;converged\n";
-  _f_optimum_file << "condition";
-  _c_optimum_file << "condition";
-  _v_optimum_file << "condition";
-  _p_optimum_file << "condition";
-  _b_optimum_file << "condition";
-  for (int i = 0; i < _nc; i++)
-  {
-    _c_optimum_file << ";" << _c_ids[i];
-    _b_optimum_file << ";" << _c_ids[i];
-  }
-  for (int j = 0; j < _nj; j++)
-  {
-    _f_optimum_file << ";" << _reaction_ids[j];
-    _v_optimum_file << ";" << _reaction_ids[j];
-    _p_optimum_file << ";" << _reaction_ids[j];
-  }
-  _f_optimum_file << "\n";
-  _c_optimum_file << "\n";
-  _v_optimum_file << "\n";
-  _p_optimum_file << "\n";
-  _b_optimum_file << "\n";
-}
-
-/**
- * \brief    Write data into optimum output files
- * \details  --
- * \param    std::string condition
- * \param    bool converged
- * \return   \e void
- */
-void Model::write_optimum_output_files( std::string condition, bool converged )
-{
-  _state_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << "\n";
-  _f_optimum_file << condition;
-  _c_optimum_file << condition;
-  _v_optimum_file << condition;
-  _p_optimum_file << condition;
-  _b_optimum_file << condition;
-  for (int i = 0; i < _nc; i++)
-  {
-    _c_optimum_file << ";" << gsl_vector_get(_c, i);
-    _b_optimum_file << ";" << gsl_vector_get(_b, i);
-  }
-  for (int j = 0; j < _nj; j++)
-  {
-    _f_optimum_file << ";" << gsl_vector_get(_f, j);
-    _v_optimum_file << ";" << gsl_vector_get(_v, j);
-    _p_optimum_file << ";" << gsl_vector_get(_p, j);
-  }
-  _f_optimum_file << "\n";
-  _c_optimum_file << "\n";
-  _v_optimum_file << "\n";
-  _p_optimum_file << "\n";
-  _b_optimum_file << "\n";
-}
-
-/**
- * \brief    Close optimum output files
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::close_optimum_ouput_files( void )
-{
-  _state_optimum_file.close();
-  _f_optimum_file.close();
-  _c_optimum_file.close();
-  _v_optimum_file.close();
-  _p_optimum_file.close();
-  _b_optimum_file.close();
 }
 
 /**

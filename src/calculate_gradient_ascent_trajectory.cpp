@@ -75,11 +75,18 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  Model* model = new Model(path, name, size, parallel);
-  model->compute_gradient_ascent_trajectory(condition, initial_dt, max_t, save, output);
+  Model* model   = new Model(path, name, size, parallel);
+  bool converged = model->compute_gradient_ascent_trajectory(condition, initial_dt, max_t, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Free memory and exit                        */
+  /* 3) Save the optimum in case of convergence     */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  model->open_optimum_output_files(output);
+  model->write_optimum_output_files(condition, converged);
+  model->close_optimum_ouput_files();
+  
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 4) Free memory and exit                        */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   delete model;
   model = NULL;

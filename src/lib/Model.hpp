@@ -98,6 +98,14 @@ public:
   
   void save_report( std::string filename );
   
+  void open_trajectory_output_files( std::string output_path, std::string condition );
+  void write_trajectory_output_files( std::string condition, double t, double dt );
+  void close_trajectory_ouput_files( void );
+  
+  void open_optimum_output_files( std::string output_path );
+  void write_optimum_output_files( std::string condition, bool converged );
+  void close_optimum_ouput_files( void );
+  
   /*----------------------------
    * PUBLIC ATTRIBUTES
    *----------------------------*/
@@ -154,14 +162,6 @@ protected:
   void calculate_second_order_terms( void );
   void check_model_consistency( void );
   void block_reactions( void );
-  
-  void open_trajectory_output_files( std::string output_path, std::string condition );
-  void write_trajectory_output_files( std::string condition, double t, double dt );
-  void close_trajectory_ouput_files( void );
-  
-  void open_optimum_output_files( void );
-  void write_optimum_output_files( std::string condition, bool converged );
-  void close_optimum_ouput_files( void );
   
   bool compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
   bool compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
