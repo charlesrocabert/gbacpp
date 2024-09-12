@@ -35,6 +35,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <thread>
 #include <unordered_map>
 #include <cmath>
 #include <gsl/gsl_math.h>
@@ -59,7 +60,7 @@ public:
    * CONSTRUCTORS
    *----------------------------*/
   Model( void ) = delete;
-  Model( std::string model_path, std::string model_name, msize model_size );
+  Model( std::string model_path, std::string model_name, msize model_size, bool parallel_computing );
   Model( const Model& model ) = delete;
   
   /*----------------------------
@@ -171,9 +172,10 @@ protected:
   
   /*----------------------------------------------- Model path and name */
   
-  std::string _model_path; /*!<  Model path */
-  std::string _model_name; /*!<  Model name */
-  msize       _model_size; /*!<  Model size */
+  std::string _model_path;         /*!< Model path             */
+  std::string _model_name;         /*!< Model name             */
+  msize       _model_size;         /*!< Model size             */
+  bool        _parallel_computing; /*!< Is computing parallel? */
   
   /*----------------------------------------------- Identifier lists */
   
@@ -245,18 +247,15 @@ protected:
   
   /*----------------------------------------------- Variables for calculation optimization */
   
-  gsl_vector_view _x_view;       /*!< x segment view of vector xc           */
-  gsl_vector_view _c_view;       /*!< c segment view of vector xc           */
-  double          _KM_f_product; /*!< KM_f product                          */
-  double          _KM_b_product; /*!< KM_b product variable                 */
-  double          _KI_product;   /*!< KI product variable                   */
-  double          _KA_product;   /*!< KA product variable                   */
-  double          _dmu_f_term1;  /*!< Variable for the calculation of dmu_f */
-  gsl_vector*     _dmu_f_term2;  /*!< Variable for the calculation of dmu_f */
-  gsl_matrix*     _dmu_f_term3;  /*!< Variable for the calculation of dmu_f */
-  gsl_vector*     _dmu_f_term4;  /*!< Variable for the calculation of dmu_f */
-  gsl_vector*     _dmu_f_term5;  /*!< Variable for the calculation of dmu_f */
-  double          _mu_diff;      /*!< Next mu to current mu differential    */
+  gsl_vector_view _x_view;      /*!< x segment view of vector xc           */
+  gsl_vector_view _c_view;      /*!< c segment view of vector xc           */
+  double          _dmu_f_term1; /*!< Variable for the calculation of dmu_f */
+  gsl_vector*     _dmu_f_term2; /*!< Variable for the calculation of dmu_f */
+  gsl_matrix*     _dmu_f_term3; /*!< Variable for the calculation of dmu_f */
+  gsl_vector*     _dmu_f_term4; /*!< Variable for the calculation of dmu_f */
+  gsl_vector*     _dmu_f_term5; /*!< Variable for the calculation of dmu_f */
+  double          _mu_diff;     /*!< Next mu to current mu differential    */
+  std::thread*    _threads;     /*!< Parallelization threads               */
   
   /*----------------------------------------------- Output files */
   

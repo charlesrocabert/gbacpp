@@ -54,7 +54,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-path /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/csv_models -name EC12b -size SMALL -condition 1 -dt 0.01 -maxt 200"
+            argument = "-path /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/csv_models -name MMSYN -size GENOME_SCALE -condition 1 -dt 0.01 -maxt 200 -parallel false"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

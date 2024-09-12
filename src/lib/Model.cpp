@@ -39,15 +39,17 @@
  * \param    std::string model_path
  * \param    std::string model_name
  * \param    msize model_size
+ * \param    bool parallel_computing
  * \return   \e void
  */
-Model::Model( std::string model_path, std::string model_name, msize model_size )
+Model::Model( std::string model_path, std::string model_name, msize model_size, bool parallel_computing )
 {
   /*----------------------------------------------- Model path and name */
   
-  _model_path = model_path;
-  _model_name = model_name;
-  _model_size = model_size;
+  _model_path         = model_path;
+  _model_name         = model_name;
+  _model_size         = model_size;
+  _parallel_computing = parallel_computing;
   
   /*----------------------------------------------- Identifier lists */
   
@@ -117,15 +119,18 @@ Model::Model( std::string model_path, std::string model_name, msize model_size )
   
   /*----------------------------------------------- Variables for calculation optimization */
   
-  _KM_f_product = 1.0;
-  _KM_b_product = 1.0;
-  _KI_product   = 1.0;
-  _KA_product   = 1.0;
   _dmu_f_term1  = 0.0;
   _dmu_f_term2  = NULL;
   _dmu_f_term3  = NULL;
   _dmu_f_term4  = NULL;
   _dmu_f_term5  = NULL;
+  _threads      = NULL;
+  
+  /*----------------------------------------------- Load the model */
+  
+  load_model();
+  initialize_variables();
+  _threads = new std::thread[_nj];
 }
 
 /*----------------------------
@@ -224,10 +229,12 @@ Model::~Model( void )
   gsl_matrix_free(_dmu_f_term3);
   gsl_vector_free(_dmu_f_term4);
   gsl_vector_free(_dmu_f_term5);
+  delete[] _threads;
   _dmu_f_term2 = NULL;
   _dmu_f_term3 = NULL;
   _dmu_f_term4 = NULL;
   _dmu_f_term5 = NULL;
+  _threads     = NULL;
 }
 
 /*----------------------------
@@ -291,18 +298,46 @@ void Model::calculate_GM( void )
 {
   compute_c();
   compute_xc();
-  for (int j = 0; j < _nj; j++)
+  if (!_parallel_computing)
   {
-    GMMM(j);
+    for (int j = 0; j < _nj; j++)
+    {
+      GMMM(j);
+    }
+  }
+  else
+  {
+    for (int j = 0; j < _nj; j++)
+    {
+      _threads[j] = std::thread(&Model::GMMM, this, j);
+    }
+    for (int j = 0; j < _nj; j++)
+    {
+      _threads[j].join();
+    }
   }
   compute_mu();
   compute_v();
   compute_p();
   compute_b();
   compute_density();
-  for (int j = 0; j < _nj; j++)
+  if (!_parallel_computing)
   {
-    dGMMM(j);
+    for (int j = 0; j < _nj; j++)
+    {
+      dGMMM(j);
+    }
+  }
+  else
+  {
+    for (int j = 0; j < _nj; j++)
+    {
+      _threads[j] = std::thread(&Model::dGMMM, this, j);
+    }
+    for (int j = 0; j < _nj; j++)
+    {
+      _threads[j].join();
+    }
   }
   compute_dmu_f();
   compute_GCC_f();
@@ -999,7 +1034,7 @@ void Model::initialize_static_variables( void )
     }
     else if (kcat_b_zero && !KI_sum_zero && !KA_sum_zero)
     {
-      _type[j] = IMMIA;;
+      _type[j] = IMMIA;
     }
     else if (!kcat_b_zero)
     {
@@ -1119,12 +1154,12 @@ void Model::compute_xc( void )
  */
 void Model::iMM( int j )
 {
-  _KM_f_product = 1.0;
+  double KM_f_product = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    _KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  gsl_vector_set(_tau_j, j, _KM_f_product/gsl_vector_get(_kcat_f, j));
+  gsl_vector_set(_tau_j, j, KM_f_product/gsl_vector_get(_kcat_f, j));
 }
 
 /**
@@ -1135,14 +1170,14 @@ void Model::iMM( int j )
  */
 void Model::iMMi( int j )
 {
-  _KM_f_product = 1.0;
-  _KI_product   = 1.0;
+  double KM_f_product = 1.0;
+  double KI_product   = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    _KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    _KI_product   *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
+    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    KI_product   *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
   }
-  gsl_vector_set(_tau_j, j, _KM_f_product*_KI_product/gsl_vector_get(_kcat_f, j));
+  gsl_vector_set(_tau_j, j, KM_f_product*KI_product/gsl_vector_get(_kcat_f, j));
 }
 
 /**
@@ -1153,14 +1188,14 @@ void Model::iMMi( int j )
  */
 void Model::iMMa( int j )
 {
-  _KM_f_product = 1.0;
-  _KA_product   = 1.0;
+  double KM_f_product = 1.0;
+  double KA_product   = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    _KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    _KA_product   *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    KA_product   *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
   }
-  gsl_vector_set(_tau_j, j, _KM_f_product*_KA_product/gsl_vector_get(_kcat_f, j));
+  gsl_vector_set(_tau_j, j, KM_f_product*KA_product/gsl_vector_get(_kcat_f, j));
 }
 
 /**
@@ -1171,16 +1206,16 @@ void Model::iMMa( int j )
  */
 void Model::iMMia( int j )
 {
-  _KM_f_product = 1.0;
-  _KI_product   = 1.0;
-  _KA_product   = 1.0;
+  double KM_f_product = 1.0;
+  double KI_product   = 1.0;
+  double KA_product   = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    _KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    _KI_product   *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
-    _KA_product   *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    KI_product   *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
+    KA_product   *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
   }
-  gsl_vector_set(_tau_j, j, _KM_f_product*_KI_product*_KA_product/gsl_vector_get(_kcat_f, j));
+  gsl_vector_set(_tau_j, j, KM_f_product*KI_product*KA_product/gsl_vector_get(_kcat_f, j));
 }
 
 /**
@@ -1191,16 +1226,16 @@ void Model::iMMia( int j )
  */
 void Model::rMM( int j )
 {
-  _KM_f_product = 1.0;
-  _KM_b_product = 1.0;
+  double KM_f_product = 1.0;
+  double KM_b_product = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    _KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    _KM_b_product *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
+    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    KM_b_product *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
   }
-  _KM_f_product = gsl_vector_get(_kcat_f, j)/_KM_f_product;
-  _KM_b_product = gsl_vector_get(_kcat_b, j)/_KM_b_product;
-  gsl_vector_set(_tau_j, j, 1/(_KM_f_product-_KM_b_product));
+  KM_f_product = gsl_vector_get(_kcat_f, j)/KM_f_product;
+  KM_b_product = gsl_vector_get(_kcat_b, j)/KM_b_product;
+  gsl_vector_set(_tau_j, j, 1/(KM_f_product-KM_b_product));
 }
 
 /**
@@ -1213,21 +1248,21 @@ void Model::GMMM( int j )
 {
   if (_directions[j] == "forward")
   {
-    _KM_f_product = 1.0;
+    double KM_f_product = 1.0;
     for (int i = 0; i < _ni; i++)
     {
-      _KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+      KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
     }
-    gsl_vector_set(_tau_j, j, _KM_f_product/gsl_vector_get(_kcat_f, j));
+    gsl_vector_set(_tau_j, j, KM_f_product/gsl_vector_get(_kcat_f, j));
   }
   else if (_directions[j] == "backward")
   {
-    _KM_b_product = 1.0;
+    double KM_b_product = 1.0;
     for (int i = 0; i < _ni; i++)
     {
-      _KM_b_product *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
+      KM_b_product *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
     }
-    gsl_vector_set(_tau_j, j, -_KM_b_product/gsl_vector_get(_kcat_b, j));
+    gsl_vector_set(_tau_j, j, -KM_b_product/gsl_vector_get(_kcat_b, j));
   }
   else if (_directions[j] == "reversible")
   {
@@ -1650,9 +1685,23 @@ void Model::calculate_first_order_terms( void )
 {
   compute_c();
   compute_xc();
-  for (int j = 0; j < _nj; j++)
+  if (!_parallel_computing)
   {
-    compute_tau(j);
+    for (int j = 0; j < _nj; j++)
+    {
+      compute_tau(j);
+    }
+  }
+  else
+  {
+    for (int j = 0; j < _nj; j++)
+    {
+      _threads[j] = std::thread(&Model::compute_tau, this, j);
+    }
+    for (int j = 0; j < _nj; j++)
+    {
+      _threads[j].join();
+    }
   }
   compute_mu();
   compute_v();
@@ -1669,9 +1718,23 @@ void Model::calculate_first_order_terms( void )
  */
 void Model::calculate_second_order_terms( void )
 {
-  for (int j = 0; j < _nj; j++)
+  if (!_parallel_computing)
   {
-    compute_dtau(j);
+    for (int j = 0; j < _nj; j++)
+    {
+      compute_dtau(j);
+    }
+  }
+  else
+  {
+    for (int j = 0; j < _nj; j++)
+    {
+      _threads[j] = std::thread(&Model::compute_dtau, this, j);
+    }
+    for (int j = 0; j < _nj; j++)
+    {
+      _threads[j].join();
+    }
   }
   compute_dmu_f();
   compute_GCC_f();
@@ -2141,6 +2204,10 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   int    nb_successes        = 0;
   while (t < max_t)
   {
+    if (nb_iterations==5000)
+    {
+      return false;
+    }
     /*------------------------------------------------*/
     /* 1) Check the size of dt                        */
     /*------------------------------------------------*/
