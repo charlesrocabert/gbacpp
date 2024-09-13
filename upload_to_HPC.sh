@@ -1,8 +1,8 @@
 mkdir GBAcpp
+mkdir ./GBAcpp/output
 cp -r ./build ./GBAcpp/.
 cp -r ./cmake ./GBAcpp/.
 cp -r ./src ./GBAcpp/.
-cp -r ./output ./GBAcpp/.
 cp -r ./csv_models ./GBAcpp/.
 cp -r ./CMakeLists.txt ./GBAcpp/.
 cp -r run_GBAcpp_jobs.py ./GBAcpp/.
