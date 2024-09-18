@@ -661,6 +661,11 @@ void Model::write_optimum_output_files( std::string condition, bool converged )
   _v_optimum_file << "\n";
   _p_optimum_file << "\n";
   _b_optimum_file << "\n";
+  _f_optimum_file.flush();
+  _c_optimum_file.flush();
+  _v_optimum_file.flush();
+  _p_optimum_file.flush();
+  _b_optimum_file.flush();
 }
 
 /**
@@ -1397,6 +1402,7 @@ void Model::compute_xc( void )
  */
 void Model::iMM( int j )
 {
+  //self.tau_j[j] = np.prod(1+self.KM_f[:,j]/self.xc)/self.kcat_f[j]
   double KM_f_product = 1.0;
   for (int i = 0; i < _ni; i++)
   {
@@ -1413,12 +1419,14 @@ void Model::iMM( int j )
  */
 void Model::iMMi( int j )
 {
+  //self.tau_j[j] = np.prod(1+self.KM_f[:,j]/self.xc)*np.prod(1+self.rKI[:,j]*self.xc)/self.kcat_f[j]
   double KM_f_product = 1.0;
   double KI_product   = 1.0;
   for (int i = 0; i < _ni; i++)
   {
+    double rKI    = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
     KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    KI_product   *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
+    KI_product   *= 1.0+gsl_vector_get(_xc, i)*rKI;
   }
   gsl_vector_set(_tau_j, j, KM_f_product*KI_product/gsl_vector_get(_kcat_f, j));
 }
@@ -1431,6 +1439,12 @@ void Model::iMMi( int j )
  */
 void Model::iMMa( int j )
 {
+  /*
+  term1 = np.prod(1+self.KA[:,j]/self.xc)
+  term2 = np.prod(1+self.KM_f[:,j]/self.xc)
+  term3 = self.kcat_f[j]
+  self.tau_j[j] = term1*term2/term3
+  */
   double KM_f_product = 1.0;
   double KA_product   = 1.0;
   for (int i = 0; i < _ni; i++)
@@ -1454,8 +1468,9 @@ void Model::iMMia( int j )
   double KA_product   = 1.0;
   for (int i = 0; i < _ni; i++)
   {
+    double rKI    = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
     KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    KI_product   *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
+    KI_product   *= 1.0+gsl_vector_get(_xc, i)*rKI;
     KA_product   *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
   }
   gsl_vector_set(_tau_j, j, KM_f_product*KI_product*KA_product/gsl_vector_get(_kcat_f, j));
@@ -1549,6 +1564,15 @@ void Model::compute_tau( int j )
  */
 void Model::diMM( int j )
 {
+  /*
+  for i in range(self.nc):
+    y       = i+self.nx
+    indices = np.arange(self.ni) != y
+    term1   = (self.KM_f[y,j]/self.c[i]**2)
+    term2   = np.prod(1+self.KM_f[indices,j]/self.xc[indices])
+    term3   = self.kcat_f[j]
+    self.ditau_j[j,i] = -term1*term2/term3
+   */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Define constants         */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -1581,6 +1605,16 @@ void Model::diMM( int j )
  */
 void Model::diMMi( int j )
 {
+  /*
+  for i in range(self.nc):
+    y                 = i+self.nx
+    term1             = self.rKI[y,j]*np.prod(1+self.KM_f[:,j]/self.xc)
+    term2             = np.prod(1+self.xc*self.rKI[:,j])
+    term3             = self.KM_f[y,j]/self.c[i]**2
+    term4             = np.prod(1+self.KM_f[np.arange(self.ni) != y,j]/self.xc[np.arange(self.ni) != y])
+    term5             = self.kcat_f[j]
+    self.ditau_j[j,i] = term1-term2*term3*term4/term5
+   */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Define constants         */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -1589,8 +1623,9 @@ void Model::diMMi( int j )
   double term5      = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
+    double rKI  = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
     constant_1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    constant_2 *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
+    constant_2 *= 1.0+gsl_vector_get(_xc, i)*rKI;
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate the derivative */
@@ -1598,7 +1633,8 @@ void Model::diMMi( int j )
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
-    double term1 = 1.0/gsl_matrix_get(_KI, y, j)*constant_1;
+    double rKI   = (gsl_matrix_get(_KI, y, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
+    double term1 = rKI*constant_1;
     double term2 = constant_2;
     double term3 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
     double term4 = 1.0;
@@ -1673,8 +1709,9 @@ void Model::diMMia( int j )
   double term9      = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
+    double rKI  = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
     constant_1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    constant_2 *= 1.0+gsl_vector_get(_xc, i)*1.0/gsl_matrix_get(_KI, i, j);
+    constant_2 *= 1.0+gsl_vector_get(_xc, i)*rKI;
     constant_3 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -1683,7 +1720,8 @@ void Model::diMMia( int j )
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
-    double term1 = 1.0/gsl_matrix_get(_KI, y, j)*constant_1*constant_3;
+    double rKI   = (gsl_matrix_get(_KI, y, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
+    double term1 = rKI*constant_1*constant_3;
     double term2 = constant_2;
     double term3 = -gsl_matrix_get(_KA, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
     double term4 = constant_1;
@@ -2114,12 +2152,17 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
   int    nb_successes        = 0;
   while (t < max_t)
   {
-    assert(dt > 1e-100);
     nb_iterations++;
     if (constant_mu_counter >= TRAJECTORY_STABLE_MU_COUNT)
     {
       break;
     }
+    /*
+    if (nb_iterations%1000==0)
+    {
+      std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
+    }
+     */
     previous_mu           = _mu;
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
     gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
@@ -2228,10 +2271,12 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
     {
       throw std::invalid_argument("> dt is too small");
     }
+    /*
     if (nb_iterations%1000==0)
     {
       std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
     }
+     */
     /*------------------------------------------------*/
     /* 2) Check trajectory convergence                */
     /*------------------------------------------------*/

@@ -199,25 +199,26 @@ P = build_proteomics_data(dp, proteomics, gpr, confident)
 #   theme_classic() +
 #   theme(legend.position="none")
 # # 
-# ggplot(D, aes(mu, phi)) +
-#   geom_line() +
-#   #scale_x_log10() +
-#   #scale_y_log10() +
-#   xlab("Growth rate") +
-#   ylab("Phi (p_ribosome/sum(p))") +
-#   theme_classic() +
-#   theme(legend.position="none")
+max(D$mu)
+ggplot(D, aes(mu, phi)) +
+  geom_line() +
+  #scale_x_log10() +
+  #scale_y_log10() +
+  xlab("Growth rate") +
+  ylab("Phi (p_ribosome/sum(p))") +
+  theme_classic() +
+  theme(legend.position="none")
 
-# ggplot(M, aes(observed, predicted)) +
-#   facet_wrap(.~condition) +
-#   geom_abline(slope=1, intercept=0, lty=2) +
-#   stat_poly_line() +
-#   stat_poly_eq(use_label(c("adj.R2", "p"))) +
-#   geom_point() +
-#   scale_x_log10() +
-#   scale_y_log10() +
-#   theme_classic() +
-#   theme(legend.position="none")
+ggplot(M, aes(observed, predicted)) +
+  facet_wrap(.~condition) +
+  geom_abline(slope=1, intercept=0, lty=2) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("adj.R2", "p"))) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  theme_classic() +
+  theme(legend.position="none")
 
 ggplot(P, aes(log10(observed), log10(predicted))) +
   geom_line(data=P, aes(log10(observed), log10(observedp3)), col="black") +
