@@ -72,10 +72,10 @@ set(EXECUTABLE_OUTPUT_PATH ../build/bin)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the executables                                                       #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-set(TRAJECTORY_EXECUTABLE calculate_gradient_ascent_trajectory)
+set(TRAJECTORY_EXECUTABLE compute_gradient_ascent)
 add_executable(${TRAJECTORY_EXECUTABLE} src/compute_gradient_ascent.cpp)
 
-set(OPTIMUM_EXECUTABLE calculate_local_optimum)
+set(OPTIMUM_EXECUTABLE compute_local_optimums)
 add_executable(${OPTIMUM_EXECUTABLE} src/compute_local_optimums.cpp)
 
 
