@@ -93,8 +93,8 @@ public:
   void calculate( void );
   void calculate_GM( void );
   
-  bool compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
-  void compute_local_optimum_for_all_conditions( double initial_dt, double max_t, bool save_trajectory, std::string output_path );
+  bool compute_gradient_ascent( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
+  void compute_local_optimums( double initial_dt, double max_t, bool save_trajectory, std::string output_path );
   
   void save_report( std::string filename );
   

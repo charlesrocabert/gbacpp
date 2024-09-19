@@ -1,10 +1,10 @@
 /**
- * \file      calculate_gradient_ascent_trajectory.cpp
+ * \file      compute_local_optimums.cpp
  * \author    Charles Rocabert
- * \date      22-07-2024
+ * \date      29-08-2024
  * \copyright GBA_Evolution. Copyright © 2024 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
- * \brief     calculate_gradient_ascent_trajectory executable
+ * \brief     compute_local_optimums executable
  */
 
 /****************************************************************************
@@ -32,7 +32,6 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
-#include <ctime>
 #include <vector>
 #include <unordered_map>
 #include <sys/stat.h>
@@ -43,7 +42,7 @@
 #include "./lib/Structs.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, std::string &condition, double &initial_dt, double &max_t, bool &save, std::string &output_path, bool &parallel_computing );
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, double &initial_dt, double &max_t, bool &save, std::string &output_path, bool &parallel_computing );
 void printUsage( void );
 void printHeader( void );
 
@@ -64,29 +63,21 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   std::string path       = "";
   std::string name       = "";
-  std::string condition  = "";
   double      initial_dt = 0.0;
   double      max_t      = 0.0;
   bool        save       = false;
   std::string output     = "";
   bool        parallel   = false;
-  readArgs(argc, argv, path, name, condition, initial_dt, max_t, save, output, parallel);
+  readArgs(argc, argv, path, name, initial_dt, max_t, save, output, parallel);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  Model* model   = new Model(path, name, parallel);
-  bool converged = model->compute_gradient_ascent_trajectory(condition, initial_dt, max_t, save, output);
+  Model* model = new Model(path, name, parallel);
+  model->compute_local_optimums(initial_dt, max_t, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Save the optimum in case of convergence     */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  model->open_optimum_output_files(output, condition);
-  model->write_optimum_output_files(condition, converged);
-  model->close_optimum_ouput_files();
-  
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Free memory and exit                        */
+  /* 3) Free memory and exit                        */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   delete model;
   model       = NULL;
@@ -103,7 +94,6 @@ int main(int argc, char const** argv)
  * \param    char const** argv
  * \param    std::string &path
  * \param    std::string &name
- * \param    std::string &condition
  * \param    double &initial_dt
  * \param    double &max_t
  * \param    bool &save
@@ -111,7 +101,7 @@ int main(int argc, char const** argv)
  * \param    bool &parallel
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, std::string &condition, double &initial_dt, double &max_t, bool &save, std::string &output, bool &parallel )
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, double &initial_dt, double &max_t, bool &save, std::string &output, bool &parallel )
 {
   if (argc == 1)
   {
@@ -157,18 +147,6 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
         counter++;
       }
     }
-    else if (strcmp(argv[i], "-condition") == 0 || strcmp(argv[i], "--condition") == 0)
-    {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> condition value is missing");
-      }
-      else
-      {
-        condition = argv[i+1];
-        counter++;
-      }
-    }
     else if (strcmp(argv[i], "-dt") == 0 || strcmp(argv[i], "--initial-dt") == 0)
     {
       if (i+1 == argc)
@@ -193,16 +171,9 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
         counter++;
       }
     }
-    else if (strcmp(argv[i], "-save") == 0 || strcmp(argv[i], "--save-trajectory") == 0)
+        else if (strcmp(argv[i], "-save") == 0 || strcmp(argv[i], "--save-trajectory") == 0)
     {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> output path value is missing");
-      }
-      else
-      {
-        save = true;
-      }
+      save = true;
     }
     else if (strcmp(argv[i], "-output") == 0 || strcmp(argv[i], "--output-path") == 0)
     {
@@ -217,17 +188,10 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
     }
     else if (strcmp(argv[i], "-parallel") == 0 || strcmp(argv[i], "--parallel-computing") == 0)
     {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> parallel computing value is missing");
-      }
-      else
-      {
-        parallel = true;
-      }
+      parallel = true;
     }
   }
-  if (counter < 5)
+  if (counter < 4)
   {
     throw std::invalid_argument("> You must provide all the mandatory arguments (see -h or --help)");
   }
@@ -259,22 +223,20 @@ void printUsage( void )
   std::cout << " certain conditions; See the GNU General Public License for details  \n";
   std::cout << "*********************************************************************\n";
   std::cout << "\n";
-  std::cout << "Usage: calculate_gradient_ascent_trajectory -h or --help\n";
-  std::cout << "   or: calculate_gradient_ascent_trajectory [options]\n";
+  std::cout << "Usage: compute_local_optimums -h or --help\n";
+  std::cout << "   or: compute_local_optimums [options]\n";
   std::cout << "Options are:\n";
   std::cout << "  -h, --help\n";
   std::cout << "        print this help, then exit\n";
   std::cout << "  -v, --version\n";
   std::cout << "        print the current version, then exit\n";
-  std::cout << "  -path, --model-path (MANDATORY)\n";
+  std::cout << "  -path, --model-path\n";
   std::cout << "        specify the path of the GBA model to be loaded\n";
-  std::cout << "  -name, --model-name (MANDATORY)\n";
+  std::cout << "  -name, --model-name\n";
   std::cout << "        specify the name of the GBA model to be loaded\n";
-  std::cout << "  -condition, --condition (MANDATORY)\n";
-  std::cout << "        specify the external condition identifier\n";
-  std::cout << "  -dt, --initial-dt (MANDATORY)\n";
+  std::cout << "  -dt, --initial-dt\n";
   std::cout << "        specify the initial gradient timestep\n";
-  std::cout << "  -maxt, --max-time (MANDATORY)\n";
+  std::cout << "  -maxt, --max-time\n";
   std::cout << "        specify the maximal time\n";
   std::cout << "  -save, --save-trajectory\n";
   std::cout << "        specify if the trajectory should be saved as output files\n";

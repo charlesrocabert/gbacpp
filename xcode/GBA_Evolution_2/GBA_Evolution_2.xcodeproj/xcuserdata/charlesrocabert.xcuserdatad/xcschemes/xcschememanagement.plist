@@ -4,12 +4,12 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>calculate_gradient_ascent_trajectory.xcscheme_^#shared#^_</key>
+		<key>compute_gradient_ascent.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
-		<key>calculate_local_optimum.xcscheme_^#shared#^_</key>
+		<key>compute_local_optimums.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>1</integer>

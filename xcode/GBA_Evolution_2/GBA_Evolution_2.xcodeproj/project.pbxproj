@@ -12,13 +12,13 @@
 		B6E3A7402C80754B00106E8A /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72C2C80753200106E8A /* Model.cpp */; };
 		B6E3A7412C80754B00106E8A /* Model.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72D2C80753200106E8A /* Model.hpp */; };
 		B6E3A7422C80754B00106E8A /* Structs.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72E2C80753200106E8A /* Structs.hpp */; };
-		B6E3A7432C80754B00106E8A /* calculate_gradient_ascent_trajectory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A7302C80753200106E8A /* calculate_gradient_ascent_trajectory.cpp */; };
+		B6E3A7432C80754B00106E8A /* compute_gradient_ascent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A7302C80753200106E8A /* compute_gradient_ascent.cpp */; };
 		B6E3A7482C809E5F00106E8A /* Enums.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72A2C80753200106E8A /* Enums.hpp */; };
 		B6E3A7492C809E5F00106E8A /* Macros.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72B2C80753200106E8A /* Macros.hpp */; };
 		B6E3A74A2C809E5F00106E8A /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72C2C80753200106E8A /* Model.cpp */; };
 		B6E3A74B2C809E5F00106E8A /* Model.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72D2C80753200106E8A /* Model.hpp */; };
 		B6E3A74C2C809E5F00106E8A /* Structs.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A72E2C80753200106E8A /* Structs.hpp */; };
-		B6E3A7542C809E7300106E8A /* calculate_local_optimum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A7442C80858700106E8A /* calculate_local_optimum.cpp */; };
+		B6E3A7542C809E7300106E8A /* compute_local_optimums.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6E3A7442C80858700106E8A /* compute_local_optimums.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,7 +43,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		B61A09402C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = calculate_gradient_ascent_trajectory; sourceTree = BUILT_PRODUCTS_DIR; };
+		B61A09402C8070BD009D4A4C /* compute_gradient_ascent */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = compute_gradient_ascent; sourceTree = BUILT_PRODUCTS_DIR; };
 		B65015392C89716100604166 /* conditions.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
 		B650153A2C89716100604166 /* directions.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
 		B650153B2C89716100604166 /* f0.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
@@ -161,7 +161,7 @@
 		B6E3A72C2C80753200106E8A /* Model.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model.cpp; sourceTree = "<group>"; };
 		B6E3A72D2C80753200106E8A /* Model.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Model.hpp; sourceTree = "<group>"; };
 		B6E3A72E2C80753200106E8A /* Structs.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Structs.hpp; sourceTree = "<group>"; };
-		B6E3A7302C80753200106E8A /* calculate_gradient_ascent_trajectory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = calculate_gradient_ascent_trajectory.cpp; sourceTree = "<group>"; };
+		B6E3A7302C80753200106E8A /* compute_gradient_ascent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = compute_gradient_ascent.cpp; sourceTree = "<group>"; };
 		B6E3A7322C80753200106E8A /* GBA_Evolution_2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = GBA_Evolution_2.xcodeproj; sourceTree = "<group>"; };
 		B6E3A7352C80753200106E8A /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		B6E3A7362C80753200106E8A /* clean_folders.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = clean_folders.sh; sourceTree = "<group>"; };
@@ -169,8 +169,8 @@
 		B6E3A7382C80753200106E8A /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		B6E3A7392C80753200106E8A /* plot_trajectory.R */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.rez; path = plot_trajectory.R; sourceTree = "<group>"; };
 		B6E3A73A2C80753200106E8A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		B6E3A7442C80858700106E8A /* calculate_local_optimum.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = calculate_local_optimum.cpp; sourceTree = "<group>"; };
-		B6E3A7532C809E5F00106E8A /* calculate_local_optimum */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = calculate_local_optimum; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6E3A7442C80858700106E8A /* compute_local_optimums.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = compute_local_optimums.cpp; sourceTree = "<group>"; };
+		B6E3A7532C809E5F00106E8A /* compute_local_optimums */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = compute_local_optimums; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,8 +202,8 @@
 		B61A08F22C806E72009D4A4C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B61A09402C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */,
-				B6E3A7532C809E5F00106E8A /* calculate_local_optimum */,
+				B61A09402C8070BD009D4A4C /* compute_gradient_ascent */,
+				B6E3A7532C809E5F00106E8A /* compute_local_optimums */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -604,8 +604,8 @@
 			isa = PBXGroup;
 			children = (
 				B6E3A72F2C80753200106E8A /* lib */,
-				B6E3A7302C80753200106E8A /* calculate_gradient_ascent_trajectory.cpp */,
-				B6E3A7442C80858700106E8A /* calculate_local_optimum.cpp */,
+				B6E3A7302C80753200106E8A /* compute_gradient_ascent.cpp */,
+				B6E3A7442C80858700106E8A /* compute_local_optimums.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -654,9 +654,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B61A093F2C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */ = {
+		B61A093F2C8070BD009D4A4C /* compute_gradient_ascent */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B61A09442C8070BD009D4A4C /* Build configuration list for PBXNativeTarget "calculate_gradient_ascent_trajectory" */;
+			buildConfigurationList = B61A09442C8070BD009D4A4C /* Build configuration list for PBXNativeTarget "compute_gradient_ascent" */;
 			buildPhases = (
 				B61A093C2C8070BD009D4A4C /* Sources */,
 				B61A093D2C8070BD009D4A4C /* Frameworks */,
@@ -666,14 +666,14 @@
 			);
 			dependencies = (
 			);
-			name = calculate_gradient_ascent_trajectory;
+			name = compute_gradient_ascent;
 			productName = calculate_gradient_ascent_trajectory;
-			productReference = B61A09402C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */;
+			productReference = B61A09402C8070BD009D4A4C /* compute_gradient_ascent */;
 			productType = "com.apple.product-type.tool";
 		};
-		B6E3A7462C809E5F00106E8A /* calculate_local_optimum */ = {
+		B6E3A7462C809E5F00106E8A /* compute_local_optimums */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B6E3A7502C809E5F00106E8A /* Build configuration list for PBXNativeTarget "calculate_local_optimum" */;
+			buildConfigurationList = B6E3A7502C809E5F00106E8A /* Build configuration list for PBXNativeTarget "compute_local_optimums" */;
 			buildPhases = (
 				B6E3A7472C809E5F00106E8A /* Sources */,
 				B6E3A74E2C809E5F00106E8A /* Frameworks */,
@@ -683,9 +683,9 @@
 			);
 			dependencies = (
 			);
-			name = calculate_local_optimum;
+			name = compute_local_optimums;
 			productName = calculate_gradient_ascent_trajectory;
-			productReference = B6E3A7532C809E5F00106E8A /* calculate_local_optimum */;
+			productReference = B6E3A7532C809E5F00106E8A /* compute_local_optimums */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -721,8 +721,8 @@
 			);
 			projectRoot = "";
 			targets = (
-				B61A093F2C8070BD009D4A4C /* calculate_gradient_ascent_trajectory */,
-				B6E3A7462C809E5F00106E8A /* calculate_local_optimum */,
+				B61A093F2C8070BD009D4A4C /* compute_gradient_ascent */,
+				B6E3A7462C809E5F00106E8A /* compute_local_optimums */,
 			);
 		};
 /* End PBXProject section */
@@ -737,7 +737,7 @@
 				B6E3A7402C80754B00106E8A /* Model.cpp in Sources */,
 				B6E3A7412C80754B00106E8A /* Model.hpp in Sources */,
 				B6E3A7422C80754B00106E8A /* Structs.hpp in Sources */,
-				B6E3A7432C80754B00106E8A /* calculate_gradient_ascent_trajectory.cpp in Sources */,
+				B6E3A7432C80754B00106E8A /* compute_gradient_ascent.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -745,7 +745,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B6E3A7542C809E7300106E8A /* calculate_local_optimum.cpp in Sources */,
+				B6E3A7542C809E7300106E8A /* compute_local_optimums.cpp in Sources */,
 				B6E3A7482C809E5F00106E8A /* Enums.hpp in Sources */,
 				B6E3A7492C809E5F00106E8A /* Macros.hpp in Sources */,
 				B6E3A74A2C809E5F00106E8A /* Model.cpp in Sources */,
@@ -942,7 +942,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B61A09442C8070BD009D4A4C /* Build configuration list for PBXNativeTarget "calculate_gradient_ascent_trajectory" */ = {
+		B61A09442C8070BD009D4A4C /* Build configuration list for PBXNativeTarget "compute_gradient_ascent" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B61A09452C8070BD009D4A4C /* Debug */,
@@ -951,7 +951,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B6E3A7502C809E5F00106E8A /* Build configuration list for PBXNativeTarget "calculate_local_optimum" */ = {
+		B6E3A7502C809E5F00106E8A /* Build configuration list for PBXNativeTarget "compute_local_optimums" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B6E3A7512C809E5F00106E8A /* Debug */,

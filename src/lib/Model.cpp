@@ -296,7 +296,7 @@ void Model::calculate( void )
  * \param    std::string output_path
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
+bool Model::compute_gradient_ascent( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
   assert(_condition_indices.find(condition) != _condition_indices.end());
   assert(initial_dt > 0.0);
@@ -409,13 +409,13 @@ bool Model::compute_gradient_ascent_trajectory( std::string condition, double in
  * \param    std::string output_path
  * \return   \e bool
  */
-void Model::compute_local_optimum_for_all_conditions( double initial_dt, double max_t, bool save_trajectory, std::string output_path )
+void Model::compute_local_optimums( double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
   open_optimum_output_files(output_path, "");
   for (int i = 0; i < (int)_condition_ids.size(); i++)
   {
     std::string condition = _condition_ids[i];
-    bool converged        = compute_gradient_ascent_trajectory(condition, initial_dt, max_t, save_trajectory, output_path);
+    bool converged        = compute_gradient_ascent(condition, initial_dt, max_t, save_trajectory, output_path);
     write_optimum_output_files(condition, converged);
   }
   close_optimum_ouput_files();
