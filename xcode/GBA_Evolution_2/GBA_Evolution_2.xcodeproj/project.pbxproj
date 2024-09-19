@@ -129,7 +129,6 @@
 		B6E3A6FD2C80753200106E8A /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		B6E3A6FF2C80753200106E8A /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
 		B6E3A7012C80753200106E8A /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
-		B6E3A7022C80753200106E8A /* Info.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = Info.csv; sourceTree = "<group>"; };
 		B6E3A7032C80753200106E8A /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
 		B6E3A7042C80753200106E8A /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
 		B6E3A7052C80753200106E8A /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
@@ -141,7 +140,6 @@
 		B6E3A70D2C80753200106E8A /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
 		B6E3A70F2C80753200106E8A /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
 		B6E3A7112C80753200106E8A /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
-		B6E3A7122C80753200106E8A /* Info.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = Info.csv; sourceTree = "<group>"; };
 		B6E3A7132C80753200106E8A /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
 		B6E3A7142C80753200106E8A /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
 		B6E3A7152C80753200106E8A /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
@@ -505,7 +503,6 @@
 				B670A3A92C81863E00FAE7C4 /* directions.csv */,
 				B6E3A6FF2C80753200106E8A /* conditions.csv */,
 				B6E3A7012C80753200106E8A /* f0.csv */,
-				B6E3A7022C80753200106E8A /* Info.csv */,
 				B6E3A7032C80753200106E8A /* kcat.csv */,
 				B6E3A7042C80753200106E8A /* KM_forward.csv */,
 				B6E3A7052C80753200106E8A /* M.csv */,
@@ -533,7 +530,6 @@
 				B670A3AB2C81865100FAE7C4 /* directions.csv */,
 				B6E3A70F2C80753200106E8A /* conditions.csv */,
 				B6E3A7112C80753200106E8A /* f0.csv */,
-				B6E3A7122C80753200106E8A /* Info.csv */,
 				B6E3A7132C80753200106E8A /* kcat.csv */,
 				B6E3A7142C80753200106E8A /* KM_forward.csv */,
 				B6E3A7152C80753200106E8A /* M.csv */,

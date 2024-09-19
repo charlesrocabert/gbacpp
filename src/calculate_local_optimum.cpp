@@ -198,14 +198,7 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
     }
         else if (strcmp(argv[i], "-save") == 0 || strcmp(argv[i], "--save-trajectory") == 0)
     {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> output path value is missing");
-      }
-      else
-      {
-        save = true;
-      }
+      save = true;
     }
     else if (strcmp(argv[i], "-output") == 0 || strcmp(argv[i], "--output-path") == 0)
     {
@@ -220,14 +213,7 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
     }
     else if (strcmp(argv[i], "-parallel") == 0 || strcmp(argv[i], "--parallel-computing") == 0)
     {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> parallel computing value is missing");
-      }
-      else
-      {
-        parallel = true;
-      }
+      parallel = true;
     }
   }
   if (counter < 5)

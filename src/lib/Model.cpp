@@ -1867,8 +1867,9 @@ void Model::compute_dtau( int j )
  */
 void Model::compute_mu( void )
 {
-  gsl_blas_ddot(_tau_j, _f, &_mu);
-  _mu = gsl_matrix_get(_M, _a, _r)*gsl_vector_get(_f, _r)/_mu;
+  double term1 = 0.0;
+  gsl_blas_ddot(_tau_j, _f, &term1);
+  _mu = gsl_matrix_get(_M, _a, _r)*gsl_vector_get(_f, _r)/term1;
 }
 
 /**
@@ -2163,7 +2164,8 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
       std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
     }
      */
-    previous_mu           = _mu;
+    previous_mu = _mu;
+    block_reactions();
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
     gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
     gsl_vector_scale(scaled_dmudt, dt);
@@ -2215,12 +2217,12 @@ bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string con
   }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
   {
-    std::cout << "> Convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
+    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
     return(false);
   }
   else
   {
-    std::cout << "> Convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
+    std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
     return(true);
   }
 }
@@ -2339,12 +2341,12 @@ bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::str
   }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
   {
-    std::cout << "> Convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
+    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
     return(false);
   }
   else
   {
-    std::cout << "> Convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
+    std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
     return(true);
   }
 }
