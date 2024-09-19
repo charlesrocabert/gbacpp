@@ -31,16 +31,6 @@
 
 
 /**
- * \brief   Model size
- * \details --
- */
-enum msize
-{
-  SMALL        = 0, /*!< Small toy-model    */
-  GENOME_SCALE = 1  /*!< Genome-scale model */
-};
-
-/**
  * \brief   Reaction type
  * \details --
  */

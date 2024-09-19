@@ -60,7 +60,7 @@ public:
    * CONSTRUCTORS
    *----------------------------*/
   Model( void ) = delete;
-  Model( std::string model_path, std::string model_name, msize model_size, bool parallel_computing );
+  Model( std::string model_path, std::string model_name, bool parallel_computing );
   Model( const Model& model ) = delete;
   
   /*----------------------------
@@ -142,14 +142,12 @@ protected:
   void iMMa( int j );
   void iMMia( int j );
   void rMM( int j );
-  void GMMM( int j );
   void compute_tau( int j );
   void diMM( int j );
   void diMMi( int j );
   void diMMa( int j );
   void diMMia( int j );
   void drMM( int j );
-  void dGMMM( int j );
   void compute_dtau( int j );
   void compute_mu( void );
   void compute_v( void );
@@ -163,9 +161,6 @@ protected:
   void check_model_consistency( void );
   void block_reactions( void );
   
-  bool compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
-  bool compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
-  
   /*----------------------------
    * PROTECTED ATTRIBUTES
    *----------------------------*/
@@ -174,7 +169,6 @@ protected:
   
   std::string _model_path;         /*!< Model path             */
   std::string _model_name;         /*!< Model name             */
-  msize       _model_size;         /*!< Model size             */
   bool        _parallel_computing; /*!< Is computing parallel? */
   
   /*----------------------------------------------- Identifier lists */

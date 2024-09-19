@@ -42,7 +42,7 @@
 #include "./lib/Structs.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, double &initial_dt, double &max_t, bool &save, std::string &output_path, bool &parallel_computing );
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, double &initial_dt, double &max_t, bool &save, std::string &output_path, bool &parallel_computing );
 void printUsage( void );
 void printHeader( void );
 
@@ -63,18 +63,17 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   std::string path       = "";
   std::string name       = "";
-  msize       size       = SMALL;
   double      initial_dt = 0.0;
   double      max_t      = 0.0;
   bool        save       = false;
   std::string output     = "";
   bool        parallel   = false;
-  readArgs(argc, argv, path, name, size, initial_dt, max_t, save, output, parallel);
+  readArgs(argc, argv, path, name, initial_dt, max_t, save, output, parallel);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  Model* model = new Model(path, name, size, parallel);
+  Model* model = new Model(path, name, parallel);
   model->compute_local_optimum_for_all_conditions(initial_dt, max_t, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -95,7 +94,6 @@ int main(int argc, char const** argv)
  * \param    char const** argv
  * \param    std::string &path
  * \param    std::string &name
- * \param    msize &size
  * \param    double &initial_dt
  * \param    double &max_t
  * \param    bool &save
@@ -103,7 +101,7 @@ int main(int argc, char const** argv)
  * \param    bool &parallel
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, msize &size, double &initial_dt, double &max_t, bool &save, std::string &output, bool &parallel )
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, double &initial_dt, double &max_t, bool &save, std::string &output, bool &parallel )
 {
   if (argc == 1)
   {
@@ -146,29 +144,6 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
       else
       {
         name = argv[i+1];
-        counter++;
-      }
-    }
-    else if (strcmp(argv[i], "-size") == 0 || strcmp(argv[i], "--model-size") == 0)
-    {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> model size value is missing");
-      }
-      else
-      {
-        if (strcmp(argv[i+1], "SMALL") == 0 || strcmp(argv[i+1], "small") == 0)
-        {
-          size = SMALL;
-        }
-        else if (strcmp(argv[i+1], "GENOME_SCALE") == 0 || strcmp(argv[i+1], "genome_scale") == 0)
-        {
-          size = GENOME_SCALE;
-        }
-        else
-        {
-          throw std::invalid_argument("> wrong value for parameter -size (--model-size).");
-        }
         counter++;
       }
     }
@@ -216,7 +191,7 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
       parallel = true;
     }
   }
-  if (counter < 5)
+  if (counter < 4)
   {
     throw std::invalid_argument("> You must provide all the mandatory arguments (see -h or --help)");
   }
@@ -259,8 +234,6 @@ void printUsage( void )
   std::cout << "        specify the path of the GBA model to be loaded\n";
   std::cout << "  -name, --model-name\n";
   std::cout << "        specify the name of the GBA model to be loaded\n";
-  std::cout << "  -size, --model-size\n";
-  std::cout << "        specify the size of the GBA model (SMALL / GENOME_SCALE)\n";
   std::cout << "  -dt, --initial-dt\n";
   std::cout << "        specify the initial gradient timestep\n";
   std::cout << "  -maxt, --max-time\n";

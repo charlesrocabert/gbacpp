@@ -38,17 +38,15 @@
  * \details  --
  * \param    std::string model_path
  * \param    std::string model_name
- * \param    msize model_size
  * \param    bool parallel_computing
  * \return   \e void
  */
-Model::Model( std::string model_path, std::string model_name, msize model_size, bool parallel_computing )
+Model::Model( std::string model_path, std::string model_name, bool parallel_computing )
 {
   /*----------------------------------------------- Model path and name */
   
   _model_path         = model_path;
   _model_name         = model_name;
-  _model_size         = model_size;
   _parallel_computing = parallel_computing;
   
   /*----------------------------------------------- Identifier lists */
@@ -289,62 +287,6 @@ void Model::calculate( void )
 }
 
 /**
- * \brief    Calculate all variables for genome-scale models
- * \details  Specific methods are applied
- * \param    void
- * \return   \e void
- */
-void Model::calculate_GM( void )
-{
-  compute_c();
-  compute_xc();
-  if (!_parallel_computing)
-  {
-    for (int j = 0; j < _nj; j++)
-    {
-      GMMM(j);
-    }
-  }
-  else
-  {
-    for (int j = 0; j < _nj; j++)
-    {
-      _threads[j] = std::thread(&Model::GMMM, this, j);
-    }
-    for (int j = 0; j < _nj; j++)
-    {
-      _threads[j].join();
-    }
-  }
-  compute_mu();
-  compute_v();
-  compute_p();
-  compute_b();
-  compute_density();
-  if (!_parallel_computing)
-  {
-    for (int j = 0; j < _nj; j++)
-    {
-      dGMMM(j);
-    }
-  }
-  else
-  {
-    for (int j = 0; j < _nj; j++)
-    {
-      _threads[j] = std::thread(&Model::dGMMM, this, j);
-    }
-    for (int j = 0; j < _nj; j++)
-    {
-      _threads[j].join();
-    }
-  }
-  compute_dmu_f();
-  compute_GCC_f();
-  check_model_consistency();
-}
-
-/**
  * \brief    Compute the gradient ascent trajectory
  * \details  --
  * \param    std::string condition
@@ -356,19 +298,105 @@ void Model::calculate_GM( void )
  */
 bool Model::compute_gradient_ascent_trajectory( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
-  if (_model_size == SMALL)
+  assert(_condition_indices.find(condition) != _condition_indices.end());
+  assert(initial_dt > 0.0);
+  assert(max_t > 0.0);
+  if (save_trajectory)
   {
-    return compute_gradient_ascent_trajectory_for_small_models(condition, initial_dt, max_t, save_trajectory, output_path);
+    open_trajectory_output_files(output_path, condition);
   }
-  else if (_model_size == GENOME_SCALE)
+  _adjust_concentrations = false;
+  set_condition(condition);
+  initialize_f();
+  calculate();
+  if (!_consistent)
   {
-    return compute_gradient_ascent_trajectory_for_genome_scale_models(condition, initial_dt, max_t, save_trajectory, output_path);
+    throw std::invalid_argument("> Model initial state f0 is inconsistent");
+  }
+  gsl_vector* previous_f_trunc = gsl_vector_alloc(_nj-1);
+  gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
+  gsl_vector_memcpy(previous_f_trunc, _f_trunc);
+  double previous_mu         = 0.0;
+  double t                   = 0.0;
+  double dt                  = initial_dt;
+  int    dt_counter          = 0;
+  int    constant_mu_counter = 0;
+  int    nb_iterations       = 0;
+  int    nb_successes        = 0;
+  while (t < max_t)
+  {
+    nb_iterations++;
+    if (constant_mu_counter >= TRAJECTORY_STABLE_MU_COUNT)
+    {
+      break;
+    }
+    /*
+    if (nb_iterations%1000==0)
+    {
+      std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
+    }
+     */
+    previous_mu = _mu;
+    block_reactions();
+    gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
+    gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
+    gsl_vector_scale(scaled_dmudt, dt);
+    gsl_vector_add(_f_trunc, scaled_dmudt);
+    set_f();
+    calculate();
+    if (_consistent && _mu >= previous_mu)
+    {
+      gsl_vector_memcpy(previous_f_trunc, _f_trunc);
+      nb_successes++;
+      t = t+dt;
+      dt_counter++;
+      if (save_trajectory)
+      {
+        write_trajectory_output_files(condition, t, dt);
+      }
+      if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
+      {
+        constant_mu_counter++;
+      }
+      else
+      {
+        constant_mu_counter = 0;
+      }
+      if (dt_counter == 1000)
+      {
+        dt         *= INCREASING_DT_FACTOR;
+        dt_counter  = 0;
+      }
+    }
+    else
+    {
+      gsl_vector_memcpy(_f_trunc, previous_f_trunc);
+      set_f();
+      calculate();
+      assert(_consistent);
+      dt         /= DECREASING_DT_FACTOR;
+      dt_counter  = 0;
+    }
+  }
+  gsl_vector_free(previous_f_trunc);
+  gsl_vector_free(scaled_dmudt);
+  previous_f_trunc = NULL;
+  scaled_dmudt     = NULL;
+  if (save_trajectory)
+  {
+    write_trajectory_output_files(condition, t, dt);
+    close_trajectory_ouput_files();
+  }
+  if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
+  {
+    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
+    return(false);
   }
   else
   {
-    throw std::invalid_argument("> Model size parameter incorrect value");
+    std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
+    return(true);
   }
-  return false;
 }
 
 /**
@@ -402,7 +430,7 @@ void Model::compute_local_optimum_for_all_conditions( double initial_dt, double 
 void Model::save_report( std::string filename )
 {
   std::ofstream report_file(filename.c_str(), std::ios::out | std::ios::trunc);
-  report_file << _model_path << "/" << _model_name << " (" << _model_size << ")\n\n";
+  report_file << _model_path << "/" << _model_name << "\n\n";
   report_file << "Condition  = " << _current_condition << "\n";
   report_file << "Rho        = " << _current_rho << "\n";
   report_file << "Density    = " << _density << "\n";
@@ -1497,38 +1525,6 @@ void Model::rMM( int j )
 }
 
 /**
- * \brief    Genome-scale Michaelis-Menten kinetics
- * \details  Irreversible MM considering reaction directionality
- * \param    int j
- * \return   \e void
- */
-void Model::GMMM( int j )
-{
-  if (_directions[j] == "forward")
-  {
-    double KM_f_product = 1.0;
-    for (int i = 0; i < _ni; i++)
-    {
-      KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    }
-    gsl_vector_set(_tau_j, j, KM_f_product/gsl_vector_get(_kcat_f, j));
-  }
-  else if (_directions[j] == "backward")
-  {
-    double KM_b_product = 1.0;
-    for (int i = 0; i < _ni; i++)
-    {
-      KM_b_product *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
-    }
-    gsl_vector_set(_tau_j, j, -KM_b_product/gsl_vector_get(_kcat_b, j));
-  }
-  else if (_directions[j] == "reversible")
-  {
-    rMM(j);
-  }
-}
-
-/**
  * \brief    Compute tau_j
  * \details  --
  * \param    int j
@@ -1776,58 +1772,6 @@ void Model::drMM( int j )
       double detivative = (term1*term2-term3*term4)*(-gsl_vector_get(_tau_j, j));
       gsl_matrix_set(_ditau_j, j, i, detivative);
     }
-  }
-}
-
-/**
- * \brief    Derivative of iMM with respect to metabolite concentrations, for genome-scale models
- * \details  Irreversible MM derivatives considering reaction directionality
- * \param    int j
- * \return   \e void
- */
-void Model::dGMMM( int j )
-{
-  if (_directions[j] == "forward")
-  {
-    double term3 = gsl_vector_get(_kcat_f, j);
-    for (int i = 0; i < _nc; i++)
-    {
-      int    y     = i+_nx;
-      double term1 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
-      double term2 = 1.0;
-      for (int index = 0; index < _ni; index++)
-      {
-        if (index != y)
-        {
-          term2 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
-        }
-        double detivative = -term1*term2/term3;
-        gsl_matrix_set(_ditau_j, j, i, detivative);
-      }
-    }
-  }
-  else if (_directions[j] == "backward")
-  {
-    double term3 = gsl_vector_get(_kcat_b, j);
-    for (int i = 0; i < _nc; i++)
-    {
-      int    y     = i+_nx;
-      double term1 = gsl_matrix_get(_KM_b, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
-      double term2 = 1.0;
-      for (int index = 0; index < _ni; index++)
-      {
-        if (index != y)
-        {
-          term2 *= 1.0+gsl_matrix_get(_KM_b, index, j)/gsl_vector_get(_xc, index);
-        }
-        double detivative = term1*term2/term3;
-        gsl_matrix_set(_ditau_j, j, i, detivative);
-      }
-    }
-  }
-  else if (_directions[j] == "reversible")
-  {
-    drMM(j);
   }
 }
 
@@ -2111,243 +2055,6 @@ void Model::block_reactions( void )
         gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
       }
     }
-  }
-}
-
-/**
- * \brief    Compute the gradient ascent trajectory for small models exclusively
- * \details  Basic trajectory controls are implemented
- * \param    std::string condition
- * \param    double initial_dt
- * \param    double max_t
- * \param    bool save_trajectory
- * \param    std::string output_path
- * \return   \e bool
- */
-bool Model::compute_gradient_ascent_trajectory_for_small_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
-{
-  assert(_condition_indices.find(condition) != _condition_indices.end());
-  assert(initial_dt > 0.0);
-  assert(max_t > 0.0);
-  if (save_trajectory)
-  {
-    open_trajectory_output_files(output_path, condition);
-  }
-  _adjust_concentrations = false;
-  set_condition(condition);
-  initialize_f();
-  calculate();
-  if (!_consistent)
-  {
-    throw std::invalid_argument("> Model initial state f0 is inconsistent");
-  }
-  gsl_vector* previous_f_trunc = gsl_vector_alloc(_nj-1);
-  gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
-  gsl_vector_memcpy(previous_f_trunc, _f_trunc);
-  double previous_mu         = 0.0;
-  double t                   = 0.0;
-  double dt                  = initial_dt;
-  int    dt_counter          = 0;
-  int    constant_mu_counter = 0;
-  int    nb_iterations       = 0;
-  int    nb_successes        = 0;
-  while (t < max_t)
-  {
-    nb_iterations++;
-    if (constant_mu_counter >= TRAJECTORY_STABLE_MU_COUNT)
-    {
-      break;
-    }
-    /*
-    if (nb_iterations%1000==0)
-    {
-      std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
-    }
-     */
-    previous_mu = _mu;
-    block_reactions();
-    gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
-    gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
-    gsl_vector_scale(scaled_dmudt, dt);
-    gsl_vector_add(_f_trunc, scaled_dmudt);
-    set_f();
-    calculate();
-    if (_consistent && _mu >= previous_mu)
-    {
-      gsl_vector_memcpy(previous_f_trunc, _f_trunc);
-      nb_successes++;
-      t = t+dt;
-      dt_counter++;
-      if (save_trajectory)
-      {
-        write_trajectory_output_files(condition, t, dt);
-      }
-      if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
-      {
-        constant_mu_counter++;
-      }
-      else
-      {
-        constant_mu_counter = 0;
-      }
-      if (dt_counter == 1000)
-      {
-        dt         *= INCREASING_DT_FACTOR;
-        dt_counter  = 0;
-      }
-    }
-    else
-    {
-      gsl_vector_memcpy(_f_trunc, previous_f_trunc);
-      set_f();
-      calculate();
-      assert(_consistent);
-      dt         /= DECREASING_DT_FACTOR;
-      dt_counter  = 0;
-    }
-  }
-  gsl_vector_free(previous_f_trunc);
-  gsl_vector_free(scaled_dmudt);
-  previous_f_trunc = NULL;
-  scaled_dmudt     = NULL;
-  if (save_trajectory)
-  {
-    write_trajectory_output_files(condition, t, dt);
-    close_trajectory_ouput_files();
-  }
-  if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
-  {
-    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
-    return(false);
-  }
-  else
-  {
-    std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
-    return(true);
-  }
-}
-
-/**
- * \brief    Compute the gradient ascent trajectory for genome-scale models
- * \details  More elaborated controls are implemented on the trajectory, and specific functions are used
- * \param    std::string condition
- * \param    double initial_dt
- * \param    double max_t
- * \param    bool save_trajectory
- * \param    std::string output_path
- * \return   \e bool
- */
-bool Model::compute_gradient_ascent_trajectory_for_genome_scale_models( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
-{
-  assert(_condition_indices.find(condition) != _condition_indices.end());
-  assert(initial_dt > 0.0);
-  assert(max_t > 0.0);
-  if (save_trajectory)
-  {
-    open_trajectory_output_files(output_path, condition);
-  }
-  _adjust_concentrations = false;
-  set_condition(condition);
-  initialize_f();
-  calculate_GM();
-  if (!_consistent)
-  {
-    throw std::invalid_argument("> Model initial state f0 is inconsistent");
-  }
-  gsl_vector* previous_f_trunc = gsl_vector_alloc(_nj-1);
-  gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
-  gsl_vector_memcpy(previous_f_trunc, _f_trunc);
-  double previous_mu         = 0.0;
-  double t                   = 0.0;
-  double dt                  = initial_dt;
-  int    dt_counter          = 0;
-  int    constant_mu_counter = 0;
-  int    nb_iterations       = 0;
-  int    nb_successes        = 0;
-  while (t < max_t)
-  {
-    /*------------------------------------------------*/
-    /* 1) Check the size of dt                        */
-    /*------------------------------------------------*/
-    if (dt <= 1e-100)
-    {
-      throw std::invalid_argument("> dt is too small");
-    }
-    /*
-    if (nb_iterations%1000==0)
-    {
-      std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
-    }
-     */
-    /*------------------------------------------------*/
-    /* 2) Check trajectory convergence                */
-    /*------------------------------------------------*/
-    if (constant_mu_counter >= TRAJECTORY_STABLE_MU_COUNT)
-    {
-      break;
-    }
-    previous_mu = _mu;
-    block_reactions();
-    gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
-    gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
-    gsl_vector_scale(scaled_dmudt, dt);
-    gsl_vector_add(_f_trunc, scaled_dmudt);
-    set_f();
-    calculate_GM();
-    if (_consistent && _mu >= previous_mu)
-    {
-      gsl_vector_memcpy(previous_f_trunc, _f_trunc);
-      nb_successes++;
-      t = t+dt;
-      dt_counter++;
-      _mu_diff = fabs(_mu-previous_mu);
-      if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT==0)
-      {
-        write_trajectory_output_files(condition, t, dt);
-      }
-      if (_mu_diff < TRAJECTORY_CONVERGENCE_TOL)
-      {
-        constant_mu_counter++;
-      }
-      else
-      {
-        constant_mu_counter = 0;
-      }
-      if (dt_counter == INCREASING_DT_COUNT)
-      {
-        dt         *= INCREASING_DT_FACTOR;
-        dt_counter  = 0;
-      }
-    }
-    else
-    {
-      gsl_vector_memcpy(_f_trunc, previous_f_trunc);
-      set_f();
-      calculate_GM();
-      assert(_consistent);
-      dt         /= DECREASING_DT_FACTOR;
-      dt_counter  = 0;
-    }
-    nb_iterations++;
-  }
-  gsl_vector_free(previous_f_trunc);
-  gsl_vector_free(scaled_dmudt);
-  previous_f_trunc = NULL;
-  scaled_dmudt     = NULL;
-  if (save_trajectory)
-  {
-    write_trajectory_output_files(condition, t, dt);
-    close_trajectory_ouput_files();
-  }
-  if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
-  {
-    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
-    return(false);
-  }
-  else
-  {
-    std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
-    return(true);
   }
 }
 
