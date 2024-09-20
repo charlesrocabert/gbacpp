@@ -54,7 +54,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-path /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/csv_models -name D -dt 0.01 -maxt 10000"
+            argument = "-path /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/csv_models -name EC12b -dt 0.01 -maxt 10000"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

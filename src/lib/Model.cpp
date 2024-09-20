@@ -96,18 +96,19 @@ Model::Model( std::string model_path, std::string model_name, bool parallel_comp
   
   /*----------------------------------------------- GBA first order variables */
   
-  _f0         = NULL;
-  _f          = NULL;
-  _f_trunc    = NULL;
-  _c          = NULL;
-  _xc         = NULL;
-  _tau_j      = NULL;
-  _v          = NULL;
-  _p          = NULL;
-  _b          = NULL;
-  _density    = 0.0;
-  _mu         = 0.0;
-  _consistent = false;
+  _f0                    = NULL;
+  _f                     = NULL;
+  _f_trunc               = NULL;
+  _c                     = NULL;
+  _xc                    = NULL;
+  _tau_j                 = NULL;
+  _v                     = NULL;
+  _p                     = NULL;
+  _b                     = NULL;
+  _density               = 0.0;
+  _mu                    = 0.0;
+  _consistent            = false;
+  _adjust_concentrations = false;
   
   /*----------------------------------------------- GBA second order variables */
   
@@ -1895,6 +1896,7 @@ void Model::compute_dmu_f( void )
  */
 void Model::compute_GCC_f( void )
 {
+  // self.dmu_f-self.dmu_f[0]*(self.sM/self.sM[0])
   gsl_vector_memcpy(_GCC_f, _sM);
   gsl_vector_scale(_GCC_f, gsl_vector_get(_dmu_f, 0)/gsl_vector_get(_sM, 0));
   gsl_vector_scale(_GCC_f, -1.0);

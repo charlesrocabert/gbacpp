@@ -40,8 +40,8 @@
 #define DECREASING_DT_FACTOR       5.0   /*!< Factor dividing dt                                                   */
 #define INCREASING_DT_FACTOR       2.0   /*!< Factor multiplying dt                                                */
 #define INCREASING_DT_COUNT        100   /*!< Number of constant dt iterations to increase it                       */
-#define TRAJECTORY_STABLE_MU_COUNT 2000  /*!< Number of stable mu values required to consider a trajectory stable  */
-#define TRAJECTORY_CONVERGENCE_TOL 1e-12  /*!< Analytical trajectory convergence tolerance                          */
+#define TRAJECTORY_STABLE_MU_COUNT 5000  /*!< Number of stable mu values required to consider a trajectory stable  */
+#define TRAJECTORY_CONVERGENCE_TOL 1e-10  /*!< Analytical trajectory convergence tolerance                          */
 #define EXPORT_DATA_COUNT          500  /*!< Data is exported at this period in number of iterations              */
 #define MCMC_CONVERGENCE_TOL       1e-5  /*!< MCMC trajectory convergence tolerance                                */
 #define POPLEVEL_CONVERGENCE_TOL   1e-5  /*!< Population-level trajectory convergence tolerance                    */
