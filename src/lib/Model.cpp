@@ -638,7 +638,7 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
   /*** Write headers ***/
-  _state_optimum_file << "condition;mu;density;consistent;converged;runtime\n";
+  _state_optimum_file << "condition;mu;density;consistent;converged;run_time\n";
   _f_optimum_file << "condition";
   _c_optimum_file << "condition";
   _v_optimum_file << "condition";
