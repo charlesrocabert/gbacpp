@@ -57,8 +57,6 @@ void printHeader( void );
  */
 int main(int argc, char const** argv)
 {
-  std::clock_t begin = clock();
-  
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Read parameters                             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -75,24 +73,25 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  Model* model   = new Model(path, name, parallel);
-  bool converged = model->compute_gradient_ascent(condition, initial_dt, max_t, save, output);
+  std::clock_t begin = clock();
+  Model*       model     = new Model(path, name, parallel);
+  bool         converged = model->compute_gradient_ascent(condition, initial_dt, max_t, save, output);
+  std::clock_t end       = clock();
+  double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Save the optimum in case of convergence     */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   model->open_optimum_output_files(output, condition);
-  model->write_optimum_output_files(condition, converged);
+  model->write_optimum_output_files(condition, converged, runtime);
   model->close_optimum_ouput_files();
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 4) Free memory and exit                        */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   delete model;
-  model       = NULL;
-  clock_t end = clock();
-  double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
-  std::cout << "Elapsed time: " << elapsed_secs << " seconds" << std::endl;
+  model = NULL;
+  std::cout << "Elapsed time: " << runtime << " seconds" << std::endl;
   return EXIT_SUCCESS;
 }
 

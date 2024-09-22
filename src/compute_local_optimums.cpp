@@ -80,10 +80,10 @@ int main(int argc, char const** argv)
   /* 3) Free memory and exit                        */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   delete model;
-  model       = NULL;
-  clock_t end = clock();
-  double elapsed_secs = double(end-begin)/CLOCKS_PER_SEC;
-  std::cout << "Elapsed time: " << elapsed_secs << " seconds" << std::endl;
+  model            = NULL;
+  std::clock_t end = clock();
+  double  runtime  = double(end-begin)/CLOCKS_PER_SEC;
+  std::cout << "Elapsed time: " << runtime << " seconds" << std::endl;
   return EXIT_SUCCESS;
 }
 

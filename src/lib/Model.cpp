@@ -415,9 +415,12 @@ void Model::compute_local_optimums( double initial_dt, double max_t, bool save_t
   open_optimum_output_files(output_path, "");
   for (int i = 0; i < (int)_condition_ids.size(); i++)
   {
-    std::string condition = _condition_ids[i];
-    bool converged        = compute_gradient_ascent(condition, initial_dt, max_t, save_trajectory, output_path);
-    write_optimum_output_files(condition, converged);
+    std::clock_t begin     = clock();
+    std::string  condition = _condition_ids[i];
+    bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, save_trajectory, output_path);
+    std::clock_t end       = clock();
+    double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
+    write_optimum_output_files(condition, converged, runtime);
   }
   close_optimum_ouput_files();
 }
@@ -635,7 +638,7 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
   /*** Write headers ***/
-  _state_optimum_file << "condition;mu;density;consistent;converged\n";
+  _state_optimum_file << "condition;mu;density;consistent;converged;runtime\n";
   _f_optimum_file << "condition";
   _c_optimum_file << "condition";
   _v_optimum_file << "condition";
@@ -664,11 +667,12 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
  * \details  --
  * \param    std::string condition
  * \param    bool converged
+ * \param    double runtime
  * \return   \e void
  */
-void Model::write_optimum_output_files( std::string condition, bool converged )
+void Model::write_optimum_output_files( std::string condition, bool converged, double runtime )
 {
-  _state_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << "\n";
+  _state_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << ";" << runtime << "\n";
   _f_optimum_file << condition;
   _c_optimum_file << condition;
   _v_optimum_file << condition;

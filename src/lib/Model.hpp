@@ -103,7 +103,7 @@ public:
   void close_trajectory_ouput_files( void );
   
   void open_optimum_output_files( std::string output_path, std::string condition );
-  void write_optimum_output_files( std::string condition, bool converged );
+  void write_optimum_output_files( std::string condition, bool converged, double runtime );
   void close_optimum_ouput_files( void );
   
   /*----------------------------
