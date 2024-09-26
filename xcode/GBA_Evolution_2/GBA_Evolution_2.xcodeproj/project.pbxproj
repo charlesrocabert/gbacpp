@@ -57,14 +57,6 @@
 		B670A3AB2C81865100FAE7C4 /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
 		B670A3AC2C81865700FAE7C4 /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
 		B670A3AD2C81865E00FAE7C4 /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
-		B67944A72C9ADF670077BD68 /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
-		B67944A82C9ADF670077BD68 /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
-		B67944A92C9ADF670077BD68 /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
-		B67944AA2C9ADF670077BD68 /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
-		B67944AB2C9ADF670077BD68 /* KI.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KI.csv; sourceTree = "<group>"; };
-		B67944AC2C9ADF670077BD68 /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
-		B67944AD2C9ADF670077BD68 /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
-		B67944AE2C9ADF670077BD68 /* optimum.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = optimum.csv; sourceTree = "<group>"; };
 		B67944B02C9ADF670077BD68 /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
 		B67944B12C9ADF670077BD68 /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
 		B67944B22C9ADF670077BD68 /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
@@ -221,21 +213,6 @@
 				B650153F2C89716100604166 /* M.csv */,
 			);
 			path = MMSYN;
-			sourceTree = "<group>";
-		};
-		B67944AF2C9ADF670077BD68 /* newextended_M2 */ = {
-			isa = PBXGroup;
-			children = (
-				B67944A72C9ADF670077BD68 /* conditions.csv */,
-				B67944A82C9ADF670077BD68 /* directions.csv */,
-				B67944A92C9ADF670077BD68 /* f0.csv */,
-				B67944AA2C9ADF670077BD68 /* kcat.csv */,
-				B67944AB2C9ADF670077BD68 /* KI.csv */,
-				B67944AC2C9ADF670077BD68 /* KM_forward.csv */,
-				B67944AD2C9ADF670077BD68 /* M.csv */,
-				B67944AE2C9ADF670077BD68 /* optimum.csv */,
-			);
-			path = newextended_M2;
 			sourceTree = "<group>";
 		};
 		B67944B92C9ADF670077BD68 /* newextended16 */ = {
@@ -570,7 +547,6 @@
 		B6E3A7282C80753200106E8A /* csv_models */ = {
 			isa = PBXGroup;
 			children = (
-				B67944AF2C9ADF670077BD68 /* newextended_M2 */,
 				B67944B92C9ADF670077BD68 /* newextended16 */,
 				B65015402C89716100604166 /* MMSYN */,
 				B6E3A7062C80753200106E8A /* A */,

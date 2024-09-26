@@ -53,8 +53,8 @@ if __name__ == "__main__":
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
     MODEL_PATH  = "/gpfs/project/dam82xot/GBAcpp/csv_models"
-    MODEL_NAME  = "MMSYN"
-    CONDITIONS  = range(1, 31)
+    MODEL_NAME  = "newextended16"
+    CONDITIONS  = range(1, 201)
     CONDITIONS  = [str(c) for c in CONDITIONS]
     DT          = 0.01
     MAXT        = 100000.0
