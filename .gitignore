@@ -9,6 +9,7 @@ connect_to_HPC.sh
 
 # Compilation products
 output/**
+results/**
 build/**
 cmake/CmakeFiles/
 cmake/CMakeCache.txt

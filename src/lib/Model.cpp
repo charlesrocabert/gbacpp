@@ -332,7 +332,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       break;
     }
     /*
-    if (nb_iterations%1000==0)
+    if (nb_iterations%50000==0)
     {
       std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
     }
@@ -363,7 +363,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       {
         constant_mu_counter = 0;
       }
-      if (dt_counter == 1000)
+      if (dt_counter == INCREASING_DT_COUNT)
       {
         dt         *= INCREASING_DT_FACTOR;
         dt_counter  = 0;
@@ -1435,13 +1435,13 @@ void Model::compute_xc( void )
  */
 void Model::iMM( int j )
 {
-  //self.tau_j[j] = np.prod(1+self.KM_f[:,j]/self.xc)/self.kcat_f[j]
-  double KM_f_product = 1.0;
+  double term1 = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    term1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  gsl_vector_set(_tau_j, j, KM_f_product/gsl_vector_get(_kcat_f, j));
+  double term2 = gsl_vector_get(_kcat_f, j);
+  gsl_vector_set(_tau_j, j, term1/term2);
 }
 
 /**
@@ -1452,16 +1452,16 @@ void Model::iMM( int j )
  */
 void Model::iMMi( int j )
 {
-  //self.tau_j[j] = np.prod(1+self.KM_f[:,j]/self.xc)*np.prod(1+self.rKI[:,j]*self.xc)/self.kcat_f[j]
-  double KM_f_product = 1.0;
-  double KI_product   = 1.0;
+  double term1 = 1.0;
+  double term2 = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    double rKI    = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
-    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    KI_product   *= 1.0+gsl_vector_get(_xc, i)*rKI;
+    double rKI = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    term1     *= 1.0+gsl_vector_get(_xc, i)*rKI;
+    term2     *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  gsl_vector_set(_tau_j, j, KM_f_product*KI_product/gsl_vector_get(_kcat_f, j));
+  double term3 = gsl_vector_get(_kcat_f, j);
+  gsl_vector_set(_tau_j, j, term1*term2/term3);
 }
 
 /**
@@ -1472,20 +1472,16 @@ void Model::iMMi( int j )
  */
 void Model::iMMa( int j )
 {
-  /*
-  term1 = np.prod(1+self.KA[:,j]/self.xc)
-  term2 = np.prod(1+self.KM_f[:,j]/self.xc)
-  term3 = self.kcat_f[j]
-  self.tau_j[j] = term1*term2/term3
-  */
-  double KM_f_product = 1.0;
-  double KA_product   = 1.0;
+  double term1 = 1.0;
+  double term2 = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    KA_product   *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    term1 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    term2 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    
   }
-  gsl_vector_set(_tau_j, j, KM_f_product*KA_product/gsl_vector_get(_kcat_f, j));
+  double term3 = gsl_vector_get(_kcat_f, j);
+  gsl_vector_set(_tau_j, j, term1*term2/term3);
 }
 
 /**
@@ -1496,17 +1492,18 @@ void Model::iMMa( int j )
  */
 void Model::iMMia( int j )
 {
-  double KM_f_product = 1.0;
-  double KI_product   = 1.0;
-  double KA_product   = 1.0;
+  double term1 = 1.0;
+  double term2 = 1.0;
+  double term3 = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    double rKI    = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
-    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    KI_product   *= 1.0+gsl_vector_get(_xc, i)*rKI;
-    KA_product   *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    double rKI = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    term1     *= 1.0+gsl_vector_get(_xc, i)*rKI;
+    term2     *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    term3     *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  gsl_vector_set(_tau_j, j, KM_f_product*KI_product*KA_product/gsl_vector_get(_kcat_f, j));
+  double term4 = gsl_vector_get(_kcat_f, j);
+  gsl_vector_set(_tau_j, j, term1*term2*term3/term4);
 }
 
 /**
@@ -1517,16 +1514,16 @@ void Model::iMMia( int j )
  */
 void Model::rMM( int j )
 {
-  double KM_f_product = 1.0;
-  double KM_b_product = 1.0;
+  double term1 = gsl_vector_get(_kcat_f, j);
+  double term2 = 1.0;
+  double term3 = gsl_vector_get(_kcat_b, j);
+  double term4 = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    KM_f_product *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    KM_b_product *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
+    term2 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    term4 *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
   }
-  KM_f_product = gsl_vector_get(_kcat_f, j)/KM_f_product;
-  KM_b_product = gsl_vector_get(_kcat_b, j)/KM_b_product;
-  gsl_vector_set(_tau_j, j, 1/(KM_f_product-KM_b_product));
+  gsl_vector_set(_tau_j, j, 1.0/(term1/term2-term3/term4));
 }
 
 /**
@@ -1565,22 +1562,7 @@ void Model::compute_tau( int j )
  */
 void Model::diMM( int j )
 {
-  /*
-  for i in range(self.nc):
-    y       = i+self.nx
-    indices = np.arange(self.ni) != y
-    term1   = (self.KM_f[y,j]/self.c[i]**2)
-    term2   = np.prod(1+self.KM_f[indices,j]/self.xc[indices])
-    term3   = self.kcat_f[j]
-    self.ditau_j[j,i] = -term1*term2/term3
-   */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Define constants         */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double term3 = gsl_vector_get(_kcat_f, j);
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate the derivative */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  double constant1 = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -1592,8 +1574,7 @@ void Model::diMM( int j )
       {
         term2 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
-      double detivative = -term1*term2/term3;
-      gsl_matrix_set(_ditau_j, j, i, detivative);
+      gsl_matrix_set(_ditau_j, j, i, -term1*term2/constant1);
     }
   }
 }
@@ -1606,47 +1587,29 @@ void Model::diMM( int j )
  */
 void Model::diMMi( int j )
 {
-  /*
-  for i in range(self.nc):
-    y                 = i+self.nx
-    term1             = self.rKI[y,j]*np.prod(1+self.KM_f[:,j]/self.xc)
-    term2             = np.prod(1+self.xc*self.rKI[:,j])
-    term3             = self.KM_f[y,j]/self.c[i]**2
-    term4             = np.prod(1+self.KM_f[np.arange(self.ni) != y,j]/self.xc[np.arange(self.ni) != y])
-    term5             = self.kcat_f[j]
-    self.ditau_j[j,i] = term1-term2*term3*term4/term5
-   */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Define constants         */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double constant_1 = 1.0;
-  double constant_2 = 1.0;
-  double term5      = gsl_vector_get(_kcat_f, j);
+  double constant1 = 1.0;
+  double constant2 = 1.0;
+  double constant3 = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    double rKI  = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
-    constant_1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    constant_2 *= 1.0+gsl_vector_get(_xc, i)*rKI;
+    double rKI = (gsl_matrix_get(_KI, i, j) > 1e-10 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    constant1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    constant2 *= 1.0+gsl_vector_get(_xc, i)*rKI;
   }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate the derivative */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
-    double rKI   = (gsl_matrix_get(_KI, y, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
-    double term1 = rKI*constant_1;
-    double term2 = constant_2;
-    double term3 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
-    double term4 = 1.0;
+    double rKI   = (gsl_matrix_get(_KI, y, j) > 1e-10 ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
+    double term1 = rKI*constant1;
+    double term2 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
+    double term3 = 1.0;
     for (int index = 0; index < _ni; index++)
     {
       if (index != y)
       {
-        term4 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        term3 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
-      double derivative = term1-term2*term3*term4/term5;
-      gsl_matrix_set(_ditau_j, j, i, derivative);
+      gsl_matrix_set(_ditau_j, j, i, (term1-constant2*term2*term3)/constant3);
     }
   }
 }
@@ -1659,36 +1622,27 @@ void Model::diMMi( int j )
  */
 void Model::diMMa( int j )
 {
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Define constants         */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double constant_1 = 1.0;
-  double constant_2 = 1.0;
-  double term6      = gsl_vector_get(_kcat_f, j);
+  double constant1 = 1.0;
+  double constant2 = 1.0;
+  double constant3 = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    constant_1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    constant_2 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    constant1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    constant2 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
   }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate the derivative */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
     double term1 = gsl_matrix_get(_KA, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
-    double term2 = constant_1;
-    double term3 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
-    double term4 = constant_2;
-    double term5 = 1.0;
+    double term2 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
+    double term3 = 1.0;
     for (int index = 0; index < _ni; index++)
     {
       if (index != y)
       {
-        term5 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        term3 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
-      double derivative = -(term1*term2+term3*term4*term5)/term6;
-      gsl_matrix_set(_ditau_j, j, i, derivative);
+      gsl_matrix_set(_ditau_j, j, i, -(constant1*term1+constant2*term2*term3)/constant3);
     }
   }
 }
@@ -1701,44 +1655,34 @@ void Model::diMMa( int j )
  */
 void Model::diMMia( int j )
 {
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Define constants         */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double constant_1 = 1.0;
-  double constant_2 = 1.0;
-  double constant_3 = 1.0;
-  double term9      = gsl_vector_get(_kcat_f, j);
+  double constant1 = 1.0;
+  double constant2 = 1.0;
+  double constant3 = 1.0;
+  double constant4 = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    double rKI  = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
-    constant_1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    constant_2 *= 1.0+gsl_vector_get(_xc, i)*rKI;
-    constant_3 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    double rKI = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    constant1 *= 1.0+gsl_vector_get(_xc, i)*rKI;
+    constant2 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    constant3 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate the derivative */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
     double rKI   = (gsl_matrix_get(_KI, y, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
-    double term1 = rKI*constant_1*constant_3;
-    double term2 = constant_2;
-    double term3 = -gsl_matrix_get(_KA, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
-    double term4 = constant_1;
-    double term5 = constant_2;
-    double term6 = constant_3;
-    double term7 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
-    double term8 = 1.0;
+    double term1 = rKI;
+    double term2 = -gsl_matrix_get(_KA, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
+    double term3 = -gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
+    double term4 = 1.0;
     for (int index = 0; index < _ni; index++)
     {
       if (index != y)
       {
-        term8 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        term4 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
-      double derivative = term1+(term2*term3*term4)+(term5*term6*term7*term8)/term9;
-      gsl_matrix_set(_ditau_j, j, i, derivative);
     }
+    double term5 = (term1*constant2*constant3)+(term2*constant1*constant3)+(term3*term4*constant1*constant2);
+    gsl_matrix_set(_ditau_j, j, i, term5/constant4);
   }
 }
 
@@ -1750,21 +1694,38 @@ void Model::diMMia( int j )
  */
 void Model::drMM( int j )
 {
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Define constants         */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double constant_1 = gsl_vector_get(_kcat_f, j);
-  double constant_2 = gsl_vector_get(_kcat_b, j);
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate the derivative */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  double constant1 = gsl_vector_get(_kcat_f, j);
+  double constant2 = gsl_vector_get(_kcat_b, j);
+  double constant3 = 1.0;
+  double constant4 = 1.0;
+  for (int i = 0; i < _ni; i++)
+  {
+    constant3 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    constant4 *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
+  }
+  /*
+   constant1 = self.kcat_f[j]
+   constant2 = self.kcat_b[j]
+   constant3 = np.prod(1+self.KM_f[:,j]/self.xc)
+   constant4 = np.prod(1+self.KM_b[:,j]/self.xc)
+   for i in range(self.nc):
+       y       = i+self.nx
+       indices = np.arange(self.ni) != y
+       term1   = self.KM_f[y,j] / np.power(self.c[i] + self.KM_f[y,j], 2.0)
+       term2   = self.KM_b[y,j] / np.power(self.c[i] + self.KM_b[y,j], 2.0)
+       term3   = np.prod(1 + self.KM_f[indices,j]/self.xc[indices])
+       term4   = np.prod(1 + self.KM_b[indices,j]/self.xc[indices])
+       term5   = term1*constant1/term3-term2*constant2/term4
+       term6   = constant1/constant3-constant2/constant4
+       self.ditau_j[j,i] = -term5/np.power(term6, 2.0)
+   */
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
-    double term1 = 1.0;
-    double term2 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_matrix_get(_KM_f, y, j)+gsl_vector_get(_c, i), 2);
+    double term1 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_f, y, j), 2);
+    double term2 = gsl_matrix_get(_KM_b, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_b, y, j), 2);
     double term3 = 1.0;
-    double term4 = gsl_matrix_get(_KM_b, y, j)/gsl_pow_int(gsl_matrix_get(_KM_b, y, j)+gsl_vector_get(_c, i), 2);
+    double term4 = 1.0;
     for (int index = 0; index < _ni; index++)
     {
       if (index != y)
@@ -1772,11 +1733,10 @@ void Model::drMM( int j )
         term1 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
         term3 *= 1.0+gsl_matrix_get(_KM_b, index, j)/gsl_vector_get(_xc, index);
       }
-      term1             = constant_1/term1;
-      term3             = constant_2/term3;
-      double detivative = (term1*term2-term3*term4)*(-gsl_vector_get(_tau_j, j));
-      gsl_matrix_set(_ditau_j, j, i, detivative);
     }
+    double term5 = term1*constant1/term3-term2*constant2/term4;
+    double term6 = constant1/constant3-constant2/constant4;
+    gsl_matrix_set(_ditau_j, j, i, -term5/gsl_pow_int(term6, 2));
   }
 }
 

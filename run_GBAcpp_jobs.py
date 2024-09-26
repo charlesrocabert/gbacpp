@@ -15,20 +15,19 @@ import os
 import sys
 
 ### Build the command line ###
-def build_command_line( exec_path, model_path, model_name, model_size, condition, dt, maxt, output_path ):
+def build_command_line( exec_path, model_path, model_name, condition, dt, maxt, output_path ):
     cmd  = exec_path
     cmd += " -path " + model_path
     cmd += " -name " + model_name
-    cmd += " -size " + model_size
     cmd += " -condition " + condition
     cmd += " -dt " + str(dt)
     cmd += " -maxt " + str(maxt)
-    cmd += " -save -output " + output_path
+    cmd += " -output " + output_path
     return cmd
 
 ### Build and run the qsub script ###
-def build_and_run_qsub_script( exec_path, model_path, model_name, model_size, condition, dt, maxt, output_path ):
-    cmd = build_command_line(exec_path, model_path, model_name, model_size, condition, dt, maxt, output_path)
+def build_and_run_qsub_script( exec_path, model_path, model_name, condition, dt, maxt, output_path ):
+    cmd = build_command_line(exec_path, model_path, model_name, condition, dt, maxt, output_path)
     f   = open("GBAcpp_job.sh", "w")
     f.write("#!/bin/bash\n")
     f.write("#PBS -l select=1:ncpus=1:mem=4GB\n")
@@ -52,19 +51,19 @@ if __name__ == "__main__":
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # 1) Define main parameters       #
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-    EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/calculate_gradient_ascent_trajectory"
+    EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
     MODEL_PATH  = "/gpfs/project/dam82xot/GBAcpp/csv_models"
     MODEL_NAME  = "MMSYN"
-    MODEL_SIZE  = "GENOME_SCALE"
-    CONDITIONS  = ["1", "2", "3", "4", "5"]
+    CONDITIONS  = range(1, 31)
+    CONDITIONS  = [str(c) for c in CONDITIONS]
     DT          = 0.01
-    MAXT        = 200.0
+    MAXT        = 100000.0
     OUTPUT_PATH = "/gpfs/project/dam82xot/GBAcpp/output"
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # 2) Run a job for each condition #
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     for condition in CONDITIONS:
-        build_and_run_qsub_script(EXEC_PATH, MODEL_PATH, MODEL_NAME, MODEL_SIZE, condition, DT, MAXT, OUTPUT_PATH)
+        build_and_run_qsub_script(EXEC_PATH, MODEL_PATH, MODEL_NAME, condition, DT, MAXT, OUTPUT_PATH)
 
 
