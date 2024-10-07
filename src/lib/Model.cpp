@@ -400,12 +400,13 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
     {
       break;
     }
-    */
+     */
+    /*
     if (nb_iterations%EXPORT_DATA_COUNT==0)
     {
       std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", count=" << constant_mu_counter << ")" << std::endl;
     }
-    
+     */
     previous_mu = _mu;
     block_reactions();
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
@@ -676,7 +677,7 @@ void Model::write_trajectory_output_files( std::string condition, double t, doub
   _f_trajectory_file.flush();
   _v_trajectory_file.flush();
   _p_trajectory_file.flush();
-  system("/usr/local/bin/Rscript plot_trajectory.R > /dev/null &");
+  //system("/usr/local/bin/Rscript plot_trajectory.R > /dev/null &");
 }
 
 /**

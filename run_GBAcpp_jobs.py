@@ -53,17 +53,20 @@ if __name__ == "__main__":
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
     MODEL_PATH  = "/gpfs/project/dam82xot/GBAcpp/csv_models"
-    MODEL_NAME  = "newextended16"
-    CONDITIONS  = range(1, 201)
+    MODEL_NAMES = ["MMSYN_0000", "MMSYN_0010", "MMSYN_0100", "MMSYN_0110",
+                   "MMSYN_1000", "MMSYN_1001", "MMSYN_1010", "MMSYN_1011",
+                   "MMSYN_1100", "MMSYN_1101", "MMSYN_1110", "MMSYN_1111"]
+    CONDITIONS  = range(1, 31)
     CONDITIONS  = [str(c) for c in CONDITIONS]
     DT          = 0.01
-    MAXT        = 100000.0
+    MAXT        = 1000000.0
     OUTPUT_PATH = "/gpfs/project/dam82xot/GBAcpp/output"
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # 2) Run a job for each condition #
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-    for condition in CONDITIONS:
-        build_and_run_qsub_script(EXEC_PATH, MODEL_PATH, MODEL_NAME, condition, DT, MAXT, OUTPUT_PATH)
+    for model_name in MODEL_NAMES:
+        for condition in CONDITIONS:
+            build_and_run_qsub_script(EXEC_PATH, MODEL_PATH, model_name, condition, DT, MAXT, OUTPUT_PATH)
 
 

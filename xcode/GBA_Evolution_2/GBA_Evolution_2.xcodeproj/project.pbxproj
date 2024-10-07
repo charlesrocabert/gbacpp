@@ -60,13 +60,6 @@
 /* Begin PBXFileReference section */
 		B61A09402C8070BD009D4A4C /* compute_gradient_ascent */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = compute_gradient_ascent; sourceTree = BUILT_PRODUCTS_DIR; };
 		B6448A812CA0531800477DFA /* run_all.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = run_all.sh; sourceTree = "<group>"; };
-		B65015392C89716100604166 /* conditions.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
-		B650153A2C89716100604166 /* directions.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
-		B650153B2C89716100604166 /* f0.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
-		B650153C2C89716100604166 /* kcat.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
-		B650153D2C89716100604166 /* KM_backward.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = KM_backward.csv; sourceTree = "<group>"; };
-		B650153E2C89716100604166 /* KM_forward.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
-		B650153F2C89716100604166 /* M.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
 		B65740A72CAA8FB600E282D9 /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
 		B65740A82CAA8FB600E282D9 /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
 		B65740A92CAA8FB600E282D9 /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
@@ -88,7 +81,6 @@
 		B67944B42C9ADF670077BD68 /* KI.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KI.csv; sourceTree = "<group>"; };
 		B67944B52C9ADF670077BD68 /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
 		B67944B62C9ADF670077BD68 /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
-		B6CC80A62CB3EE6D004A6F9A /* KA.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KA.csv; sourceTree = "<group>"; };
 		B6E3A6AF2C80753200106E8A /* query.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = query.json; sourceTree = "<group>"; };
 		B6E3A6B22C80753200106E8A /* cache-v2-acf238b053be16424b6f.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "cache-v2-acf238b053be16424b6f.json"; sourceTree = "<group>"; };
 		B6E3A6B32C80753200106E8A /* cmakeFiles-v1-1cfa0da44147fad4107e.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "cmakeFiles-v1-1cfa0da44147fad4107e.json"; sourceTree = "<group>"; };
@@ -232,21 +224,6 @@
 				B65740BF2CAA979B00E282D9 /* compute_random_solutions */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		B65015402C89716100604166 /* MMSYN */ = {
-			isa = PBXGroup;
-			children = (
-				B6CC80A62CB3EE6D004A6F9A /* KA.csv */,
-				B65015392C89716100604166 /* conditions.csv */,
-				B650153A2C89716100604166 /* directions.csv */,
-				B650153B2C89716100604166 /* f0.csv */,
-				B650153C2C89716100604166 /* kcat.csv */,
-				B650153D2C89716100604166 /* KM_backward.csv */,
-				B650153E2C89716100604166 /* KM_forward.csv */,
-				B650153F2C89716100604166 /* M.csv */,
-			);
-			path = MMSYN;
 			sourceTree = "<group>";
 		};
 		B65740AE2CAA8FB600E282D9 /* FCR_EFM2 */ = {
@@ -597,7 +574,6 @@
 			children = (
 				B65740AE2CAA8FB600E282D9 /* FCR_EFM2 */,
 				B67944B92C9ADF670077BD68 /* newextended16 */,
-				B65015402C89716100604166 /* MMSYN */,
 				B6E3A7062C80753200106E8A /* A */,
 				B6E3A70E2C80753200106E8A /* B */,
 				B6E3A7162C80753200106E8A /* C */,
