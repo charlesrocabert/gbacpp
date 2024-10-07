@@ -139,12 +139,12 @@ gpr            = load_GPR()
 # 2) Load optimum results       #
 #-------------------------------#
 
-dstate     = read.table("compiled/MMSYN_state_optimum.csv", h=T, sep=";")
-df         = read.table("compiled/MMSYN_f_optimum.csv", h=T, sep=";")
-dc         = read.table("compiled/MMSYN_c_optimum.csv", h=T, sep=";")
-dv         = read.table("compiled/MMSYN_v_optimum.csv", h=T, sep=";")
-dp         = read.table("compiled/MMSYN_p_optimum.csv", h=T, sep=";")
-db         = read.table("compiled/MMSYN_b_optimum.csv", h=T, sep=";")
+dstate     = read.table("output/MMSYN_state_optimum.csv", h=T, sep=";")
+df         = read.table("output/MMSYN_f_optimum.csv", h=T, sep=";")
+dc         = read.table("output/MMSYN_c_optimum.csv", h=T, sep=";")
+dv         = read.table("output/MMSYN_v_optimum.csv", h=T, sep=";")
+dp         = read.table("output/MMSYN_p_optimum.csv", h=T, sep=";")
+db         = read.table("output/MMSYN_b_optimum.csv", h=T, sep=";")
 dstate$glc = GLC
 df$glc     = GLC
 dc$glc     = GLC
@@ -205,4 +205,3 @@ p4 = ggplot(filter(dpr, condition==1), aes(observed, predicted)) +
 
 plot_grid(p1, p2, p3, p4, ncol=2, labels="AUTO")
 
-db

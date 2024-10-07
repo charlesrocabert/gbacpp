@@ -14,6 +14,11 @@
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+		<key>compute_random_solutions.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
@@ -28,6 +33,11 @@
 			<true/>
 		</dict>
 		<key>B61A093F2C8070BD009D4A4C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B65740B12CAA979B00E282D9</key>
 		<dict>
 			<key>primary</key>
 			<true/>

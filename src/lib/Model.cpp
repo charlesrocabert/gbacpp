@@ -125,6 +125,11 @@ Model::Model( std::string model_path, std::string model_name, bool parallel_comp
   _dmu_f_term5  = NULL;
   _threads      = NULL;
   
+  /*----------------------------------------------- Solutions */
+  
+  _nb_random_solutions = 0;
+  _random_solutions.clear();
+  
   /*----------------------------------------------- Load the model */
   
   load_model();
@@ -234,6 +239,16 @@ Model::~Model( void )
   _dmu_f_term4 = NULL;
   _dmu_f_term5 = NULL;
   _threads     = NULL;
+  
+  /*----------------------------------------------- Solutions */
+  
+  for (int i = 0; i < _nb_random_solutions; i++)
+  {
+    gsl_vector_free(_random_solutions[i]);
+    _random_solutions[i] = NULL;
+  }
+  _nb_random_solutions = 0;
+  _random_solutions.clear();
 }
 
 /*----------------------------
@@ -260,6 +275,55 @@ void Model::load_model( void )
   load_conditions();
   load_f0();
   load_directions_and_boundaries();
+}
+
+/**
+ * \brief    Load random solutions
+ * \details  Re-load the vector from the last trajectory point
+ * \param    void
+ * \return   \e void
+ */
+void Model::load_random_solutions( void )
+{
+  assert(_random_solutions.size()==0);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/random_solutions.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/random_solutions.csv", std::ios::in);
+  assert(file);
+  std::string line;
+  std::string str_value;
+  getline(file, line);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Load the header and parse reaction indices */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  std::vector<std::string> header;
+  std::stringstream flux(line.c_str());
+  while(getline(flux, str_value, ';'))
+  {
+    header.push_back(str_value);
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Parse each random solution                 */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  _nb_random_solutions = 0;
+  while(getline(file, line))
+  {
+    /* 2.1) Initialize the new solution vector */
+    _nb_random_solutions++;
+    _random_solutions[_nb_random_solutions] = gsl_vector_alloc(_nj);
+    gsl_vector_set_zero(_random_solutions[_nb_random_solutions]);
+    /* 2.2) Parse the line --------------------*/
+    std::stringstream flux(line.c_str());
+    int pos = 0;
+    while(getline(flux, str_value, ';'))
+    {
+      if (_reaction_indices.find(header[pos]) != _reaction_indices.end())
+      {
+        gsl_vector_set(_random_solutions[_nb_random_solutions], _reaction_indices[header[pos]], stod(str_value));
+      }
+      pos++;
+    }
+  }
+  file.close();
 }
 
 /**
@@ -299,7 +363,6 @@ void Model::calculate( void )
  */
 bool Model::compute_gradient_ascent( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
 {
-  assert(_condition_indices.find(condition) != _condition_indices.end());
   assert(initial_dt > 0.0);
   assert(max_t > 0.0);
   if (save_trajectory)
@@ -307,9 +370,9 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
     open_trajectory_output_files(output_path, condition);
   }
   _adjust_concentrations = false;
-  set_condition(condition);
   initialize_f();
   calculate();
+  std::cout << _mu << "\n";
   if (!_consistent)
   {
     throw std::invalid_argument("> Model initial state f0 is inconsistent");
@@ -324,6 +387,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
   int    nb_successes        = 0;
+  write_trajectory_output_files(condition, t, dt);
   while (t < max_t)
   {
     nb_iterations++;
@@ -332,11 +396,16 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       break;
     }
     /*
-    if (nb_iterations%50000==0)
+    if (nb_iterations >= TRAJECTORY_MAX_ITERATIONS)
     {
-      std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ")" << std::endl;
+      break;
     }
-     */
+    */
+    if (nb_iterations%EXPORT_DATA_COUNT==0)
+    {
+      std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", count=" << constant_mu_counter << ")" << std::endl;
+    }
+    
     previous_mu = _mu;
     block_reactions();
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
@@ -351,7 +420,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       nb_successes++;
       t = t+dt;
       dt_counter++;
-      if (save_trajectory)
+      if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         write_trajectory_output_files(condition, t, dt);
       }
@@ -361,7 +430,11 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       }
       else
       {
-        constant_mu_counter = 0;
+        constant_mu_counter--;
+        if (constant_mu_counter < 0)
+        {
+          constant_mu_counter = 0;
+        }
       }
       if (dt_counter == INCREASING_DT_COUNT)
       {
@@ -403,7 +476,6 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
 /**
  * \brief    Compute local optimum for all conditions
  * \details  --
- * \param    std::string condition
  * \param    double initial_dt
  * \param    double max_t
  * \param    bool save_trajectory
@@ -417,6 +489,36 @@ void Model::compute_local_optimums( double initial_dt, double max_t, bool save_t
   {
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
+    set_condition(condition);
+    bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, save_trajectory, output_path);
+    std::clock_t end       = clock();
+    double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
+    write_optimum_output_files(condition, converged, runtime);
+  }
+  close_optimum_ouput_files();
+}
+
+/**
+ * \brief    Compute local optimum for all random solutions
+ * \details  --
+ * \param    int nb_initial_points
+ * \param    double initial_dt
+ * \param    double max_t
+ * \param    bool save_trajectory
+ * \param    std::string output_path
+ * \return   \e bool
+ */
+void Model::compute_random_solutions( int nb_initial_points, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
+{
+  assert(nb_initial_points <= _nb_random_solutions);
+  set_condition("1");
+  open_optimum_output_files(output_path, "");
+  for (int i = 1; i <= nb_initial_points; i++)
+  {
+    
+    std::clock_t begin     = clock();
+    std::string  condition = std::to_string(i);
+    gsl_vector_memcpy(_f0, _random_solutions[i]);
     bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, save_trajectory, output_path);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
@@ -574,6 +676,7 @@ void Model::write_trajectory_output_files( std::string condition, double t, doub
   _f_trajectory_file.flush();
   _v_trajectory_file.flush();
   _p_trajectory_file.flush();
+  system("/usr/local/bin/Rscript plot_trajectory.R > /dev/null &");
 }
 
 /**
@@ -1148,6 +1251,55 @@ void Model::load_conditions( void )
 }
 
 /**
+ * \brief    Load directions and boundaries
+ * \details  --
+ * \param    void
+ * \return   \e void
+ */
+void Model::load_directions_and_boundaries( void )
+{
+  assert(_directions==NULL);
+  assert(_boundaries==NULL);
+  _directions = new std::string[_nj];
+  _boundaries = new boundaries[_nj];
+  assert(is_file_exist(_model_path+"/"+_model_name+"/directions.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/directions.csv", std::ios::in);
+  assert(file);
+  std::string line;
+  std::string reaction_id;
+  std::string direction;
+  getline(file, line);
+  while(getline(file, line))
+  {
+    std::stringstream flux(line.c_str());
+    getline(flux, reaction_id, ';');
+    getline(flux, direction, ';');
+    assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
+    _directions[_reaction_indices[reaction_id]] = direction;
+    if (direction == "forward")
+    {
+      _boundaries[_reaction_indices[reaction_id]].LB = 0.0;
+      _boundaries[_reaction_indices[reaction_id]].UB = FLUX_BOUNDARY;
+    }
+    else if (direction == "backward")
+    {
+      _boundaries[_reaction_indices[reaction_id]].LB = -FLUX_BOUNDARY;
+      _boundaries[_reaction_indices[reaction_id]].UB = 0.0;
+    }
+    else if (direction == "reversible")
+    {
+      _boundaries[_reaction_indices[reaction_id]].LB = -FLUX_BOUNDARY;
+      _boundaries[_reaction_indices[reaction_id]].UB = FLUX_BOUNDARY;
+    }
+    else
+    {
+      throw std::invalid_argument("> Incorrect direction value");
+    }
+  }
+  file.close();
+}
+
+/**
  * \brief    Load f0
  * \details  --
  * \param    void
@@ -1210,55 +1362,6 @@ void Model::reload_f0( void )
     if (fabs(value) > FLUX_BOUNDARY)
     {
       throw std::invalid_argument("> f0 value is higher than the flux boundary");
-    }
-  }
-  file.close();
-}
-
-/**
- * \brief    Load directions and boundaries
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::load_directions_and_boundaries( void )
-{
-  assert(_directions==NULL);
-  assert(_boundaries==NULL);
-  _directions = new std::string[_nj];
-  _boundaries = new boundaries[_nj];
-  assert(is_file_exist(_model_path+"/"+_model_name+"/directions.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/directions.csv", std::ios::in);
-  assert(file);
-  std::string line;
-  std::string reaction_id;
-  std::string direction;
-  getline(file, line);
-  while(getline(file, line))
-  {
-    std::stringstream flux(line.c_str());
-    getline(flux, reaction_id, ';');
-    getline(flux, direction, ';');
-    assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
-    _directions[_reaction_indices[reaction_id]] = direction;
-    if (direction == "forward")
-    {
-      _boundaries[_reaction_indices[reaction_id]].LB = 0.0;
-      _boundaries[_reaction_indices[reaction_id]].UB = FLUX_BOUNDARY;
-    }
-    else if (direction == "backward")
-    {
-      _boundaries[_reaction_indices[reaction_id]].LB = -FLUX_BOUNDARY;
-      _boundaries[_reaction_indices[reaction_id]].UB = 0.0;
-    }
-    else if (direction == "reversible")
-    {
-      _boundaries[_reaction_indices[reaction_id]].LB = -FLUX_BOUNDARY;
-      _boundaries[_reaction_indices[reaction_id]].UB = FLUX_BOUNDARY;
-    }
-    else
-    {
-      throw std::invalid_argument("> Incorrect direction value");
     }
   }
   file.close();

@@ -75,6 +75,7 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   std::clock_t begin = clock();
   Model*       model     = new Model(path, name, parallel);
+  model->set_condition(condition);
   bool         converged = model->compute_gradient_ascent(condition, initial_dt, max_t, save, output);
   std::clock_t end       = clock();
   double       runtime   = double(end-begin)/CLOCKS_PER_SEC;

@@ -42,7 +42,7 @@
 #define INCREASING_DT_COUNT        1000   /*!< Number of constant dt iterations to increase it                      */
 #define TRAJECTORY_STABLE_MU_COUNT 100000 /*!< Number of stable mu values required to consider a trajectory stable  */
 #define TRAJECTORY_CONVERGENCE_TOL 1e-10  /*!< Analytical trajectory convergence tolerance                          */
-#define EXPORT_DATA_COUNT          500    /*!< Data is exported at this period in number of iterations              */
+#define EXPORT_DATA_COUNT          1000   /*!< Data is exported at this period in number of iterations              */
 
 
 #endif /* defined(__GBA_Evolution__Macros__) */

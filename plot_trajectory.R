@@ -16,22 +16,26 @@ library("rstudioapi")
 library("cowplot")
 library("ggpmisc")
 
-compare_mass_fractions <- function( observed_m, b_trajectory, index )
+compare_mass_fractions <- function( observed_m, c_trajectory, index )
 {
-  observed_m = filter(observed_m, ID%in%names(b_trajectory))
-  #observed_m$Fraction = observed_m$Fraction/sum(observed_m$Fraction)*100
+  observed_m = filter(observed_m, ID%in%names(c_trajectory))
+  observed_m$Fraction = observed_m$Fraction/sum(observed_m$Fraction)*100
   #print(observed_m)
   #stop()
-  X          = t(b_trajectory[index,observed_m$ID])
+  X          = c_trajectory[index,-which(names(c_trajectory)%in%c("condition","t","dt", "h2o", "index"))]
+  H2O        = c_trajectory[index,"h2o"]
+  Xsum       = sum(t(X))
+  X          = X/Xsum
+  X          = t(X[observed_m$ID])
   D          = data.frame(observed_m$ID, observed_m$Fraction, X*100)
   names(D)   = c("ID", "observed", "predicted")
   D          = D[order(D$predicted, decreasing=T),]
   D$ID       = factor(D$ID, levels=D$ID)
+  D$index    = seq(1, dim(D)[1])
   #D = filter(D, !ID%in%c("nadp"))
   #print(D)
   return(D)
 }
-
 
 ##################
 #      MAIN      #
@@ -41,15 +45,16 @@ compare_mass_fractions <- function( observed_m, b_trajectory, index )
 #setwd(directory)
 setwd("/Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/")
 
-args = commandArgs(trailingOnly=TRUE)
 
-model_name = "MMSYN"
-condition  = args[1]
+path       = "/Users/charlesrocabert/Desktop/mmsyn_output"
+model_name = "MMSYN_ALL"
+condition  = "1"
 
-d1 = read.table(paste0("./output/",model_name,"_",condition,"_state_trajectory.csv"), h=T, sep=";")
-d2 = read.table(paste0("./output/",model_name,"_",condition,"_b_trajectory.csv"), h=T, sep=";")
-d3 = read.table(paste0("./output/",model_name,"_",condition,"_p_trajectory.csv"), h=T, sep=";")
-d4 = read.table(paste0("./output/",model_name,"_",condition,"_f_trajectory.csv"), h=T, sep=";")
+d1 = read.table(paste0(path,"/",model_name,"_",condition,"_state_trajectory.csv"), h=T, sep=";")
+d2 = read.table(paste0(path,"/",model_name,"_",condition,"_b_trajectory.csv"), h=T, sep=";")
+d3 = read.table(paste0(path,"/",model_name,"_",condition,"_p_trajectory.csv"), h=T, sep=";")
+d4 = read.table(paste0(path,"/",model_name,"_",condition,"_f_trajectory.csv"), h=T, sep=";")
+d5 = read.table(paste0(path,"/",model_name,"_",condition,"_c_trajectory.csv"), h=T, sep=";")
 m  = read.table("../GBA_MMSYN/data/source/Breuer-et-al-2019/mass_fractions.csv", h=T, sep=";", check.names=F)
 p  = read.table("../GBA_MMSYN/data/source/Peter-MMSYN/MMSYN_proteomics.csv", h=T, sep=";", check.names=F)
 
@@ -93,11 +98,13 @@ p5 = ggplot(d3, aes(mu, phi)) +
   geom_line() +
   theme_classic()
 
-D = compare_mass_fractions(m, d2, dim(d2)[1])
+D = compare_mass_fractions(m, d5, dim(d2)[1])
 
 p6 = ggplot(D, aes(ID, log10(predicted))) +
   geom_bar(stat="identity") +
   geom_point(aes(ID, log10(observed)), col="red") +
+  #geom_smooth(se=F, method="lm") +
+  #geom_smooth(aes(index, log10(observed)), se=F, method="lm") +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
@@ -164,3 +171,13 @@ ggsave(paste0("trajectory_",condition,".pdf"), p, width=15/2, height=15/2)
 # par(mfrow=c(1,2))
 # plot(d2$DNA, type="l")
 # plot(d2$RNA, type="l")
+
+# d = read.table(paste0(path,"/",model_name,"_",condition,"_c_trajectory.csv"), h=T, sep=";")
+# par(mfrow=c(3,1))
+# plot(d$h2o, type="l")
+# plot(d$DNA, type="l")
+# plot(d$clpn, type="l")
+# 
+# d = d[,-which(names(d)%in%c("condition","t","dt", "h2o"))]
+# d$B = rowSums(d)
+# plot(d$Protein/d$B)

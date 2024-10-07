@@ -89,12 +89,14 @@ public:
    *----------------------------*/
   
   void load_model( void );
+  void load_random_solutions( void );
   void initialize_variables( void );
   void calculate( void );
   void calculate_GM( void );
   
   bool compute_gradient_ascent( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
   void compute_local_optimums( double initial_dt, double max_t, bool save_trajectory, std::string output_path );
+  void compute_random_solutions( int nb_initial_points, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
   
   void save_report( std::string filename );
   
@@ -128,9 +130,9 @@ protected:
   void load_KA( void );
   void load_kcat( void );
   void load_conditions( void );
+  void load_directions_and_boundaries( void );
   void load_f0( void );
   void reload_f0( void );
-  void load_directions_and_boundaries( void );
   
   void initialize_static_variables( void );
   void initialize_dynamic_variables( void );
@@ -250,6 +252,11 @@ protected:
   gsl_vector*     _dmu_f_term5; /*!< Variable for the calculation of dmu_f */
   double          _mu_diff;     /*!< Next mu to current mu differential    */
   std::thread*    _threads;     /*!< Parallelization threads               */
+  
+  /*----------------------------------------------- Solutions */
+  
+  int                                  _nb_random_solutions;
+  std::unordered_map<int, gsl_vector*> _random_solutions;
   
   /*----------------------------------------------- Output files */
   

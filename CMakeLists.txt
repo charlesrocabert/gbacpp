@@ -78,6 +78,9 @@ add_executable(${TRAJECTORY_EXECUTABLE} src/compute_gradient_ascent.cpp)
 set(OPTIMUM_EXECUTABLE compute_local_optimums)
 add_executable(${OPTIMUM_EXECUTABLE} src/compute_local_optimums.cpp)
 
+set(RANDOM_EXECUTABLE compute_random_solutions)
+add_executable(${RANDOM_EXECUTABLE} src/compute_random_solutions.cpp)
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Find and link external libraries                                             #
@@ -87,6 +90,7 @@ if(GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
   target_link_libraries(${TRAJECTORY_EXECUTABLE} ${GSL_LIBRARIES})
   target_link_libraries(${OPTIMUM_EXECUTABLE} ${GSL_LIBRARIES})
+  target_link_libraries(${RANDOM_EXECUTABLE} ${GSL_LIBRARIES})
 endif(GSL_FOUND)
 
 
@@ -106,6 +110,7 @@ target_link_libraries(GBA_Evolution gsl gslcblas)
 
 target_link_libraries(${TRAJECTORY_EXECUTABLE} GBA_Evolution)
 target_link_libraries(${OPTIMUM_EXECUTABLE} GBA_Evolution)
+target_link_libraries(${RANDOM_EXECUTABLE} GBA_Evolution)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
