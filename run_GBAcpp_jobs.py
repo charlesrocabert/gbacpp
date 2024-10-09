@@ -69,4 +69,3 @@ if __name__ == "__main__":
         for condition in CONDITIONS:
             build_and_run_qsub_script(EXEC_PATH, MODEL_PATH, model_name, condition, DT, MAXT, OUTPUT_PATH)
 
-
