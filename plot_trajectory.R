@@ -22,18 +22,16 @@ compare_mass_fractions <- function( observed_m, c_trajectory, index )
   observed_m$Fraction = observed_m$Fraction/sum(observed_m$Fraction)*100
   #print(observed_m)
   #stop()
-  X          = c_trajectory[index,-which(names(c_trajectory)%in%c("condition","t","dt", "h2o", "index"))]
-  H2O        = c_trajectory[index,"h2o"]
-  Xsum       = sum(t(X))
-  X          = X/Xsum
-  X          = t(X[observed_m$ID])
-  D          = data.frame(observed_m$ID, observed_m$Fraction, X*100)
-  names(D)   = c("ID", "observed", "predicted")
-  D          = D[order(D$predicted, decreasing=T),]
-  D$ID       = factor(D$ID, levels=D$ID)
-  D$index    = seq(1, dim(D)[1])
-  #D = filter(D, !ID%in%c("nadp"))
-  #print(D)
+  X        = c_trajectory[index,-which(names(c_trajectory)%in%c("condition","t","dt", "h2o"))]
+  H2O      = c_trajectory[index,"h2o"]
+  Xsum     = sum(t(X))
+  X        = X/Xsum
+  X        = t(X[observed_m$ID])
+  D        = data.frame(observed_m$ID, observed_m$Fraction, X*100)
+  names(D) = c("ID", "observed", "predicted")
+  D        = D[order(D$predicted, decreasing=T),]
+  D$ID     = factor(D$ID, levels=D$ID)
+  D$index  = seq(1, dim(D)[1])
   return(D)
 }
 
@@ -47,7 +45,7 @@ setwd("/Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/")
 
 
 path       = "/Users/charlesrocabert/Desktop/mmsyn_output"
-model_name = "MMSYN_ALL"
+model_name = "mmsyn_test"
 condition  = "1"
 
 d1 = read.table(paste0(path,"/",model_name,"_",condition,"_state_trajectory.csv"), h=T, sep=";")
@@ -57,7 +55,7 @@ d4 = read.table(paste0(path,"/",model_name,"_",condition,"_f_trajectory.csv"), h
 d5 = read.table(paste0(path,"/",model_name,"_",condition,"_c_trajectory.csv"), h=T, sep=";")
 m  = read.table("../GBA_MMSYN/data/source/Breuer-et-al-2019/mass_fractions.csv", h=T, sep=";", check.names=F)
 p  = read.table("../GBA_MMSYN/data/source/Peter-MMSYN/MMSYN_proteomics.csv", h=T, sep=";", check.names=F)
-
+names(d2)
 X = t(d4[dim(d4)[1],])
 names(X) = names(d4)
 X = X[3:length(X)]
@@ -98,7 +96,7 @@ p5 = ggplot(d3, aes(mu, phi)) +
   geom_line() +
   theme_classic()
 
-D = compare_mass_fractions(m, d5, dim(d2)[1])
+D = compare_mass_fractions(m, d5, dim(d5)[1])
 
 p6 = ggplot(D, aes(ID, log10(predicted))) +
   geom_bar(stat="identity") +
@@ -107,11 +105,6 @@ p6 = ggplot(D, aes(ID, log10(predicted))) +
   #geom_smooth(aes(index, log10(observed)), se=F, method="lm") +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-# plot(seq(1, dim(D)[1]), log10(D$observed))
-# reg = lm(log10(D$observed)~seq(1, dim(D)[1]))
-# print(summary(reg))
-# abline(reg)
 
 p7 = ggplot(D, aes(observed, predicted)) +
   geom_smooth(method="lm", se=F) +
@@ -157,7 +150,7 @@ p10 = ggplot(d1, aes(index, log10(mf_pval))) +
 p = plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, ncol=2)
 ggsave(paste0("trajectory_",condition,".pdf"), p, width=15/2, height=15/2)
 
-
+p
 # df2 = d2 %>% rowwise() %>% pivot_longer(-t)
 # 
 # df2 = filter(df2, !name%in%c("dt", "index"))

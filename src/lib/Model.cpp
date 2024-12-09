@@ -38,16 +38,14 @@
  * \details  --
  * \param    std::string model_path
  * \param    std::string model_name
- * \param    bool parallel_computing
  * \return   \e void
  */
-Model::Model( std::string model_path, std::string model_name, bool parallel_computing )
+Model::Model( std::string model_path, std::string model_name )
 {
   /*----------------------------------------------- Model path and name */
   
-  _model_path         = model_path;
-  _model_name         = model_name;
-  _parallel_computing = parallel_computing;
+  _model_path = model_path;
+  _model_name = model_name;
   
   /*----------------------------------------------- Identifier lists */
   
@@ -74,6 +72,7 @@ Model::Model( std::string model_path, std::string model_name, bool parallel_comp
   _conditions = NULL;
   _directions = NULL;
   _boundaries = NULL;
+  _constant_reactions.clear();
 
   /*----------------------------------------------- Vector lengths */
   
@@ -118,12 +117,11 @@ Model::Model( std::string model_path, std::string model_name, bool parallel_comp
   
   /*----------------------------------------------- Variables for calculation optimization */
   
-  _dmu_f_term1  = 0.0;
-  _dmu_f_term2  = NULL;
-  _dmu_f_term3  = NULL;
-  _dmu_f_term4  = NULL;
-  _dmu_f_term5  = NULL;
-  _threads      = NULL;
+  _dmu_f_term1 = 0.0;
+  _dmu_f_term2 = NULL;
+  _dmu_f_term3 = NULL;
+  _dmu_f_term4 = NULL;
+  _dmu_f_term5 = NULL;
   
   /*----------------------------------------------- Solutions */
   
@@ -134,7 +132,6 @@ Model::Model( std::string model_path, std::string model_name, bool parallel_comp
   
   load_model();
   initialize_variables();
-  _threads = new std::thread[_nj];
 }
 
 /*----------------------------
@@ -186,6 +183,7 @@ Model::~Model( void )
   _conditions = NULL;
   _directions = NULL;
   _boundaries = NULL;
+  _constant_reactions.clear();
   
   /*----------------------------------------------- Other model variables */
   
@@ -233,12 +231,10 @@ Model::~Model( void )
   gsl_matrix_free(_dmu_f_term3);
   gsl_vector_free(_dmu_f_term4);
   gsl_vector_free(_dmu_f_term5);
-  delete[] _threads;
   _dmu_f_term2 = NULL;
   _dmu_f_term3 = NULL;
   _dmu_f_term4 = NULL;
   _dmu_f_term5 = NULL;
-  _threads     = NULL;
   
   /*----------------------------------------------- Solutions */
   
@@ -273,8 +269,9 @@ void Model::load_model( void )
   load_KA();
   load_kcat();
   load_conditions();
-  load_f0();
   load_directions_and_boundaries();
+  load_constant_reactions();
+  load_f0();
 }
 
 /**
@@ -1301,6 +1298,33 @@ void Model::load_directions_and_boundaries( void )
 }
 
 /**
+ * \brief    Load constant reactions
+ * \details  --
+ * \param    void
+ * \return   \e void
+ */
+void Model::load_constant_reactions( void )
+{
+  _constant_reactions.clear();
+  assert(is_file_exist(_model_path+"/"+_model_name+"/constant.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/constant.csv", std::ios::in);
+  assert(file);
+  std::string line;
+  std::string reaction_id;
+  std::string str_value;
+  getline(file, line);
+  while(getline(file, line))
+  {
+    std::stringstream flux(line.c_str());
+    getline(flux, reaction_id, ';');
+    getline(flux, str_value, ';');
+    assert(_constant_reactions.find(reaction_id) == _constant_reactions.end());
+    _constant_reactions[reaction_id] = stod(str_value);
+  }
+  file.close();
+}
+
+/**
  * \brief    Load f0
  * \details  --
  * \param    void
@@ -1981,23 +2005,9 @@ void Model::calculate_first_order_terms( void )
 {
   compute_c();
   compute_xc();
-  if (!_parallel_computing)
+  for (int j = 0; j < _nj; j++)
   {
-    for (int j = 0; j < _nj; j++)
-    {
-      compute_tau(j);
-    }
-  }
-  else
-  {
-    for (int j = 0; j < _nj; j++)
-    {
-      _threads[j] = std::thread(&Model::compute_tau, this, j);
-    }
-    for (int j = 0; j < _nj; j++)
-    {
-      _threads[j].join();
-    }
+    compute_tau(j);
   }
   compute_mu();
   compute_v();
@@ -2014,23 +2024,9 @@ void Model::calculate_first_order_terms( void )
  */
 void Model::calculate_second_order_terms( void )
 {
-  if (!_parallel_computing)
+  for (int j = 0; j < _nj; j++)
   {
-    for (int j = 0; j < _nj; j++)
-    {
-      compute_dtau(j);
-    }
-  }
-  else
-  {
-    for (int j = 0; j < _nj; j++)
-    {
-      _threads[j] = std::thread(&Model::compute_dtau, this, j);
-    }
-    for (int j = 0; j < _nj; j++)
-    {
-      _threads[j].join();
-    }
+    compute_dtau(j);
   }
   compute_dmu_f();
   compute_GCC_f();
@@ -2124,6 +2120,17 @@ void Model::block_reactions( void )
       {
         gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
       }
+    }
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /* 4) The reaction must be constant            */
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    for (auto item : _constant_reactions)
+    {
+      int    j   = _reaction_indices[item.first];
+      double val = item.second;
+      assert(j > 0);
+      gsl_vector_set(_f_trunc, j-1, val);
+      gsl_vector_set(_GCC_f, j, 0.0);
     }
   }
 }

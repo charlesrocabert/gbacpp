@@ -42,7 +42,7 @@
 #include "./lib/Structs.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, int &nb_points, double &initial_dt, double &max_t, bool &save, std::string &output_path, bool &parallel_computing );
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, int &nb_points, double &initial_dt, double &max_t, bool &save, std::string &output_path );
 void printUsage( void );
 void printHeader( void );
 
@@ -68,13 +68,12 @@ int main(int argc, char const** argv)
   double      max_t      = 0.0;
   bool        save       = false;
   std::string output     = "";
-  bool        parallel   = false;
-  readArgs(argc, argv, path, name, nb_points, initial_dt, max_t, save, output, parallel);
+  readArgs(argc, argv, path, name, nb_points, initial_dt, max_t, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  Model* model = new Model(path, name, parallel);
+  Model* model = new Model(path, name);
   model->load_random_solutions();
   model->compute_random_solutions(nb_points, initial_dt, max_t, save, output);
   
@@ -101,10 +100,9 @@ int main(int argc, char const** argv)
  * \param    double &max_t
  * \param    bool &save
  * \param    std::string &output
- * \param    bool &parallel
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, int &nb_points, double &initial_dt, double &max_t, bool &save, std::string &output, bool &parallel )
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, int &nb_points, double &initial_dt, double &max_t, bool &save, std::string &output )
 {
   if (argc == 1)
   {
@@ -201,10 +199,6 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
         output = argv[i+1];
       }
     }
-    else if (strcmp(argv[i], "-parallel") == 0 || strcmp(argv[i], "--parallel-computing") == 0)
-    {
-      parallel = true;
-    }
   }
   if (counter < 5)
   {
@@ -259,8 +253,6 @@ void printUsage( void )
   std::cout << "        specify if the trajectory should be saved as output files\n";
   std::cout << "  -output, --output-path\n";
   std::cout << "        specify the path of output files\n";
-  std::cout << "  -parallel, --parallel-computing\n";
-  std::cout << "        specify if the computation should be parallel\n";
   std::cout << "\n";
 }
 

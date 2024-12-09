@@ -59,6 +59,15 @@
 
 /* Begin PBXFileReference section */
 		B61A09402C8070BD009D4A4C /* compute_gradient_ascent */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = compute_gradient_ascent; sourceTree = BUILT_PRODUCTS_DIR; };
+		B61CCCEA2D05F7D30057472F /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
+		B61CCCEB2D05F7D30057472F /* directions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = directions.csv; sourceTree = "<group>"; };
+		B61CCCEC2D05F7D30057472F /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
+		B61CCCED2D05F7D30057472F /* KA.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KA.csv; sourceTree = "<group>"; };
+		B61CCCEE2D05F7D30057472F /* kcat.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = kcat.csv; sourceTree = "<group>"; };
+		B61CCCEF2D05F7D30057472F /* KM_backward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_backward.csv; sourceTree = "<group>"; };
+		B61CCCF02D05F7D30057472F /* KM_forward.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = KM_forward.csv; sourceTree = "<group>"; };
+		B61CCCF12D05F7D30057472F /* M.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = M.csv; sourceTree = "<group>"; };
+		B61CCCF42D06F5F30057472F /* constant.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = constant.csv; sourceTree = "<group>"; };
 		B6448A812CA0531800477DFA /* run_all.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = run_all.sh; sourceTree = "<group>"; };
 		B65740A72CAA8FB600E282D9 /* conditions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = conditions.csv; sourceTree = "<group>"; };
 		B65740A82CAA8FB600E282D9 /* f0.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = f0.csv; sourceTree = "<group>"; };
@@ -224,6 +233,22 @@
 				B65740BF2CAA979B00E282D9 /* compute_random_solutions */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B61CCCF22D05F7D30057472F /* mmsyn_test */ = {
+			isa = PBXGroup;
+			children = (
+				B61CCCF42D06F5F30057472F /* constant.csv */,
+				B61CCCEA2D05F7D30057472F /* conditions.csv */,
+				B61CCCEB2D05F7D30057472F /* directions.csv */,
+				B61CCCEC2D05F7D30057472F /* f0.csv */,
+				B61CCCED2D05F7D30057472F /* KA.csv */,
+				B61CCCEE2D05F7D30057472F /* kcat.csv */,
+				B61CCCEF2D05F7D30057472F /* KM_backward.csv */,
+				B61CCCF02D05F7D30057472F /* KM_forward.csv */,
+				B61CCCF12D05F7D30057472F /* M.csv */,
+			);
+			path = mmsyn_test;
 			sourceTree = "<group>";
 		};
 		B65740AE2CAA8FB600E282D9 /* FCR_EFM2 */ = {
@@ -572,6 +597,7 @@
 		B6E3A7282C80753200106E8A /* csv_models */ = {
 			isa = PBXGroup;
 			children = (
+				B61CCCF22D05F7D30057472F /* mmsyn_test */,
 				B65740AE2CAA8FB600E282D9 /* FCR_EFM2 */,
 				B67944B92C9ADF670077BD68 /* newextended16 */,
 				B6E3A7062C80753200106E8A /* A */,

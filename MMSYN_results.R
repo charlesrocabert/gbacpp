@@ -133,21 +133,28 @@ plot_trends_for_given_model <- function( model_name )
   dv     = read.table(paste0("output/",model_name,"_v_optimum.csv"), h=T, sep=";")
   dp     = read.table(paste0("output/",model_name,"_p_optimum.csv"), h=T, sep=";")
   ##########################################
-  dstate$glc = GLC
-  df$glc     = GLC
-  dc$glc     = GLC
-  dv$glc     = GLC
-  dp$glc     = GLC
-  db$glc     = GLC
+  # dstate$glc = GLC
+  # df$glc     = GLC
+  # dc$glc     = GLC
+  # dv$glc     = GLC
+  # dp$glc     = GLC
+  # db$glc     = GLC
   dp$phi     = dp$Ribosome/rowSums(dp[,-which(names(dp)%in%c("condition", "glc"))])
   dp$mu      = dstate$mu
   dmf        = build_mass_fraction_data(dc, mass_fractions)
   dpr        = build_proteomics_data(dp, proteomics, gpr, proteome_fractions, model_name)
+  p = ggplot(dmf, aes(observed, predicted, color=condition)) +
+    scale_x_log10() + scale_y_log10() +
+    geom_abline(intercept=0, slope=1) +
+    geom_point() +
+    geom_smooth(method="lm", se=F) +
+    facet_wrap(.~condition)
+  return(p)
   ##########################################
-  p1 = ggplot(dstate, aes(glc, mu)) +
+  p1 = ggplot(dstate, aes(condition, mu)) +
     geom_hline(aes(yintercept=0.4, color="Experimental"), lty=2) +
     geom_hline(aes(yintercept=0.34, color="FBA"), lty=2) +
-    scale_x_log10() +
+    #scale_x_log10() +
     #scale_y_log10() +
     geom_point() +
     xlab("Glucose (g/L)") +
@@ -224,7 +231,6 @@ plot_growth_law <- function( model_name )
   return(p)
 }
 
-
 compare_growth_rates <- function( models, selected_condition )
 {
   D = data.frame()
@@ -275,6 +281,73 @@ compare_proteome_fraction_predictions <- function( models, selected_condition )
   return(D)
 }
 
+
+##################
+#      MAIN      #
+##################
+
+setwd("/Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/")
+
+#-------------------------------#
+# 1) Load experimental datasets #
+#-------------------------------#
+proteome_fractions = list(
+  "MMSYN_1111" = 0.33842338423384233,
+  "MMSYN_1110" = 0.33842338423384233,
+  "MMSYN_1101" = 0.33842338423384233,
+  "MMSYN_1100" = 0.33842338423384233,
+  "MMSYN_1011" = 1.0,
+  "MMSYN_1010" = 1.0,
+  "MMSYN_1001" = 1.0,
+  "MMSYN_1000" = 1.0,
+  "MMSYN_0111" = NA,
+  "MMSYN_0110" = 0.35245352453524537,
+  "MMSYN_0101" = NA,
+  "MMSYN_0100" = 0.35245352453524537,
+  "MMSYN_0011" = NA,
+  "MMSYN_0010" = 1.0,
+  "MMSYN_0001" = NA,
+  "MMSYN_0000" = 1.0
+)
+conditions     = seq(1,30)
+GLC            = c(5.0, 2.5, 1.25, 0.625, 0.3125, 0.15625, 0.078125, 0.0390625, 0.01953125, 0.009765625, 0.0048828125, 0.00244140625, 0.001220703125, 0.0006103515625, 0.00030517578125, 0.000152587890625, 7.62939453125e-05, 3.814697265625e-05, 1.9073486328125e-05, 9.5367431640625e-06, 4.76837158203125e-06, 2.384185791015625e-06, 1.1920928955078125e-06, 5.960464477539062e-07, 2.980232238769531e-07, 1.4901161193847656e-07, 7.450580596923828e-08, 3.725290298461914e-08, 1.862645149230957e-08, 9.313225746154785e-09)
+mass_fractions = load_mass_fractions()
+proteomics     = load_proteomics()
+gpr            = load_GPR()
+model_name     = "MMSYN_1010"
+models         = c("MMSYN_0000", "MMSYN_1000", "MMSYN_0100", "MMSYN_0010",
+                   "MMSYN_0110", "MMSYN_1100", "MMSYN_1010", "MMSYN_1110")
+
+
+#-------------------------------#
+# 2) Load results per model     #
+#-------------------------------#
+# plot_trends_for_given_model("MMSYN_0000")
+# plot_trends_for_given_model("MMSYN_1000")
+# plot_trends_for_given_model("MMSYN_0100")
+# plot_trends_for_given_model("MMSYN_0010")
+# plot_trends_for_given_model("MMSYN_0110")
+# plot_trends_for_given_model("MMSYN_1100")
+# plot_trends_for_given_model("MMSYN_1010")
+# plot_trends_for_given_model("MMSYN_1110")
+
+plot_trends_for_given_model("MMSYN_1011")
+
+stop()
+
+p1 = plot_growth_law("MMSYN_0000")
+p2 = plot_growth_law("MMSYN_1000")
+p3 = plot_growth_law("MMSYN_0100")
+p4 = plot_growth_law("MMSYN_0010")
+p5 = plot_growth_law("MMSYN_0110")
+p6 = plot_growth_law("MMSYN_1100")
+p7 = plot_growth_law("MMSYN_1010")
+p8 = plot_growth_law("MMSYN_1110")
+plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, labels="AUTO", ncol=3)
+
+########################################################
+########################################################
+########################################################
 
 D1 = compare_growth_rates(models, "1")
 D1 = D1[order(D1$mu, decreasing=T),]
@@ -337,62 +410,3 @@ p2 = ggplot(D3 ,aes(model, log10(pvalue))) +
         axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
 plot_grid(p1, p2, labels="AUTO", ncol=2)
 
-##################
-#      MAIN      #
-##################
-
-setwd("/Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/")
-
-#-------------------------------#
-# 1) Load experimental datasets #
-#-------------------------------#
-proteome_fractions = list(
-  "MMSYN_1111" = 0.33842338423384233,
-  "MMSYN_1110" = 0.33842338423384233,
-  "MMSYN_1101" = 0.33842338423384233,
-  "MMSYN_1100" = 0.33842338423384233,
-  "MMSYN_1011" = 1.0,
-  "MMSYN_1010" = 1.0,
-  "MMSYN_1001" = 1.0,
-  "MMSYN_1000" = 1.0,
-  "MMSYN_0111" = NA,
-  "MMSYN_0110" = 0.35245352453524537,
-  "MMSYN_0101" = NA,
-  "MMSYN_0100" = 0.35245352453524537,
-  "MMSYN_0011" = NA,
-  "MMSYN_0010" = 1.0,
-  "MMSYN_0001" = NA,
-  "MMSYN_0000" = 1.0
-)
-conditions     = seq(1,30)
-GLC            = c(5.0, 2.5, 1.25, 0.625, 0.3125, 0.15625, 0.078125, 0.0390625, 0.01953125, 0.009765625, 0.0048828125, 0.00244140625, 0.001220703125, 0.0006103515625, 0.00030517578125, 0.000152587890625, 7.62939453125e-05, 3.814697265625e-05, 1.9073486328125e-05, 9.5367431640625e-06, 4.76837158203125e-06, 2.384185791015625e-06, 1.1920928955078125e-06, 5.960464477539062e-07, 2.980232238769531e-07, 1.4901161193847656e-07, 7.450580596923828e-08, 3.725290298461914e-08, 1.862645149230957e-08, 9.313225746154785e-09)
-mass_fractions = load_mass_fractions()
-proteomics     = load_proteomics()
-gpr            = load_GPR()
-model_name     = "MMSYN_1010"
-models         = c("MMSYN_0000", "MMSYN_1000", "MMSYN_0100", "MMSYN_0010",
-                   "MMSYN_0110", "MMSYN_1100", "MMSYN_1010", "MMSYN_1110")
-
-
-#-------------------------------#
-# 2) Load results per model     #
-#-------------------------------#
-plot_trends_for_given_model("MMSYN_0000")
-plot_trends_for_given_model("MMSYN_1000")
-plot_trends_for_given_model("MMSYN_0100")
-plot_trends_for_given_model("MMSYN_0010")
-plot_trends_for_given_model("MMSYN_0110")
-plot_trends_for_given_model("MMSYN_1100")
-plot_trends_for_given_model("MMSYN_1010")
-plot_trends_for_given_model("MMSYN_1110")
-
-
-p1 = plot_growth_law("MMSYN_0000")
-p2 = plot_growth_law("MMSYN_1000")
-p3 = plot_growth_law("MMSYN_0100")
-p4 = plot_growth_law("MMSYN_0010")
-p5 = plot_growth_law("MMSYN_0110")
-p6 = plot_growth_law("MMSYN_1100")
-p7 = plot_growth_law("MMSYN_1010")
-p8 = plot_growth_law("MMSYN_1110")
-plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, labels="AUTO", ncol=3)

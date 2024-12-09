@@ -7,7 +7,7 @@
  * \brief     Definition of macro-variables
  */
 
-/****************************************************************************
+/************************************************************************
  * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
  * Copyright © 2024 Charles Rocabert
  * Web: https://github.com/charlesrocabert/GBA_Evolution_2
@@ -24,25 +24,25 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ****************************************************************************/
+ ************************************************************************/
 
 #ifndef __GBA_Evolution__Macros__
 #define __GBA_Evolution__Macros__
 
 
-#define FLUX_BOUNDARY              10.0   /*!< Flux absolute boundary value                                         */
-#define MIN_PARAMETER              1e-10  /*!< Tolerance to test equality of parameters with zero                   */
-#define MIN_CONCENTRATION          1e-10  /*!< Minimum concentration value                                          */
-#define MIN_FLUX_FRACTION          1e-10  /*!< Minimum flux fraction                                                */
-#define DENSITY_CONSTRAINT_TOL     1e-10  /*!< Density tolerance threshold (|1-rho| < tol)                          */
-#define NEGATIVE_C_TOL             1e-10  /*!< Negative C tolerance threshold (C > -tol)                            */
-#define NEGATIVE_P_TOL             1e-10  /*!< Negative P tolerance threshold (P > -tol)                            */
-#define DECREASING_DT_FACTOR       5.0    /*!< Factor dividing dt                                                   */
-#define INCREASING_DT_FACTOR       2.0    /*!< Factor multiplying dt                                                */
-#define INCREASING_DT_COUNT        1000   /*!< Number of constant dt iterations to increase it                      */
-#define TRAJECTORY_STABLE_MU_COUNT 100000 /*!< Number of stable mu values required to consider a trajectory stable  */
-#define TRAJECTORY_CONVERGENCE_TOL 1e-10  /*!< Analytical trajectory convergence tolerance                          */
-#define EXPORT_DATA_COUNT          1000   /*!< Data is exported at this period in number of iterations              */
+#define FLUX_BOUNDARY              10.0   /*!< Flux absolute boundary value                                        */
+#define MIN_PARAMETER              1e-10  /*!< Tolerance to test equality of parameters with zero                  */
+#define MIN_CONCENTRATION          1e-10  /*!< Minimum concentration value                                         */
+#define MIN_FLUX_FRACTION          1e-10  /*!< Minimum flux fraction                                               */
+#define DENSITY_CONSTRAINT_TOL     1e-10  /*!< Density tolerance threshold (|1-rho| < tol)                         */
+#define NEGATIVE_C_TOL             1e-10  /*!< Negative C tolerance threshold (C > -tol)                           */
+#define NEGATIVE_P_TOL             1e-10  /*!< Negative P tolerance threshold (P > -tol)                           */
+#define DECREASING_DT_FACTOR       5.0    /*!< Factor dividing dt                                                  */
+#define INCREASING_DT_FACTOR       2.0    /*!< Factor multiplying dt                                               */
+#define INCREASING_DT_COUNT        1000   /*!< Number of constant dt iterations to increase it                     */
+#define TRAJECTORY_STABLE_MU_COUNT 100000 /*!< Number of stable mu values required to consider a trajectory stable */
+#define TRAJECTORY_CONVERGENCE_TOL 1e-10  /*!< Analytical trajectory convergence tolerance                         */
+#define EXPORT_DATA_COUNT          1000   /*!< Data is exported at this period in number of iterations             */
 
 
 #endif /* defined(__GBA_Evolution__Macros__) */

@@ -60,7 +60,7 @@ public:
    * CONSTRUCTORS
    *----------------------------*/
   Model( void ) = delete;
-  Model( std::string model_path, std::string model_name, bool parallel_computing );
+  Model( std::string model_path, std::string model_name );
   Model( const Model& model ) = delete;
   
   /*----------------------------
@@ -92,7 +92,6 @@ public:
   void load_random_solutions( void );
   void initialize_variables( void );
   void calculate( void );
-  void calculate_GM( void );
   
   bool compute_gradient_ascent( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
   void compute_local_optimums( double initial_dt, double max_t, bool save_trajectory, std::string output_path );
@@ -131,6 +130,7 @@ protected:
   void load_kcat( void );
   void load_conditions( void );
   void load_directions_and_boundaries( void );
+  void load_constant_reactions( void );
   void load_f0( void );
   void reload_f0( void );
   
@@ -169,9 +169,8 @@ protected:
   
   /*----------------------------------------------- Model path and name */
   
-  std::string _model_path;         /*!< Model path             */
-  std::string _model_name;         /*!< Model name             */
-  bool        _parallel_computing; /*!< Is computing parallel? */
+  std::string _model_path; /*!< Model path */
+  std::string _model_name; /*!< Model name */
   
   /*----------------------------------------------- Identifier lists */
   
@@ -187,18 +186,19 @@ protected:
   
   /*----------------------------------------------- Model structure */
   
-  gsl_matrix*  _Mx;         /*!< Total mass fraction matrix    */
-  gsl_matrix*  _M;          /*!< Internal mass fraction matrix */
-  gsl_matrix*  _KM_f;       /*!< Forward KM matrix             */
-  gsl_matrix*  _KM_b;       /*!< Backward KM matrix            */
-  gsl_matrix*  _KI;         /*!< KI matrix                     */
-  gsl_matrix*  _KA;         /*!< KA matrix                     */
-  gsl_vector*  _kcat_f;     /*!< Forward kcat vector           */
-  gsl_vector*  _kcat_b;     /*!< Backward kcat vector          */
-  rtype*       _type;       /*!< Reaction type                 */
-  gsl_matrix*  _conditions; /*!< List of conditions            */
-  std::string* _directions; /*!< List of reaction directions   */
-  boundaries*  _boundaries; /*!< Reaction boundaries           */
+  gsl_matrix*                             _Mx;                 /*!< Total mass fraction matrix              */
+  gsl_matrix*                             _M;                  /*!< Internal mass fraction matrix           */
+  gsl_matrix*                             _KM_f;               /*!< Forward KM matrix                       */
+  gsl_matrix*                             _KM_b;               /*!< Backward KM matrix                      */
+  gsl_matrix*                             _KI;                 /*!< KI matrix                               */
+  gsl_matrix*                             _KA;                 /*!< KA matrix                               */
+  gsl_vector*                             _kcat_f;             /*!< Forward kcat vector                     */
+  gsl_vector*                             _kcat_b;             /*!< Backward kcat vector                    */
+  rtype*                                  _type;               /*!< Reaction type                           */
+  gsl_matrix*                             _conditions;         /*!< List of conditions                      */
+  std::string*                            _directions;         /*!< List of reaction directions             */
+  boundaries*                             _boundaries;         /*!< Reaction boundaries                     */
+  std::unordered_map<std::string, double> _constant_reactions; /*!< Constant reactions with constant values */
 
   /*----------------------------------------------- Vector lengths */
   
@@ -251,7 +251,6 @@ protected:
   gsl_vector*     _dmu_f_term4; /*!< Variable for the calculation of dmu_f */
   gsl_vector*     _dmu_f_term5; /*!< Variable for the calculation of dmu_f */
   double          _mu_diff;     /*!< Next mu to current mu differential    */
-  std::thread*    _threads;     /*!< Parallelization threads               */
   
   /*----------------------------------------------- Solutions */
   

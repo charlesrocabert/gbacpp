@@ -54,7 +54,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-path /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/csv_models -name MMSYN -condition 1 -dt 0.01 -maxt 10000 -save -output /Users/charlesrocabert/Desktop/mmsyn_output"
+            argument = "-path /Users/charlesrocabert/git/charlesrocabert/GBA_Evolution_2/csv_models -name mmsyn_test -condition 1 -dt 0.01 -maxt 10000 -save -output /Users/charlesrocabert/Desktop/mmsyn_output"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
