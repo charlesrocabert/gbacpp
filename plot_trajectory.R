@@ -29,7 +29,7 @@ compare_mass_fractions <- function( observed_m, c_trajectory, index )
   X        = t(X[observed_m$ID])
   D        = data.frame(observed_m$ID, observed_m$Fraction, X*100)
   names(D) = c("ID", "observed", "predicted")
-  D        = D[order(D$predicted, decreasing=T),]
+  D        = D[order(D$observed, decreasing=T),]
   D$ID     = factor(D$ID, levels=D$ID)
   D$index  = seq(1, dim(D)[1])
   return(D)
@@ -97,7 +97,7 @@ p5 = ggplot(d3, aes(mu, phi)) +
   theme_classic()
 
 D = compare_mass_fractions(m, d5, dim(d5)[1])
-
+D["Protein",]
 p6 = ggplot(D, aes(ID, log10(predicted))) +
   geom_bar(stat="identity") +
   geom_point(aes(ID, log10(observed)), col="red") +

@@ -369,7 +369,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
   _adjust_concentrations = false;
   initialize_f();
   calculate();
-  std::cout << _mu << "\n";
+  std::cout << "> Initial growth rate = " << _mu << "\n";
   if (!_consistent)
   {
     throw std::invalid_argument("> Model initial state f0 is inconsistent");
@@ -420,6 +420,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       dt_counter++;
       if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
+        std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ")" << std::endl;
         write_trajectory_output_files(condition, t, dt);
       }
       if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
