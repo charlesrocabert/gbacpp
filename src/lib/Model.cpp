@@ -392,18 +392,6 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
     {
       break;
     }
-    /*
-    if (nb_iterations >= TRAJECTORY_MAX_ITERATIONS)
-    {
-      break;
-    }
-     */
-    /*
-    if (nb_iterations%EXPORT_DATA_COUNT==0)
-    {
-      std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", count=" << constant_mu_counter << ")" << std::endl;
-    }
-     */
     previous_mu = _mu;
     block_reactions();
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
