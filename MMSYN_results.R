@@ -28,7 +28,7 @@ load_mass_fractions <- function()
 ### Load proteomics data ###
 load_proteomics <- function()
 {
-  d = read.table("/Users/charlesrocabert/git/charlesrocabert/GBA_MMSYN/data/fba_model/MMSYN_proteomics.csv", sep=";", h=T, check.names=F)
+  d = read.table("/Users/charlesrocabert/git/charlesrocabert/GBA_MMSYN/data/source/Peter-MMSYN/MMSYN_proteomics.csv", sep=";", h=T, check.names=F)
   return(d)
 }
 
