@@ -1,7 +1,7 @@
-<h1 align="center">GBA Evolution 2</h1>
+<h1 align="center">GBAcpp</h1>
 <p align="center">
 <br/>
-<em>C++ version of GBA Evolution</em>
+<em>Growth Balance Analysis for C++</em>
 <br/><br/>
 </p>
 
