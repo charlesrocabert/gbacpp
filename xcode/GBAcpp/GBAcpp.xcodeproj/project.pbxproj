@@ -11,7 +11,6 @@
 		B65010B42D785130007B8FD7 /* Macros.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B650109E2D785080007B8FD7 /* Macros.hpp */; };
 		B65010B52D785130007B8FD7 /* Model.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B650109F2D785080007B8FD7 /* Model.hpp */; };
 		B65010B62D785130007B8FD7 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B65010A02D785080007B8FD7 /* Model.cpp */; };
-		B65010B72D785130007B8FD7 /* Structs.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B65010A12D785080007B8FD7 /* Structs.hpp */; };
 		B65010B82D785130007B8FD7 /* compute_gradient_ascent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B65010A32D785080007B8FD7 /* compute_gradient_ascent.cpp */; };
 /* End PBXBuildFile section */
 
@@ -2030,7 +2029,6 @@
 		B650109E2D785080007B8FD7 /* Macros.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Macros.hpp; sourceTree = "<group>"; };
 		B650109F2D785080007B8FD7 /* Model.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Model.hpp; sourceTree = "<group>"; };
 		B65010A02D785080007B8FD7 /* Model.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model.cpp; sourceTree = "<group>"; };
-		B65010A12D785080007B8FD7 /* Structs.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Structs.hpp; sourceTree = "<group>"; };
 		B65010A32D785080007B8FD7 /* compute_gradient_ascent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = compute_gradient_ascent.cpp; sourceTree = "<group>"; };
 		B65010A42D785080007B8FD7 /* compute_local_optimums.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = compute_local_optimums.cpp; sourceTree = "<group>"; };
 		B65010A52D785080007B8FD7 /* compute_random_solutions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = compute_random_solutions.cpp; sourceTree = "<group>"; };
@@ -4207,11 +4205,10 @@
 		B65010A22D785080007B8FD7 /* lib */ = {
 			isa = PBXGroup;
 			children = (
-				B650109D2D785080007B8FD7 /* Enums.hpp */,
 				B650109E2D785080007B8FD7 /* Macros.hpp */,
+				B650109D2D785080007B8FD7 /* Enums.hpp */,
 				B650109F2D785080007B8FD7 /* Model.hpp */,
 				B65010A02D785080007B8FD7 /* Model.cpp */,
-				B65010A12D785080007B8FD7 /* Structs.hpp */,
 			);
 			path = lib;
 			sourceTree = "<group>";
@@ -4292,7 +4289,6 @@
 				B65010B42D785130007B8FD7 /* Macros.hpp in Sources */,
 				B65010B52D785130007B8FD7 /* Model.hpp in Sources */,
 				B65010B62D785130007B8FD7 /* Model.cpp in Sources */,
-				B65010B72D785130007B8FD7 /* Structs.hpp in Sources */,
 				B65010B82D785130007B8FD7 /* compute_gradient_ascent.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
