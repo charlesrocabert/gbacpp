@@ -2,15 +2,15 @@
  * \file      compute_random_solutions.cpp
  * \author    Charles Rocabert
  * \date      29-08-2024
- * \copyright GBA_Evolution. Copyright © 2024 Charles Rocabert. All rights reserved
+ * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     compute_random_solutions executable
  */
 
 /****************************************************************************
- * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
- * Copyright © 2024 Charles Rocabert
- * Web: https://github.com/charlesrocabert/GBA_Evolution_2
+ * GBAcpp (Growth Balance Analysis for C++)
+ * Copyright © 2024-2025 Charles Rocabert
+ * Web: https://github.com/charlesrocabert/gbacpp
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -223,9 +223,9 @@ void printUsage( void )
   std::cout << " " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
 #endif
   std::cout << "                                                                     \n";
-  std::cout << " Copyright (C) 2024                                                  \n";
-  std::cout << " Charles Rocabert                                                    \n";
-  std::cout << " Web: https://github.com/charlesrocabert/GBA_Evolution_2/            \n";
+  std::cout << " GBAcpp (Growth Balance Analysis for C++)                            \n";
+  std::cout << " Copyright © 2024-2025 Charles Rocabert                              \n";
+  std::cout << " Web: https://github.com/charlesrocabert/gbacpp                      \n";
   std::cout << "                                                                     \n";
   std::cout << " This program comes with ABSOLUTELY NO WARRANTY.                     \n";
   std::cout << " This is free software, and you are welcome to redistribute it under \n";
@@ -273,9 +273,9 @@ void printHeader( void )
   std::cout << " " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
 #endif
   std::cout << "                                                                     \n";
-  std::cout << " Copyright (C) 2024                                                  \n";
-  std::cout << " Charles Rocabert                                                    \n";
-  std::cout << " Web: https://github.com/charlesrocabert/GBA_Evolution_2/            \n";
+  std::cout << " GBAcpp (Growth Balance Analysis for C++)                            \n";
+  std::cout << " Copyright © 2024-2025 Charles Rocabert                              \n";
+  std::cout << " Web: https://github.com/charlesrocabert/gbacpp                      \n";
   std::cout << "                                                                     \n";
   std::cout << " This program comes with ABSOLUTELY NO WARRANTY.                     \n";
   std::cout << " This is free software, and you are welcome to redistribute it under \n";

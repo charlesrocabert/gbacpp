@@ -2,15 +2,15 @@
  * \file      Enums.hpp
  * \author    Charles Rocabert
  * \date      21-08-2024
- * \copyright GBA_Evolution. Copyright © 2024 Charles Rocabert. All rights reserved
+ * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     Definition of enumerations
  */
 
 /****************************************************************************
- * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
- * Copyright © 2024 Charles Rocabert
- * Web: https://github.com/charlesrocabert/GBA_Evolution_2
+ * GBAcpp (Growth Balance Analysis for C++)
+ * Copyright © 2024-2025 Charles Rocabert
+ * Web: https://github.com/charlesrocabert/gbacpp
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef __GBA_Evolution__Enums__
-#define __GBA_Evolution__Enums__
+#ifndef __GBAcpp__Enums__
+#define __GBAcpp__Enums__
 
 
 /**
@@ -43,5 +43,17 @@ enum rtype
   RMM   = 4  /*!< Reversible Michaelis-Menten                                  */
 };
 
+/**
+ * \brief   Reaction direction
+ * \details --
+ */
+enum rdir
+{
+  FORWARD    = 0, /*!< Forward irreversible reaction  */
+  BACKWARD   = 1, /*!< Backward irreversible reaction */
+  REVERSIBLE = 2  /*!< Reversible reaction            */
+};
 
-#endif /* defined(__GBA_Evolution__Enums__) */
+
+#endif /* defined(__GBAcpp__Enums__) */
+

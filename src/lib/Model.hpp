@@ -2,15 +2,15 @@
  * \file      Model.hpp
  * \author    Charles Rocabert
  * \date      22-07-2024
- * \copyright GBA_Evolution. Copyright © 2024 Charles Rocabert. All rights reserved
+ * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     Model class declaration
  */
 
 /****************************************************************************
- * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
- * Copyright © 2024 Charles Rocabert
- * Web: https://github.com/charlesrocabert/GBA_Evolution_2
+ * GBAcpp (Growth Balance Analysis for C++)
+ * Copyright © 2024-2025 Charles Rocabert
+ * Web: https://github.com/charlesrocabert/gbacpp
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@
  ****************************************************************************/
 
 
-#ifndef __GBA_Evolution__Model__
-#define __GBA_Evolution__Model__
+#ifndef __GBAcpp__Model__
+#define __GBAcpp__Model__
 
 #include <iostream>
 #include <fstream>
@@ -100,7 +100,7 @@ public:
   void save_report( std::string filename );
   
   void open_trajectory_output_files( std::string output_path, std::string condition );
-  void write_trajectory_output_files( std::string condition, double t, double dt );
+  void write_trajectory_output_files( std::string condition, int iter, double t, double dt );
   void close_trajectory_ouput_files( void );
   
   void open_optimum_output_files( std::string output_path, std::string condition );
@@ -129,7 +129,7 @@ protected:
   void load_KA( void );
   void load_kcat( void );
   void load_conditions( void );
-  void load_directions_and_boundaries( void );
+  void load_directions( void );
   void load_constant_reactions( void );
   void load_f0( void );
   void reload_f0( void );
@@ -197,7 +197,6 @@ protected:
   rtype*                                  _type;               /*!< Reaction type                           */
   gsl_matrix*                             _conditions;         /*!< List of conditions                      */
   std::string*                            _directions;         /*!< List of reaction directions             */
-  boundaries*                             _boundaries;         /*!< Reaction boundaries                     */
   std::unordered_map<std::string, double> _constant_reactions; /*!< Constant reactions with constant values */
 
   /*----------------------------------------------- Vector lengths */
@@ -363,4 +362,4 @@ inline void Model::set_f( void )
 }
 
 
-#endif /* defined(__GBA_Evolution__Model__) */
+#endif /* defined(__GBAcpp_Model__) */

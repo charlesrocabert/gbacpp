@@ -2,15 +2,15 @@
  * \file      Model.cpp
  * \author    Charles Rocabert
  * \date      22-07-2024
- * \copyright GBA_Evolution. Copyright © 2024 Charles Rocabert. All rights reserved
+ * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     Model class definition
  */
 
 /****************************************************************************
- * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
- * Copyright © 2024 Charles Rocabert
- * Web: https://github.com/charlesrocabert/GBA_Evolution_2
+ * GBAcpp (Growth Balance Analysis for C++)
+ * Copyright © 2024-2025 Charles Rocabert
+ * Web: https://github.com/charlesrocabert/gbacpp
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,6 @@ Model::Model( std::string model_path, std::string model_name )
   _type       = NULL;
   _conditions = NULL;
   _directions = NULL;
-  _boundaries = NULL;
   _constant_reactions.clear();
 
   /*----------------------------------------------- Vector lengths */
@@ -170,7 +169,6 @@ Model::~Model( void )
   delete[] _type;
   gsl_matrix_free(_conditions);
   delete[] _directions;
-  delete[] _boundaries;
   _Mx         = NULL;
   _M          = NULL;
   _KM_f       = NULL;
@@ -182,7 +180,6 @@ Model::~Model( void )
   _type       = NULL;
   _conditions = NULL;
   _directions = NULL;
-  _boundaries = NULL;
   _constant_reactions.clear();
   
   /*----------------------------------------------- Other model variables */
@@ -269,7 +266,7 @@ void Model::load_model( void )
   load_KA();
   load_kcat();
   load_conditions();
-  load_directions_and_boundaries();
+  load_directions();
   load_constant_reactions();
   load_f0();
 }
@@ -384,7 +381,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
   int    nb_successes        = 0;
-  write_trajectory_output_files(condition, t, dt);
+  write_trajectory_output_files(condition, nb_iterations, t, dt);
   while (t < max_t)
   {
     nb_iterations++;
@@ -408,8 +405,8 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       dt_counter++;
       if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
-        std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ")" << std::endl;
-        write_trajectory_output_files(condition, t, dt);
+        std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+        write_trajectory_output_files(condition, nb_iterations, t, dt);
       }
       if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
       {
@@ -437,6 +434,10 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       assert(_consistent);
       dt         /= DECREASING_DT_FACTOR;
       dt_counter  = 0;
+      if (dt < MIN_DT)
+      {
+        throw std::invalid_argument("> dt value is too small");
+      }
     }
   }
   gsl_vector_free(previous_f_trunc);
@@ -445,7 +446,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
   scaled_dmudt     = NULL;
   if (save_trajectory)
   {
-    write_trajectory_output_files(condition, t, dt);
+    write_trajectory_output_files(condition, nb_iterations, t, dt);
     close_trajectory_ouput_files();
   }
   if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
@@ -592,12 +593,12 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
   /*~~~~~~~~~~~~~~~~~~*/
   /* 2) Write headers */
   /*~~~~~~~~~~~~~~~~~~*/
-  _state_trajectory_file << "condition;t;dt;mu;density;consistent;mu_diff\n";
-  _f_trajectory_file << "condition;t;dt";
-  _c_trajectory_file << "condition;t;dt";
-  _v_trajectory_file << "condition;t;dt";
-  _p_trajectory_file << "condition;t;dt";
-  _b_trajectory_file << "condition;t;dt";
+  _state_trajectory_file << "condition;iter;t;dt;mu;density;consistent;mu_diff\n";
+  _f_trajectory_file << "condition;iter;t;dt";
+  _c_trajectory_file << "condition;iter;t;dt";
+  _v_trajectory_file << "condition;iter;t;dt";
+  _p_trajectory_file << "condition;iter;t;dt";
+  _b_trajectory_file << "condition;iter;t;dt";
   for (int i = 0; i < _nc; i++)
   {
     _c_trajectory_file << ";" << _c_ids[i];
@@ -620,22 +621,23 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
  * \brief    Write data into trajectory output files
  * \details  --
  * \param    std::string condition
+ * \param    int iter
  * \param    double t
  * \param    double dt
  * \return   \e void
  */
-void Model::write_trajectory_output_files( std::string condition, double t, double dt )
+void Model::write_trajectory_output_files( std::string condition, int iter, double t, double dt )
 {
   /*------------------------------------*/
   /* 1) Update state file               */
   /*------------------------------------*/
-  _state_trajectory_file << condition << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
+  _state_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
   _state_trajectory_file.flush();
   /*------------------------------------*/
   /* 2) Update metabolites related file */
   /*------------------------------------*/
-  _c_trajectory_file << condition << ";" << t << ";" << dt;
-  _b_trajectory_file << condition << ";" << t << ";" << dt;
+  _c_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
+  _b_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
   for (int i = 0; i < _nc; i++)
   {
     _c_trajectory_file << ";" << gsl_vector_get(_c, i);
@@ -648,9 +650,9 @@ void Model::write_trajectory_output_files( std::string condition, double t, doub
   /*------------------------------------*/
   /* 2) Update reactions related file   */
   /*------------------------------------*/
-  _f_trajectory_file << condition << ";" << t << ";" << dt;
-  _v_trajectory_file << condition << ";" << t << ";" << dt;
-  _p_trajectory_file << condition << ";" << t << ";" << dt;
+  _f_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
+  _v_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
+  _p_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
   for (int j = 0; j < _nj; j++)
   {
     _f_trajectory_file << ";" << gsl_vector_get(_f, j);
@@ -1238,17 +1240,15 @@ void Model::load_conditions( void )
 }
 
 /**
- * \brief    Load directions and boundaries
+ * \brief    Load directions
  * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::load_directions_and_boundaries( void )
+void Model::load_directions( void )
 {
   assert(_directions==NULL);
-  assert(_boundaries==NULL);
   _directions = new std::string[_nj];
-  _boundaries = new boundaries[_nj];
   assert(is_file_exist(_model_path+"/"+_model_name+"/directions.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/directions.csv", std::ios::in);
   assert(file);
@@ -1263,22 +1263,7 @@ void Model::load_directions_and_boundaries( void )
     getline(flux, direction, ';');
     assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
     _directions[_reaction_indices[reaction_id]] = direction;
-    if (direction == "forward")
-    {
-      _boundaries[_reaction_indices[reaction_id]].LB = 0.0;
-      _boundaries[_reaction_indices[reaction_id]].UB = FLUX_BOUNDARY;
-    }
-    else if (direction == "backward")
-    {
-      _boundaries[_reaction_indices[reaction_id]].LB = -FLUX_BOUNDARY;
-      _boundaries[_reaction_indices[reaction_id]].UB = 0.0;
-    }
-    else if (direction == "reversible")
-    {
-      _boundaries[_reaction_indices[reaction_id]].LB = -FLUX_BOUNDARY;
-      _boundaries[_reaction_indices[reaction_id]].UB = FLUX_BOUNDARY;
-    }
-    else
+    if (direction != "forward" && direction != "backward" && direction != "reversible")
     {
       throw std::invalid_argument("> Incorrect direction value");
     }
@@ -1339,10 +1324,6 @@ void Model::load_f0( void )
     assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
     double value = stod(str_value);
     gsl_vector_set(_f0, _reaction_indices[reaction_id], value);
-    if (fabs(value) > FLUX_BOUNDARY)
-    {
-      throw std::invalid_argument("> f0 value is higher than the flux boundary");
-    }
   }
   file.close();
 }
@@ -1373,10 +1354,6 @@ void Model::reload_f0( void )
     assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
     double value = stod(str_value);
     gsl_vector_set(_f0, _reaction_indices[reaction_id], value);
-    if (fabs(value) > FLUX_BOUNDARY)
-    {
-      throw std::invalid_argument("> f0 value is higher than the flux boundary");
-    }
   }
   file.close();
 }
@@ -2076,7 +2053,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 1) Reaction is irreversible and positive    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) <= MIN_FLUX_FRACTION)
+    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) < MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
       if (gsl_vector_get(_GCC_f, j+1) < 0.0)
@@ -2087,7 +2064,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 2) Reaction is irreversible and negative    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) >= -MIN_FLUX_FRACTION)
+    if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) > -MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
       if (gsl_vector_get(_GCC_f, j+1) > 0.0)
@@ -2098,7 +2075,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 3) Reaction is reversible and tends to zero */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    else if (_directions[j+1] == "reversible" && fabs(gsl_vector_get(_f_trunc, j)) <= MIN_FLUX_FRACTION)
+    else if (_directions[j+1] == "reversible" && fabs(gsl_vector_get(_f_trunc, j)) < MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
       if (gsl_vector_get(_f_trunc, j) >= 0.0)
@@ -2110,17 +2087,14 @@ void Model::block_reactions( void )
         gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
       }
     }
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    /* 4) The reaction must be constant            */
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    for (auto item : _constant_reactions)
-    {
-      int    j   = _reaction_indices[item.first];
-      double val = item.second;
-      assert(j > 0);
-      gsl_vector_set(_f_trunc, j-1, val);
-      gsl_vector_set(_GCC_f, j, 0.0);
-    }
+  }
+  for (auto item : _constant_reactions)
+  {
+    int    j   = _reaction_indices[item.first];
+    double val = item.second;
+    assert(j > 0);
+    gsl_vector_set(_f_trunc, j-1, val);
+    gsl_vector_set(_GCC_f, j, 0.0);
   }
 }
 
