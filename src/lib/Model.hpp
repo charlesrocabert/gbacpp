@@ -48,7 +48,6 @@
 
 #include "Macros.hpp"
 #include "Enums.hpp"
-#include "Structs.hpp"
 
 
 class Model

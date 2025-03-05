@@ -101,7 +101,6 @@ add_library(
   GBA_Evolution
   src/lib/Macros.hpp
   src/lib/Enums.hpp
-  src/lib/Structs.hpp
   src/lib/Model.hpp
   src/lib/Model.cpp
 )

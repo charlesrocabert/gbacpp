@@ -40,7 +40,6 @@
 
 #include "./lib/Macros.hpp"
 #include "./lib/Enums.hpp"
-#include "./lib/Structs.hpp"
 #include "./lib/Model.hpp"
 
 void readArgs( int argc, char const** argv, std::string &path, std::string &name, std::string &condition, double &initial_dt, double &max_t, bool &save, std::string &output_path );
