@@ -1291,8 +1291,8 @@ void Model::load_directions( void )
 void Model::load_constant_reactions( void )
 {
   _constant_reactions.clear();
-  assert(is_file_exist(_model_path+"/"+_model_name+"/constants.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/constants.csv", std::ios::in);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/constant_reactions.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/constant_reactions.csv", std::ios::in);
   assert(file);
   std::string line;
   std::string reaction_id;
