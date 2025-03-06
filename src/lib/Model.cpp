@@ -381,6 +381,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
   int    nb_successes        = 0;
+  int    inconsistent_count  = 0;
   write_trajectory_output_files(condition, nb_iterations, t, dt);
   while (t < max_t)
   {
@@ -389,6 +390,12 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
     {
       break;
     }
+    /*
+    if (inconsistent_count >= TRAJECTORY_INCONSISTENT_COUNT)
+    {
+      break;
+    }
+      */
     previous_mu = _mu;
     block_reactions();
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
@@ -401,7 +408,8 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
     {
       gsl_vector_memcpy(previous_f_trunc, _f_trunc);
       nb_successes++;
-      t = t+dt;
+      inconsistent_count = 0;
+      t                  = t+dt;
       dt_counter++;
       if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
@@ -432,12 +440,15 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       set_f();
       calculate();
       assert(_consistent);
+      inconsistent_count++;
       dt         /= DECREASING_DT_FACTOR;
       dt_counter  = 0;
+      /*
       if (dt < MIN_DT)
       {
         throw std::invalid_argument("> dt value is too small");
       }
+        */
     }
   }
   gsl_vector_free(previous_f_trunc);
@@ -449,15 +460,15 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
     write_trajectory_output_files(condition, nb_iterations, t, dt);
     close_trajectory_ouput_files();
   }
-  if (constant_mu_counter < TRAJECTORY_STABLE_MU_COUNT)
-  {
-    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
-    return(false);
-  }
-  else
+  if (constant_mu_counter >= TRAJECTORY_STABLE_MU_COUNT)
   {
     std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
     return(true);
+  }
+  else
+  {
+    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
+    return(false);
   }
 }
 
@@ -1280,8 +1291,8 @@ void Model::load_directions( void )
 void Model::load_constant_reactions( void )
 {
   _constant_reactions.clear();
-  assert(is_file_exist(_model_path+"/"+_model_name+"/constant.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/constant.csv", std::ios::in);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/constants.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/constants.csv", std::ios::in);
   assert(file);
   std::string line;
   std::string reaction_id;
@@ -2053,7 +2064,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 1) Reaction is irreversible and positive    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) < MIN_FLUX_FRACTION)
+    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) <= MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
       if (gsl_vector_get(_GCC_f, j+1) < 0.0)
@@ -2064,7 +2075,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 2) Reaction is irreversible and negative    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) > -MIN_FLUX_FRACTION)
+    if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) >= -MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
       if (gsl_vector_get(_GCC_f, j+1) > 0.0)
@@ -2075,7 +2086,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 3) Reaction is reversible and tends to zero */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    else if (_directions[j+1] == "reversible" && fabs(gsl_vector_get(_f_trunc, j)) < MIN_FLUX_FRACTION)
+    else if (_directions[j+1] == "reversible" && fabs(gsl_vector_get(_f_trunc, j)) <= MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
       if (gsl_vector_get(_f_trunc, j) >= 0.0)
