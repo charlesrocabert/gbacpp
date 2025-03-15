@@ -27,13 +27,13 @@ cmake_minimum_required(VERSION 3.0)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the project name                                                      #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-project(GBA_Evolution)
+project(GBAcpp)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the package name                                                      #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-set(PACKAGE "\"GBA_Evolution\"")
+set(PACKAGE "\"GBAcpp\"")
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -98,18 +98,18 @@ endif(GSL_FOUND)
 # Create and link SigmaFGM library                                             #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 add_library(
-  GBA_Evolution
+  gbacpp
   src/lib/Macros.hpp
   src/lib/Enums.hpp
   src/lib/Model.hpp
   src/lib/Model.cpp
 )
 
-target_link_libraries(GBA_Evolution gsl gslcblas)
+target_link_libraries(gbacpp gsl gslcblas)
 
-target_link_libraries(${TRAJECTORY_EXECUTABLE} GBA_Evolution)
-target_link_libraries(${OPTIMUM_EXECUTABLE} GBA_Evolution)
-target_link_libraries(${RANDOM_EXECUTABLE} GBA_Evolution)
+target_link_libraries(${TRAJECTORY_EXECUTABLE} gbacpp)
+target_link_libraries(${OPTIMUM_EXECUTABLE} gbacpp)
+target_link_libraries(${RANDOM_EXECUTABLE} gbacpp)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
