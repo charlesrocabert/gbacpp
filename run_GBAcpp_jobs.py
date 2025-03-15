@@ -1,15 +1,34 @@
 #!/usr/bin/env python3
-# coding: utf-8
+# -*- coding: utf-8 -*-
 
 #***********************************************************************
-# Copyright © 2024 Charles Rocabert
-# Web: https://github.com/charlesrocabert/GBA_MMSYN
+# GBAcpp (Growth Balance Analysis for C++)
+# Copyright © 2024-2025 Charles Rocabert
+# Web: https://github.com/charlesrocabert/GBAcpp
 #
-# run_GBAcpp_jobs.py
-# ------------------
-# Run the model for a given list of conditions.
-# (HPC SCRIPT)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***********************************************************************
+
+"""
+Filename: run_GBAcpp_jobs.py
+Author: Charles Rocabert
+Date: 2024-16-12
+Description:
+    HPC jobs helper script for the module GBAcpp.
+License: GNU General Public License v3.0
+Copyright: © 2024-2025 Charles Rocabert
+"""
 
 import os
 import sys
@@ -53,9 +72,7 @@ if __name__ == "__main__":
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
     MODEL_PATH  = "/gpfs/project/dam82xot/GBAcpp/csv_models"
-    MODEL_NAMES = ["MMSYN_0000", "MMSYN_0010", "MMSYN_0100", "MMSYN_0110",
-                   "MMSYN_1000", "MMSYN_1001", "MMSYN_1010", "MMSYN_1011",
-                   "MMSYN_1100", "MMSYN_1101", "MMSYN_1110", "MMSYN_1111"]
+    MODEL_NAMES = [""]
     CONDITIONS  = range(1, 31)
     CONDITIONS  = [str(c) for c in CONDITIONS]
     DT          = 0.01
