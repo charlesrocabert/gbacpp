@@ -40,8 +40,8 @@
 #define INCREASING_DT_FACTOR          2.0    /*!< Factor multiplying dt                                               */
 #define INCREASING_DT_COUNT           100    /*!< Number of constant dt iterations to increase it                     */
 #define MIN_DT                        1e-100 /*!< Minimal dt value                                                    */
-#define TRAJECTORY_STABLE_MU_COUNT    1000   /*!< Number of stable mu values required to consider a trajectory stable */
-#define TRAJECTORY_INCONSISTENT_COUNT 1000   /*!< Number of inconsistent trajectories required to stop the simulation */
+#define TRAJECTORY_STABLE_MU_COUNT    10000  /*!< Number of stable mu values required to consider a trajectory stable */
+#define TRAJECTORY_INCONSISTENT_COUNT 10000  /*!< Number of inconsistent trajectories required to stop the simulation */
 #define TRAJECTORY_CONVERGENCE_TOL    1e-10  /*!< Analytical trajectory convergence tolerance                         */
 #define EXPORT_DATA_COUNT             100    /*!< Data is exported at this period in number of iterations             */
 
