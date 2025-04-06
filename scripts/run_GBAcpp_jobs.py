@@ -33,6 +33,15 @@ Copyright: © 2024-2025 Charles Rocabert
 import os
 import sys
 
+### Read the list of conditions from CSV file ###
+def load_conditions_from_csv( model_path, model_name ):
+    f          = open(model_path+"/"+model_name+"/conditions.csv", "r")
+    l          = f.readline()
+    conditions = l.strip("\n").split(";") 
+    conditions.pop(0)
+    f.close()
+    return conditions
+
 ### Build the command line ###
 def build_command_line( exec_path, model_path, model_name, condition, dt, maxt, output_path ):
     cmd  = exec_path
@@ -41,7 +50,7 @@ def build_command_line( exec_path, model_path, model_name, condition, dt, maxt, 
     cmd += " -condition " + condition
     cmd += " -dt " + str(dt)
     cmd += " -maxt " + str(maxt)
-    cmd += " -output " + output_path
+    cmd += " -save -output " + output_path
     return cmd
 
 ### Build and run the qsub script ###
@@ -73,8 +82,6 @@ if __name__ == "__main__":
     EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
     MODEL_PATH  = "/gpfs/project/dam82xot/GBAcpp/csv_models"
     MODEL_NAMES = ["mmsyn_fcr_v1"]
-    CONDITIONS  = range(1, 21)
-    CONDITIONS  = [str(c) for c in CONDITIONS]
     DT          = 0.01
     MAXT        = 1000000.0
     OUTPUT_PATH = "/gpfs/project/dam82xot/GBAcpp/output"
@@ -83,6 +90,7 @@ if __name__ == "__main__":
     # 2) Run a job for each condition #
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     for model_name in MODEL_NAMES:
-        for condition in CONDITIONS:
+        conditions = load_conditions_from_csv(MODEL_PATH, model_name)
+        for condition in conditions:
             build_and_run_qsub_script(EXEC_PATH, MODEL_PATH, model_name, condition, DT, MAXT, OUTPUT_PATH)
 

@@ -37,7 +37,7 @@ Copyright: © 2024-2025 Charles Rocabert
 
 if __name__ == "__main__":
     MODELS      = ["mmsyn_fcr_v1"]
-    CONDITIONS  = range(1, 21)
+    CONDITIONS  = range(1, 40)
     CONDITIONS  = [str(c) for c in CONDITIONS]
     LABELS      = ["b", "c", "f", "p", "state", "v"]
 

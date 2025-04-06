@@ -3,9 +3,6 @@
 *.Rhistory
 *.Rapp.history
 clean_folders.sh
-clean_model_files.sh
-transfer_to_HPC.sh
-connect_to_HPC.sh
 
 # Compilation products
 output/**

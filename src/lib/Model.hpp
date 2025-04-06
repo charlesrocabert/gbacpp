@@ -252,8 +252,8 @@ protected:
   
   /*----------------------------------------------- Solutions */
   
-  int                                  _nb_random_solutions;
-  std::unordered_map<int, gsl_vector*> _random_solutions;
+  int                                  _nb_random_solutions; /*!< Number of random solutions */
+  std::unordered_map<int, gsl_vector*> _random_solutions;    /*!< List of random f vectors   */
   
   /*----------------------------------------------- Output files */
   
