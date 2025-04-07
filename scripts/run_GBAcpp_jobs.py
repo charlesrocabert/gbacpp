@@ -81,7 +81,7 @@ if __name__ == "__main__":
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
     MODEL_PATH  = "/gpfs/project/dam82xot/GBAcpp/csv_models"
-    MODEL_NAMES = ["mmsyn_fcr_v1"]
+    MODEL_NAMES = ["mmsyn_fcr"]
     DT          = 0.01
     MAXT        = 1000000.0
     OUTPUT_PATH = "/gpfs/project/dam82xot/GBAcpp/output"

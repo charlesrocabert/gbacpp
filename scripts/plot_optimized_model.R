@@ -243,12 +243,13 @@ proteomics_evolution <- function( d_p, step )
   return(D)
 }
 
+### Plot growth rate optimization ###
 plot_growth_rate <- function( d_state, d_obs )
 {
   last_mu = d_state$mu[dim(d_state)[1]]
   p = ggplot(d_state, aes(iter, mu)) +
     geom_line() +
-    #geom_hline(yintercept=max(d_obs$mu), color="pink") +
+    geom_hline(yintercept=max(d_obs$mu), color="pink") +
     xlab("Iterations") +
     ylab("Growth rate") +
     ggtitle(paste0("Growth rate (\u03BC = ",round(last_mu,3),")")) +
@@ -256,6 +257,7 @@ plot_growth_rate <- function( d_state, d_obs )
   return(p)
 }
 
+### Plot protein fraction optimization
 plot_protein_fraction <- function( d_c )
 {
   dl                  = d_c[,-which(names(d_c)%in%c("condition","iter","t","dt", "h2o"))]
@@ -269,11 +271,12 @@ plot_protein_fraction <- function( d_c )
     xlab("Iterations") +
     ylab("Protein fraction") +
     ggtitle(paste0("Protein fraction (Pf = ",round(last_prot_fraction,3),", obs = ",0.547,")")) +
-    #ylim(0.5,1) +
+    ylim(0.5,1) +
     theme_classic()
   return(p)
 }
 
+### Plot predicted mass fractions ###
 plot_mass_fractions <- function( mf_data, R2, r2 )
 {
   p = ggplot(mf_data, aes(obs, sim)) +
@@ -295,6 +298,7 @@ plot_mass_fractions <- function( mf_data, R2, r2 )
   return(p)
 }
 
+### Plot mass fraction correlation during optimization ###
 plot_mass_fractions_evolution <- function( mf_evol_data )
 {
   p1 = ggplot(mf_evol_data, aes(index, r2)) +
@@ -320,7 +324,8 @@ plot_mass_fractions_evolution <- function( mf_evol_data )
   return(list(p1, p2, p3))
 }
 
-plot_proteomics <- function( pr_data, R2, r2 )
+### Plot predicted proteomics ###
+plot_predicted_proteomics <- function( pr_data, R2, r2 )
 {
   p = ggplot(pr_data, aes(obs_fraction, sim_fraction)) +
     # geom_abline(slope=1, intercept=0, color="pink") +
@@ -341,6 +346,7 @@ plot_proteomics <- function( pr_data, R2, r2 )
   return(p)
 }
 
+### Plot proteomics correlation during optimization ###
 plot_proteomics_evolution <- function( pr_evol_data )
 {
   p1 = ggplot(pr_evol_data, aes(index, r2)) +
@@ -382,10 +388,10 @@ x_raw    = x_raw[-3]
 glc      = c(x_adjust, x_raw)
 
 ### Build the experimental dataset ###
-mu_obs          = c(0.42, 0.35, 0.32, 0.29, 0.3, 0.36, 0.3, 0.43, 0.3, 0.39, 0.38, 0.49, 0.47, 0.51, 0.51, 0.5, 0.52, 0.5, 0.46, 0.43)
-cond            = seq(1,20)
-d_obs           = data.frame(cond, x_adjust, mu_obs)
-names(d_obs)    = c("condition", "glc", "mu")
+mu_obs       = c(0.4185156420108013, 0.34575412067094446, 0.32362916852088447, 0.28943509125099154, 0.30019744370357504, 0.358911043059261, 0.3009631588728481, 0.42854660068743594, 0.29781579360835236, 0.3927863575066446, 0.3775322888686228, 0.4893620794586438, 0.47200997079180596, 0.5141549673685587, 0.5092329943189714, 0.497863115357777, 0.5181987729683097, 0.5010039120856962, 0.46432998072355164, 0.43444304843015225)
+cond         = seq(1,20)
+d_obs        = data.frame(cond, x_adjust, mu_obs)
+names(d_obs) = c("condition", "glc", "mu")
 
 model_path  = "../csv_models"
 model_path  = "../../gbapy/tutorials/MMSYN_tutorial/models"
@@ -416,6 +422,7 @@ plot_grid(p1, p2, p3, p4, p_mf[[1]], p_mf[[3]], ncol=2)
 
 X = d_f[dim(d_f)[1],-which(names(d_f)%in%c("condition", "iter", "t", "dt"))]
 X = data.frame(names(X), t(X))
+names(X) = c("reaction_id", "flux_fraction")
 X = X[order(X[,2], decreasing=T),]
-X
+tail(X)
 
