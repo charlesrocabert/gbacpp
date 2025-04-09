@@ -50,7 +50,8 @@ def build_command_line( exec_path, model_path, model_name, condition, dt, maxt, 
     cmd += " -condition " + condition
     cmd += " -dt " + str(dt)
     cmd += " -maxt " + str(maxt)
-    cmd += " -save -output " + output_path
+    #cmd += " -save"
+    cmd += " -output " + output_path
     return cmd
 
 ### Build and run the qsub script ###
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
     MODEL_PATH  = "/gpfs/project/dam82xot/GBAcpp/csv_models"
-    MODEL_NAMES = ["mmsyn_fcr"]
+    MODEL_NAMES = ["mmsyn_fcr_v1", "mmsyn_fcr_v2"]
     DT          = 0.01
     MAXT        = 1000000.0
     OUTPUT_PATH = "/gpfs/project/dam82xot/GBAcpp/output"

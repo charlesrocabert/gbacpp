@@ -1,25 +1,6 @@
 #!/usr/bin/Rscript
 # coding: utf-8
 
-#***********************************************************************
-# GBApy (Growth Balance Analysis for Python)
-# Copyright © 2024-2025 Charles Rocabert
-# Web: https://github.com/charlesrocabert/gbapy
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#***********************************************************************
-
 library("tidyverse")
 library("rstudioapi")
 library("cowplot")
@@ -27,9 +8,10 @@ library("ggpmisc")
 library("Matrix")
 library("ggrepel")
 library("latex2exp")
+library("MASS")
 
-### Load mass fractions data ###
-load_mass_fractions <- function()
+### Load the observed mass fractions data ###
+load_observed_mass_fractions <- function()
 {
   d           = read.table("/Users/charlesrocabert/git/charlesrocabert/gbapy/tutorials/MMSYN_tutorial/data/manual_curation/MMSYN_mass_fractions.csv", sep=";", h=T, check.names=F)
   rownames(d) = d$ID
@@ -39,38 +21,37 @@ load_mass_fractions <- function()
 ### Build the mass fraction data ###
 build_mass_fractions_data <- function( d_b, i )
 {
-  d_mf     = load_mass_fractions()
-  D        = d_b[i,]
-  D        = D[,-which(names(D)%in%c("condition", "iter", "t", "dt", "h2o"))]
-  D        = D[,which(names(D)%in%d_mf$ID)]
-  D        = data.frame(names(D), t(D))
-  names(D) = c("id", "sim")
-  D$obs    = d_mf[D$id,"Fraction"]
-  D$obs    = D$obs*0.01#/sum(D$obs)
-  D$sim    = D$sim/sum(D$sim)
-  D$obsp3  = D$obs*3
-  D$obsm3  = D$obs/3
-  D$obsp10 = D$obs*10
-  D$obsm10 = D$obs/10
+  d_mf           = load_observed_mass_fractions()
+  D              = d_b[i,-which(names(d_b)%in%c("condition", "iter", "t", "dt", "h2o"))]
+  D              = D[,which(names(D)%in%d_mf$ID)]
+  D              = data.frame(names(D), t(D))
+  names(D)       = c("id", "sim_mass")
+  D$obs_fraction = d_mf[D$id,"Fraction"]
+  D$obs_fraction = D$obs*0.01
+  D$sim_fraction = D$sim_mass/sum(D$sim_mass)
+  D$obsp3        = D$obs_fraction*3
+  D$obsm3        = D$obs_fraction/3
+  D$obsp10       = D$obs_fraction*10
+  D$obsm10       = D$obs_fraction/10
   return(D)
 }
 
 ### Correlation of mass fraction prediction ###
-mass_fractions_cor <- function( d_b )
+mass_fractions_correlation <- function( d_b, i )
 {
-  D     = build_mass_fractions_data(d_b, dim(d_b)[1])
-  reg   = lm(log10(D$sim)~log10(D$obs))
+  D     = build_mass_fractions_data(d_b, i)
+  reg   = lm(log10(D$sim_fraction)~log10(D$obs_fraction))
   r2    = summary(reg)$adj.r.squared
   pval  = summary(reg)$coefficients[,4][[2]]
-  SSres = sum((log10(D$sim)-log10(D$obs))^2)
-  M     = mean(log10(D$obs))
-  SStot = sum((log10(D$obs)-M)^2)
+  SSres = sum((log10(D$sim_fraction)-log10(D$obs_fraction))^2)
+  M     = mean(log10(D$obs_fraction))
+  SStot = sum((log10(D$obs_fraction)-M)^2)
   R2    = 1-SSres/SStot
   return(c(r2, pval, R2))
 }
 
 ### Evolution of mass fraction prediction ###
-mass_fraction_evolution <- function( d_b, step )
+mass_fractions_optimization <- function( d_b, step )
 {
   iter     = c()
   cor_vec  = c()
@@ -79,43 +60,53 @@ mass_fraction_evolution <- function( d_b, step )
   for(i in seq(1, dim(d_b)[1], by=step))
   {
     iter     = c(iter, i)
-    D        = build_mass_fractions_data(d_b, i)
-    reg      = lm(log10(D$sim)~log10(D$obs))
-    cor_vec  = c(cor_vec, summary(reg)$adj.r.squared)
-    pval_vec = c(pval_vec, summary(reg)$coefficients[,4][[2]])
-    SSres    = sum((log10(D$sim)-log10(D$obs))^2)
-    M        = mean(log10(D$obs))
-    SStot    = sum((log10(D$obs)-M)^2)
-    R2_vec   = c(R2_vec, 1-SSres/SStot)
+    res      = mass_fractions_correlation(d_b, i)
+    cor_vec  = c(cor_vec, res[1])
+    pval_vec = c(pval_vec, res[2])
+    R2_vec   = c(R2_vec, res[3])
+  }
+  if (iter[length(iter)] != dim(d_b)[1])
+  {
+    iter     = c(iter, dim(d_b)[1])
+    res      = mass_fractions_correlation(d_b, dim(d_b)[1])
+    cor_vec  = c(cor_vec, res[1])
+    pval_vec = c(pval_vec, res[2])
+    R2_vec   = c(R2_vec, res[3])
   }
   D = data.frame(iter, cor_vec, pval_vec, R2_vec)
   names(D) = c("index", "r2", "pval", "R2")
   return(D)
 }
 
-### Load proteomics data ###
-load_proteomics <- function()
+### Load observed proteomics data ###
+load_observed_proteomics <- function()
 {
   d           = read.table(paste0("/Users/charlesrocabert/git/charlesrocabert/gbapy/tutorials/MMSYN_tutorial/data/manual_curation/MMSYN_proteomics.csv"), sep=";", h=T, check.names=F)
   d$protein   = str_replace(d$locus, "JCVISYN3A", "protein")
-  d$mass      = d$mg_per_gP*0.001
+  d$obs_mass  = d$mg_per_gP*0.001
   rownames(d) = d$protein
-  d           = filter(d, mass > 0.0)
+  d           = filter(d, obs_mass > 0.0)
   return(d)
 }
 
 ### Load protein contributions ###
 load_protein_contributions <- function( model_path, model_name )
 {
-  filename = paste0(model_path,"/",model_name,"/protein_contributions.csv")
-  d        = read.table(filename, h=T, sep=";", check.names=F)
-  return(d)
+  filename    = paste0(model_path,"/",model_name,"/protein_contributions.csv")
+  d           = read.table(filename, h=T, sep=";", check.names=F)
+  nrow        = length(unique(d$protein))
+  ncol        = length(unique(d$reaction))
+  M           = matrix(rep(0.0, nrow*ncol), nrow, ncol)
+  rownames(M) = sort(unique(d$protein))
+  colnames(M) = sort(unique(d$reaction))
+  for(i in seq(1, dim(d)[1]))
+  {
+    M[d$protein[i], d$reaction[i]] = d$contribution[i]
+  }
+  return(M)
 }
 
 ### Load enzyme composition ###
-# Note:
-# Some reactions are filtered out as they relate to
-# the model size reduction.
 load_enzyme_composition <- function()
 {
   AMINO_ACID_TRANSPORTERS = c("ALAt2r", "ARGt2r", "ASNt2r", "ASPt2pr", "CYSt2r", "GLNt2r",
@@ -133,29 +124,18 @@ load_enzyme_composition <- function()
 }
 
 ### Calculate simulated proteomics ###
-calculate_simulated_proteomics <- function( d_p, protein_contributions, i )
+calculate_simulated_proteomics <- function( model_path, model_name, d_p, i )
 {
-  X             = d_p[i, -which(names(d_p)%in%c("condition", "iter", "t", "dt"))]
-  r_ids         = names(X)
-  p_ids         = unique(protein_contributions$protein)
-  res           = data.frame(p_ids, rep(0.0, length(p_ids)))
-  names(res)    = c("p_id", "mass")
-  rownames(res) = res$p_id
-  for (r_id in r_ids)
-  {
-    e_conc  = X[r_id][[1]]
-    contrib = protein_contributions[protein_contributions$reaction==r_id,]
-    if (dim(contrib)[1] > 0)
-    {
-      for (j in seq(1, dim(contrib)[1]))
-      {
-        p_id             = contrib$protein[j]
-        mass             = e_conc*contrib$contribution[j]
-        res[p_id,"mass"] = res[p_id,"mass"]+mass
-      }
-    }
-  }
-  res$fraction = res$mass/sum(res$mass)
+  X                = d_p[i, -which(names(d_p)%in%c("condition", "iter", "t", "dt"))]
+  M                = load_protein_contributions(model_path, model_name)
+  X                = as.vector(t(X))
+  Y                = M%*%X
+  r_ids            = colnames(M)
+  p_ids            = rownames(M)
+  res              = data.frame(p_ids, Y)
+  names(res)       = c("p_id", "sim_mass")
+  rownames(res)    = res$p_id
+  res$sim_fraction = res$sim_mass/sum(res$sim_mass)
   return(res)
 }
 
@@ -166,7 +146,7 @@ collect_excluded_proteins <- function( list_of_reactions, enzyme_composition )
   for(i in seq(1, dim(enzyme_composition)[1]))
   {
     r_id = enzyme_composition$info_sample_rid[i]
-    if (!r_id %in% list_of_reactions)# | r_id %in% c("Ribosome", "AAabc", "AATRS"))
+    if (!r_id %in% list_of_reactions)# | r_id %in% c("Ribosome"))#, "AAabc", "AATRS"))
     {
       step1 = enzyme_composition$composition[i]
       step2 = strsplit(step1,"|",fixed=T)
@@ -183,24 +163,23 @@ collect_excluded_proteins <- function( list_of_reactions, enzyme_composition )
 }
 
 ### Build the proteome fraction data ###
-build_proteomics_data <- function( d_p, i )
+build_proteomics_data <- function( model_path, model_name, d_p, i )
 {
-  obs_proteomics = load_proteomics()
-  pcontrib       = load_protein_contributions(model_path, model_name)
+  obs_proteomics = load_observed_proteomics()
   enz_comp       = load_enzyme_composition()
   reaction_ids   = names(d_p[,-which(names(d_p)%in%c("condition", "iter", "t", "dt"))])
   excluded       = collect_excluded_proteins(reaction_ids, enz_comp)
-  sim_proteomics = calculate_simulated_proteomics(d_p, pcontrib, i)
-  Xsum = sum(obs_proteomics$mass)
-  Xsim = sum(filter(obs_proteomics, protein%in%rownames(sim_proteomics))$mass)
+  sim_proteomics = calculate_simulated_proteomics(model_path, model_name, d_p, i)
+  Xsum           = sum(obs_proteomics$obs_mass)
+  Xsim           = sum(filter(obs_proteomics, protein%in%rownames(sim_proteomics))$obs_mass)
   print(paste("> Modeled proteome fraction", Xsim/Xsum))
-  D              = data.frame(sim_proteomics$p_id, sim_proteomics$mass, sim_proteomics$fraction)
+  D              = data.frame(sim_proteomics$p_id, sim_proteomics$sim_mass, sim_proteomics$sim_fraction)
   names(D)       = c("id", "sim_mass", "sim_fraction")
   D              = filter(D, id%in%obs_proteomics$protein)
-  D$obs_mass     = obs_proteomics[D$id, "mass"]
+  D$obs_mass     = obs_proteomics[D$id, "obs_mass"]
   D              = D[!D$id%in%excluded,]
   D$obs_fraction = D$obs_mass/sum(D$obs_mass)
-  D$sim_fraction = D$sim_mass/sum(D$sim_mass)#*0.3435353
+  D$sim_fraction = D$sim_mass/sum(D$sim_mass)
   D$obsp3        = D$obs_fraction*3
   D$obsm3        = D$obs_fraction/3
   D$obsp10       = D$obs_fraction*10
@@ -209,9 +188,9 @@ build_proteomics_data <- function( d_p, i )
 }
 
 ### Correlation of proteomics prediction ###
-proteomics_cor <- function( d_p )
+proteomics_correlation <- function( model_path, model_name, d_p, i )
 {
-  D     = build_proteomics_data(d_p, dim(d_p)[1])
+  D     = build_proteomics_data(model_path, model_name, d_p, i)
   reg   = lm(log10(D$sim_fraction)~log10(D$obs_fraction))
   r2    = summary(reg)$adj.r.squared
   pval  = summary(reg)$coefficients[,4][[2]]
@@ -223,7 +202,7 @@ proteomics_cor <- function( d_p )
 }
 
 ### Evolution of proteomics prediction ###
-proteomics_evolution <- function( d_p, step )
+proteomics_optimization <- function( model_path, model_name, d_p, step )
 {
   iter     = c()
   cor_vec  = c()
@@ -232,8 +211,15 @@ proteomics_evolution <- function( d_p, step )
   for(i in seq(1, dim(d_p)[1], by=step))
   {
     iter     = c(iter, i)
-    D        = build_proteomics_data(d_p, i)
-    res      = proteomics_cor(D)
+    res      = proteomics_correlation(model_path, model_name, d_p, i)
+    cor_vec  = c(cor_vec, res[1])
+    pval_vec = c(pval_vec, res[2])
+    R2_vec   = c(R2_vec, res[3])
+  }
+  if (iter[length(iter)] != dim(d_p)[1])
+  {
+    iter     = c(iter, dim(d_p)[1])
+    res      = proteomics_correlation(model_path, model_name, d_p, dim(d_p)[1])
     cor_vec  = c(cor_vec, res[1])
     pval_vec = c(pval_vec, res[2])
     R2_vec   = c(R2_vec, res[3])
@@ -243,8 +229,8 @@ proteomics_evolution <- function( d_p, step )
   return(D)
 }
 
-### Plot growth rate optimization ###
-plot_growth_rate <- function( d_state, d_obs )
+### Plot predicted growth rates ###
+plot_predicted_growth_rate <- function( d_state, d_obs )
 {
   last_mu = d_state$mu[dim(d_state)[1]]
   p = ggplot(d_state, aes(iter, mu)) +
@@ -257,8 +243,8 @@ plot_growth_rate <- function( d_state, d_obs )
   return(p)
 }
 
-### Plot protein fraction optimization
-plot_protein_fraction <- function( d_c )
+### Plot predicted protein fraction ###
+plot_predicted_protein_fraction <- function( d_c )
 {
   dl                  = d_c[,-which(names(d_c)%in%c("condition","iter","t","dt", "h2o"))]
   dl$sum              = rowSums(dl)
@@ -277,14 +263,14 @@ plot_protein_fraction <- function( d_c )
 }
 
 ### Plot predicted mass fractions ###
-plot_mass_fractions <- function( mf_data, R2, r2 )
+plot_predicted_mass_fractions <- function( mf_data, R2, r2 )
 {
-  p = ggplot(mf_data, aes(obs, sim)) +
-    # geom_abline(slope=1, intercept=0, color="pink") +
-    # geom_line(aes(obs, obsp3), color="grey", lty=2) +
-    # geom_line(aes(obs, obsm3), color="grey", lty=2) +
-    # geom_line(aes(obs, obsp10), color="grey", lty=3) +
-    # geom_line(aes(obs, obsm10), color="grey", lty=3) +
+  p = ggplot(mf_data, aes(obs_fraction, sim_fraction)) +
+    geom_abline(slope=1, intercept=0, color="pink") +
+    geom_line(aes(obs_fraction, obsp3), color="grey", lty=2) +
+    geom_line(aes(obs_fraction, obsm3), color="grey", lty=2) +
+    geom_line(aes(obs_fraction, obsp10), color="grey", lty=3) +
+    geom_line(aes(obs_fraction, obsm10), color="grey", lty=3) +
     geom_point() +
     geom_smooth(method="lm") +
     scale_x_log10() + scale_y_log10() +
@@ -299,7 +285,7 @@ plot_mass_fractions <- function( mf_data, R2, r2 )
 }
 
 ### Plot mass fraction correlation during optimization ###
-plot_mass_fractions_evolution <- function( mf_evol_data )
+plot_mass_fractions_optimization <- function( mf_evol_data )
 {
   p1 = ggplot(mf_evol_data, aes(index, r2)) +
     geom_line() +
@@ -347,7 +333,7 @@ plot_predicted_proteomics <- function( pr_data, R2, r2 )
 }
 
 ### Plot proteomics correlation during optimization ###
-plot_proteomics_evolution <- function( pr_evol_data )
+plot_proteomics_optimization <- function( pr_evol_data )
 {
   p1 = ggplot(pr_evol_data, aes(index, r2)) +
     geom_line() +
@@ -372,6 +358,17 @@ plot_proteomics_evolution <- function( pr_evol_data )
   return(list(p1, p2, p3))
 }
 
+### Build experimental conditions ###
+build_experimental_conditions <- function()
+{
+  mu_obs       = c(0.4185156420108013, 0.34575412067094446, 0.32362916852088447, 0.28943509125099154, 0.30019744370357504, 0.358911043059261, 0.3009631588728481, 0.42854660068743594, 0.29781579360835236, 0.3927863575066446, 0.3775322888686228, 0.4893620794586438, 0.47200997079180596, 0.5141549673685587, 0.5092329943189714, 0.497863115357777, 0.5181987729683097, 0.5010039120856962, 0.46432998072355164, 0.43444304843015225)
+  glc_obs      = c(0.0, 1e-05, 0.0001, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0)
+  glc_obs      = glc_obs+0.4
+  d_obs        = data.frame(glc_obs+0.4, mu_obs)
+  names(d_obs) = c("glc", "mu")
+  return(d_obs)
+}
+
 
 ##################
 #      MAIN      #
@@ -380,23 +377,16 @@ plot_proteomics_evolution <- function( pr_evol_data )
 directory = dirname(getActiveDocumentContext()$path)
 setwd(directory)
 
-### Build the glucose vector ###
-x        = c(0.0, 1e-05, 0.0001, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0)
-x_adjust = x+0.4
-x_raw    = x[2:length(x)]
-x_raw    = x_raw[-3]
-glc      = c(x_adjust, x_raw)
-
 ### Build the experimental dataset ###
-mu_obs       = c(0.4185156420108013, 0.34575412067094446, 0.32362916852088447, 0.28943509125099154, 0.30019744370357504, 0.358911043059261, 0.3009631588728481, 0.42854660068743594, 0.29781579360835236, 0.3927863575066446, 0.3775322888686228, 0.4893620794586438, 0.47200997079180596, 0.5141549673685587, 0.5092329943189714, 0.497863115357777, 0.5181987729683097, 0.5010039120856962, 0.46432998072355164, 0.43444304843015225)
-cond         = seq(1,20)
-d_obs        = data.frame(cond, x_adjust, mu_obs)
-names(d_obs) = c("condition", "glc", "mu")
+d_obs   = build_experimental_conditions()
+glc_sim = 10.0^seq(-5.9, 1, by=0.1)
+glc_vec = c(d_obs$glc, glc_sim)
 
 model_path  = "../csv_models"
 model_path  = "../../gbapy/tutorials/MMSYN_tutorial/models"
 output_path = "../hpc_download"
-output_path = "/Users/charlesrocabert/Desktop/mmsyn_output"
+#output_path = "/Users/charlesrocabert/Desktop/mmsyn_output/v1"
+output_path = "/Users/charlesrocabert/Desktop/mmsyn_output/v2_no_transporter_kcat"
 model_name  = "mmsyn_fcr"
 condition   = 20
 
@@ -407,22 +397,37 @@ d_p     = read.table(paste0(output_path,"/",model_name,"_",condition,"_p_traject
 d_b     = read.table(paste0(output_path,"/",model_name,"_",condition,"_b_trajectory.csv"), h=T, sep=";", check.names=F)
 d_c     = read.table(paste0(output_path,"/",model_name,"_",condition,"_c_trajectory.csv"), h=T, sep=";", check.names=F)
 
-MF      = build_mass_fractions_data(d_b, dim(d_b)[1])
-MF_cor  = mass_fractions_cor(d_b)
-MF_evol = mass_fraction_evolution(d_b, 10)
-PR      = build_proteomics_data(d_p, dim(d_p)[1])
-PR_cor  = proteomics_cor(d_p)
+MF       = build_mass_fractions_data(d_b, dim(d_b)[1])
+MF_optim = mass_fractions_optimization(d_b, 100)
+PR       = build_proteomics_data(model_path, model_name, d_p, dim(d_p)[1])
+PR_optim = proteomics_optimization(model_path, model_name, d_p, 100)
 
-p1 = plot_growth_rate(d_state, d_obs)
-p2 = plot_protein_fraction(d_c)
-p3 = plot_mass_fractions(MF, MF_cor[3], MF_cor[1])
-p4 = plot_proteomics(PR, PR_cor[3], PR_cor[1])
-p_mf = plot_mass_fractions_evolution(MF_evol)
+p1 = plot_predicted_growth_rate(d_state, d_obs)
+p2 = plot_predicted_protein_fraction(d_c)
+p3 = plot_predicted_mass_fractions(MF, MF_optim$R2[dim(MF_optim)[1]], MF_optim$r2[dim(MF_optim)[1]])
+p4 = plot_predicted_proteomics(PR, PR_optim$R2[dim(PR_optim)[1]], PR_optim$r2[dim(PR_optim)[1]])
+p_mf = plot_mass_fractions_optimization(MF_optim)
 plot_grid(p1, p2, p3, p4, p_mf[[1]], p_mf[[3]], ncol=2)
 
-X = d_f[dim(d_f)[1],-which(names(d_f)%in%c("condition", "iter", "t", "dt"))]
-X = data.frame(names(X), t(X))
+X        = d_f[dim(d_f)[1],-which(names(d_f)%in%c("condition", "iter", "t", "dt"))]
+X        = data.frame(names(X), t(X))
 names(X) = c("reaction_id", "flux_fraction")
-X = X[order(X[,2], decreasing=T),]
+X        = X[order(X[,2], decreasing=T),]
+
+### PHI (Ribosome proteome fraction) ###
+Y     = d_p[,-which(names(d_p)%in%c("condition", "iter", "t", "dt"))]
+Ysum  = rowSums(Y)
+Y$Phi = Y$Ribosome/Ysum
+#plot(Y$Phi, type="l")
+
+rib_prot = c("protein_0025", "protein_0027", "protein_0082", "protein_0137", "protein_0148", "protein_0149", "protein_0198", "protein_0199", "protein_0238", "protein_0294", "protein_0362", "protein_0365", "protein_0422", "protein_0482", "protein_0499", "protein_0500", "protein_0501", "protein_0930", "protein_0526", "protein_0540", "protein_0637", "protein_0638", "protein_0644", "protein_0646", "protein_0647", "protein_0648", "protein_0653", "protein_0654", "protein_0655", "protein_0656", "protein_0657", "protein_0658", "protein_0659", "protein_0660", "protein_0661", "protein_0662", "protein_0663", "protein_0664", "protein_0665", "protein_0666", "protein_0667", "protein_0668", "protein_0669", "protein_0670", "protein_0671", "protein_0672", "protein_0806", "protein_0807", "protein_0809", "protein_0810", "protein_0833", "protein_0932", "protein_0910")
+dprot = load_observed_proteomics()
+
+sum(filter(PR, id%in%rib_prot)$sim_mass)/sum(PR$sim_mass)
+sum(filter(PR, id%in%rib_prot)$obs_mass)/sum(PR$obs_mass)
+
 tail(X)
 
+X = d_c$Protein/(d_c$RNA+d_c$Protein)
+#plot(X, type="l")
+d_c$RNA

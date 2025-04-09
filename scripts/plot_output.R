@@ -1,25 +1,6 @@
 #!/usr/bin/Rscript
 # coding: utf-8
 
-#***********************************************************************
-# GBApy (Growth Balance Analysis for Python)
-# Copyright © 2024-2025 Charles Rocabert
-# Web: https://github.com/charlesrocabert/gbapy
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#***********************************************************************
-
 library("tidyverse")
 library("rstudioapi")
 library("cowplot")
@@ -207,25 +188,23 @@ proteomics_cor <- function( d_p )
 directory = dirname(getActiveDocumentContext()$path)
 setwd(directory)
 
+### Load the experimental dataset ###
+d_obs = read.table("/Users/charlesrocabert/Desktop/24_12_12_glucose_1/observed_mu.csv", sep=";", h=T)
+Davg = tapply(d_obs$mu, d_obs$glc, mean)
+Davg = data.frame(glc=as.numeric(names(Davg)), mu=Davg)
+
 ### Build the glucose vector ###
-x        = c(0.0, 1e-05, 0.0001, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0)
-x_adjust = x+0.4
-x_raw    = x[2:length(x)]
-x_raw    = x_raw[-3]
-glc      = c(x_adjust, x_raw)
+glc_obs = c(0.0, 1e-05, 0.0001, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0)
+glc_obs = glc_obs+0.4
+glc_sim = 10.0^seq(-5.9, 1, by=0.1)
+glc_vec = c(glc_obs, glc_sim)
 
-### Build the experimental dataset ###
-mu_obs          = c(0.42, 0.35, 0.32, 0.29, 0.3, 0.36, 0.3, 0.43, 0.3, 0.39, 0.38, 0.49, 0.47, 0.51, 0.51, 0.5, 0.52, 0.5, 0.46, 0.43)
-cond            = seq(1,20)
-d_obs           = data.frame(cond, x_adjust, mu_obs)
-names(d_obs)    = c("condition", "glc", "mu")
 
-d_state = read.table("../output/mmsyn_fcr_v1_state_optimum.csv", h=T, sep=";")
-d_b     = read.table("../output/mmsyn_fcr_v1_b_optimum.csv", h=T, sep=";")
+d_state = read.table("../output/mmsyn_fcr_state_optimum.csv", h=T, sep=";")
+d_b     = read.table("../output/mmsyn_fcr_b_optimum.csv", h=T, sep=";")
 
-d_state$glc    = glc
-d_state$mu_obs = d_obs[d_state$condition, "mu"]
-d_b$glc        = glc
+d_state$glc = glc_vec
+d_b$glc     = glc_vec
 
 MF_cor = data.frame()
 for (i in seq(1, dim(d_b)[1]))
@@ -234,40 +213,17 @@ for (i in seq(1, dim(d_b)[1]))
   MF_cor = rbind(MF_cor, res)
 }
 MF_cor$condition = d_b$condition
-MF_cor$glc       = glc
+MF_cor$glc       = glc_vec
 names(MF_cor) = c("r2", "pval", "R2", "condition", "glc")
 
-
-ggplot(MF_cor, aes(glc, R2)) +
-  geom_line() +
-  scale_x_log10()
-
 ggplot(d_state, aes(glc, mu)) +
+  geom_hline(yintercept=mean(d_obs$mu), col="pink") +
   geom_line() +
-  geom_point(aes(glc, mu_obs, color="Observed")) +
+  geom_point(data=Davg, aes(glc, mu, color="Observed")) +
   scale_x_log10() +
-  #scale_y_log10() +
+  scale_y_log10() +
   theme_classic()
 
-
-
-
-ggplot(d, aes(glc, mu)) +
-  geom_hline(yintercept=0.34) +
-  geom_line() +
-  geom_point(aes(glc, mu_obs, color="Observed")) +
-  scale_x_log10() +
-  #scale_y_log10() +
-  xlab("Added glucose (g/L)") +
-  ylab("Growth rate") +
-  ggtitle("Growth rate (absolute scale)") +
-  theme_classic()
-
-# d_obs$log_glc = log10(d_obs$glc)
-# dir.MM(d_obs[d_obs$glc<6, c("glc", "mu")], unit_v="Growth rate")
-# d_obs
-# res = dir.MM(d_obs[d_obs$glc<2, c("glc", "mu")], unit_v="Growth rate")
-# 
-# plot(res$data$S, res$data$v, pch=20, xlim=c(0,1.4), ylim=c(0, 0.6))
-# lines(res$data$S, res$data$fitted_v)
-
+mean(d_obs$mu)
+median(d_obs$mu)
+max(d_state$mu)
