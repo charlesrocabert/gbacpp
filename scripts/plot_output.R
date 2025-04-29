@@ -189,7 +189,7 @@ directory = dirname(getActiveDocumentContext()$path)
 setwd(directory)
 
 ### Load the experimental dataset ###
-d_obs = read.table("/Users/charlesrocabert/Desktop/24_12_12_glucose_1/observed_mu.csv", sep=";", h=T)
+d_obs = read.table("/Users/charlesrocabert/git/charlesrocabert/gbapy/tutorials/MMSYN_tutorial/data/wet_experiments/observed_mu.csv", sep=";", h=T)
 Davg = tapply(d_obs$mu, d_obs$glc, mean)
 Davg = data.frame(glc=as.numeric(names(Davg)), mu=Davg)
 
