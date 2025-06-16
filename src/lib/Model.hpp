@@ -44,6 +44,7 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_sf_exp.h>
 #include <assert.h>
 
 #include "Macros.hpp"
@@ -72,6 +73,7 @@ public:
    *----------------------------*/
   
   inline double get_mu( void );
+  inline double get_doubling_time( void );
   
   /*----------------------------
    * SETTERS
@@ -116,7 +118,8 @@ protected:
    * PROTECTED METHODS
    *----------------------------*/
   
-  bool is_file_exist( std::string filename );
+  bool   is_file_exist( std::string filename );
+  double dexp( double x, double mu, double sigma );
   
   void load_metabolite_identifiers( void );
   void load_reaction_identifiers( void );
@@ -126,6 +129,7 @@ protected:
   void load_KM_backward( void );
   void load_KI( void );
   void load_KA( void );
+  void load_KR( void );
   void load_kcat( void );
   void load_conditions( void );
   void load_directions( void );
@@ -142,6 +146,7 @@ protected:
   void iMMi( int j );
   void iMMa( int j );
   void iMMia( int j );
+  void iMMr( int j );
   void rMM( int j );
   void compute_tau( int j );
   void diMM( int j );
@@ -149,6 +154,7 @@ protected:
   void diMMa( int j );
   void diMMia( int j );
   void drMM( int j );
+  void diMMr( int j );
   void compute_dtau( int j );
   void compute_mu( void );
   void compute_v( void );
@@ -191,6 +197,7 @@ protected:
   gsl_matrix*                             _KM_b;               /*!< Backward KM matrix                      */
   gsl_matrix*                             _KI;                 /*!< KI matrix                               */
   gsl_matrix*                             _KA;                 /*!< KA matrix                               */
+  gsl_matrix*                             _KR;                 /*!< KR matrix                               */
   gsl_vector*                             _kcat_f;             /*!< Forward kcat vector                     */
   gsl_vector*                             _kcat_b;             /*!< Backward kcat vector                    */
   rtype*                                  _type;               /*!< Reaction type                           */
@@ -230,6 +237,7 @@ protected:
   gsl_vector* _b;                     /*!< Biomass fractions vector           */
   double      _density;               /*!< Cell's relative density            */
   double      _mu;                    /*!< Growth rate                        */
+  double      _doubling_time;         /*!< Doubling time                      */
   bool        _consistent;            /*!< Is the model consistent?           */
   bool        _adjust_concentrations; /*!< Adjust concentration vector c      */
   
@@ -285,6 +293,17 @@ protected:
 inline double Model::get_mu( void )
 {
   return _mu;
+}
+
+/**
+ * \brief    Get doubling time
+ * \details  --
+ * \param    void
+ * \return   \e double
+ */
+inline double Model::get_doubling_time( void )
+{
+  return _doubling_time;
 }
 
 /*----------------------------

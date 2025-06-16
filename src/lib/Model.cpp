@@ -66,6 +66,7 @@ Model::Model( std::string model_path, std::string model_name )
   _KM_b       = NULL;
   _KI         = NULL;
   _KA         = NULL;
+  _KR         = NULL;
   _kcat_f     = NULL;
   _kcat_b     = NULL;
   _type       = NULL;
@@ -105,6 +106,7 @@ Model::Model( std::string model_path, std::string model_name )
   _b                     = NULL;
   _density               = 0.0;
   _mu                    = 0.0;
+  _doubling_time         = 0.0;
   _consistent            = false;
   _adjust_concentrations = false;
   
@@ -164,6 +166,7 @@ Model::~Model( void )
   gsl_matrix_free(_KM_b);
   gsl_matrix_free(_KI);
   gsl_matrix_free(_KA);
+  gsl_matrix_free(_KR);
   gsl_vector_free(_kcat_f);
   gsl_vector_free(_kcat_b);
   delete[] _type;
@@ -175,6 +178,7 @@ Model::~Model( void )
   _KM_b       = NULL;
   _KI         = NULL;
   _KA         = NULL;
+  _KR         = NULL;
   _kcat_f     = NULL;
   _kcat_b     = NULL;
   _type       = NULL;
@@ -264,6 +268,7 @@ void Model::load_model( void )
   load_KM_backward();
   load_KI();
   load_KA();
+  load_KR();
   load_kcat();
   load_conditions();
   load_directions();
@@ -536,11 +541,12 @@ void Model::save_report( std::string filename )
 {
   std::ofstream report_file(filename.c_str(), std::ios::out | std::ios::trunc);
   report_file << _model_path << "/" << _model_name << "\n\n";
-  report_file << "Condition  = " << _current_condition << "\n";
-  report_file << "Rho        = " << _current_rho << "\n";
-  report_file << "Density    = " << _density << "\n";
-  report_file << "Mu         = " << _mu << "\n";
-  report_file << "Consistent = " << _consistent << "\n\n";
+  report_file << "Condition     = " << _current_condition << "\n";
+  report_file << "Rho           = " << _current_rho << "\n";
+  report_file << "Density       = " << _density << "\n";
+  report_file << "Mu            = " << _mu << "\n";
+  report_file << "Mu            = " << _doubling_time << "\n";
+  report_file << "Doubling time = " << _consistent << "\n\n";
   report_file << "F vector:\n--------\n\n";
   for( int j = 0; j < _nj; j++)
   {
@@ -604,7 +610,7 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
   /*~~~~~~~~~~~~~~~~~~*/
   /* 2) Write headers */
   /*~~~~~~~~~~~~~~~~~~*/
-  _state_trajectory_file << "condition;iter;t;dt;mu;density;consistent;mu_diff\n";
+  _state_trajectory_file << "condition;iter;t;dt;mu;doubling_time;density;consistent;mu_diff\n";
   _f_trajectory_file << "condition;iter;t;dt";
   _c_trajectory_file << "condition;iter;t;dt";
   _v_trajectory_file << "condition;iter;t;dt";
@@ -642,7 +648,7 @@ void Model::write_trajectory_output_files( std::string condition, int iter, doub
   /*------------------------------------*/
   /* 1) Update state file               */
   /*------------------------------------*/
-  _state_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
+  _state_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt << ";" << _mu << ";" << _doubling_time << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
   _state_trajectory_file.flush();
   /*------------------------------------*/
   /* 2) Update metabolites related file */
@@ -741,7 +747,7 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
   /*** Write headers ***/
-  _state_optimum_file << "condition;mu;density;consistent;converged;run_time\n";
+  _state_optimum_file << "condition;mu;doubling_time;density;consistent;converged;run_time\n";
   _f_optimum_file << "condition";
   _c_optimum_file << "condition";
   _v_optimum_file << "condition";
@@ -775,7 +781,7 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
  */
 void Model::write_optimum_output_files( std::string condition, bool converged, double runtime )
 {
-  _state_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << ";" << runtime << "\n";
+  _state_optimum_file << condition << ";" << _mu << ";" << _doubling_time << ";" << _density << ";" << _consistent << ";" << converged << ";" << runtime << "\n";
   _f_optimum_file << condition;
   _c_optimum_file << condition;
   _v_optimum_file << condition;
@@ -837,6 +843,19 @@ bool Model::is_file_exist( std::string filename )
   is_file_exist = infile.good();
   infile.close();
   return is_file_exist;
+}
+
+/**
+ * \brief    Return a de-normalized gaussian term
+ * \details  --
+ * \param    double x
+ * \param    double mu
+ * \param    double sigma
+ * \return   \e double
+ */
+double Model::dexp( double x, double mu, double sigma )
+{
+  return(gsl_sf_exp(-0.5*(x-mu)/sigma*(x-mu)/sigma));
 }
 
 /**
@@ -1136,6 +1155,48 @@ void Model::load_KA( void )
 }
 
 /**
+ * \brief    Load the KR matrix
+ * \details  --
+ * \param    void
+ * \return   \e void
+ */
+void Model::load_KR( void )
+{
+  assert(_KR==NULL);
+  _KR = gsl_matrix_alloc(_ni, _nj);
+  gsl_matrix_set_zero(_KR);
+  if (is_file_exist(_model_path+"/"+_model_name+"/KR.csv"))
+  {
+    int row = 0;
+    int col = 0;
+    assert(is_file_exist(_model_path+"/"+_model_name+"/KR.csv"));
+    std::ifstream file(_model_path+"/"+_model_name+"/KR.csv", std::ios::in);
+    assert(file);
+    std::string line;
+    std::string id;
+    std::string str_value;
+    /*** skip header line ***/
+    getline(file, line);
+    while(getline(file, line))
+    {
+      std::stringstream flux(line.c_str());
+      /*** get metabolite id ***/
+      getline(flux, id, ';');
+      col = 0;
+      /*** fill the matrices for the given line ***/
+      while(getline(flux, str_value, ';'))
+      {
+        double value = stod(str_value);
+        gsl_matrix_set(_KR, row, col, value);
+        col++;
+      }
+      row++;
+    }
+    file.close();
+  }
+}
+
+/**
  * \brief    Load the kcat vectors
  * \details  --
  * \param    void
@@ -1399,40 +1460,51 @@ void Model::initialize_static_variables( void )
   _type              = new rtype[_nj];
   gsl_vector* KI_vec = gsl_vector_alloc(_ni);
   gsl_vector* KA_vec = gsl_vector_alloc(_ni);
+  gsl_vector* KR_vec = gsl_vector_alloc(_ni);
   for(int j = 0; j < _nj; j++)
   {
     gsl_matrix_get_col(KI_vec, _KI, j);
     gsl_matrix_get_col(KA_vec, _KA, j);
+    gsl_matrix_get_col(KR_vec, _KR, j);
     bool kcat_b_zero = fabs(gsl_vector_get(_kcat_b, j)) < MIN_PARAMETER;
     bool KI_sum_zero = fabs(gsl_blas_dasum(KI_vec)) < MIN_PARAMETER;
     bool KA_sum_zero = fabs(gsl_blas_dasum(KA_vec)) < MIN_PARAMETER;
-    if (kcat_b_zero && KI_sum_zero && KA_sum_zero)
+    bool KR_sum_zero = fabs(gsl_blas_dasum(KR_vec)) < MIN_PARAMETER;
+    if (kcat_b_zero && KI_sum_zero && KA_sum_zero && KR_sum_zero)
     {
       _type[j] = IMM;
     }
-    else if (kcat_b_zero && !KI_sum_zero && KA_sum_zero)
+    else if (kcat_b_zero && !KI_sum_zero && KA_sum_zero && KR_sum_zero)
     {
       _type[j] = IMMI;
     }
-    else if (kcat_b_zero && KI_sum_zero && !KA_sum_zero)
+    else if (kcat_b_zero && KI_sum_zero && !KA_sum_zero && KR_sum_zero)
     {
       _type[j] = IMMA;
     }
-    else if (kcat_b_zero && !KI_sum_zero && !KA_sum_zero)
+    else if (kcat_b_zero && !KI_sum_zero && !KA_sum_zero && KR_sum_zero)
     {
       _type[j] = IMMIA;
     }
-    else if (!kcat_b_zero)
+    else if (!kcat_b_zero && KR_sum_zero)
     {
       assert(KI_sum_zero);
       assert(KA_sum_zero);
       _type[j] = RMM;
     }
+    else if (kcat_b_zero && !KR_sum_zero)
+    {
+      assert(KI_sum_zero);
+      assert(KA_sum_zero);
+      _type[j] = IMMR;
+    }
   }
   gsl_vector_free(KI_vec);
   gsl_vector_free(KA_vec);
+  gsl_vector_free(KR_vec);
   KI_vec = NULL;
   KA_vec = NULL;
+  KR_vec = NULL;
 }
 
 /**
@@ -1612,6 +1684,24 @@ void Model::iMMia( int j )
 }
 
 /**
+ * \brief    Irreversible Michaelis-Menten kinetics + regulation
+ * \details  Formula: tau_j = prod(1+Km_f[,j]/xc)/KR[,j]*kcat_f[j]
+ * \param    int j
+ * \return   \e void
+ */
+void Model::iMMr( int j )
+{
+  double term1 = 1.0;
+  for (int i = 0; i < _ni; i++)
+  {
+    double gaussian_term = dexp(gsl_vector_get(_xc, i), gsl_matrix_get(_KR, i, j), 10.0);
+    term1               *= (gsl_matrix_get(_KM_f, i, j)+gsl_vector_get(_xc, i))/(gsl_vector_get(_xc, i)*gaussian_term);
+  }
+  double term2 = gsl_vector_get(_kcat_f, j);
+  gsl_vector_set(_tau_j, j, term1/term2);
+}
+
+/**
  * \brief    Reversible Michaelis-Menten kinetics
  * \details  Formula: tau_j = 1/[ kcat_f[j]/prod(1+Km_f[,j]/xc) - kcat_b[j]/prod(1+Km_b[,j]/xc) ]
  * \param    int j
@@ -1656,6 +1746,8 @@ void Model::compute_tau( int j )
     case RMM:
       rMM(j);
       break;
+    case IMMR:
+      iMMr(j);
   }
 }
 
@@ -1846,6 +1938,36 @@ void Model::drMM( int j )
 }
 
 /**
+ * \brief    Derivative of iMMr with respect to metabolite concentrations
+ * \details  Formula: --
+ * \param    int j
+ * \return   \e void
+ */
+void Model::diMMr( int j )
+{
+  double constant1 = gsl_vector_get(_kcat_f, j);
+  for (int i = 0; i < _nc; i++)
+  {
+    int    y             = i+_nx;
+    double x             = gsl_vector_get(_c, i);
+    double KM            = gsl_matrix_get(_KM_f, y, j);
+    double KR            = gsl_matrix_get(_KR, y, j);
+    double gaussian_term = dexp(x, KR, 10.0);
+    double term1         = gaussian_term*(-KM/(x*x)+(KM+x)/x*(x-KR)/100.0);
+    double term2         = 1.0;
+    for (int index = 0; index < _ni; index++)
+    {
+      if (index != y)
+      {
+        double gaussian_term = dexp(gsl_vector_get(_xc, index), gsl_matrix_get(_KR, index, j), 10.0);
+        term2               *= (gsl_matrix_get(_KM_f, index, j)+gsl_vector_get(_xc, index))/(gsl_vector_get(_xc, index)*gaussian_term);
+      }
+      gsl_matrix_set(_ditau_j, j, i, term1*term2/constant1);
+    }
+  }
+}
+
+/**
  * \brief    Compute ditau_j
  * \details  --
  * \param    int j
@@ -1870,6 +1992,9 @@ void Model::compute_dtau( int j )
     case RMM:
       drMM(j);
       break;
+    case IMMR:
+      diMMr(j);
+      break;
   }
 }
 
@@ -1883,7 +2008,8 @@ void Model::compute_mu( void )
 {
   double term1 = 0.0;
   gsl_blas_ddot(_tau_j, _f, &term1);
-  _mu = gsl_matrix_get(_M, _a, _r)*gsl_vector_get(_f, _r)/term1;
+  _mu            = gsl_matrix_get(_M, _a, _r)*gsl_vector_get(_f, _r)/term1;
+  _doubling_time = std::log(2)/std::log(1.0 + _mu);
 }
 
 /**
