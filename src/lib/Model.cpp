@@ -1685,7 +1685,7 @@ void Model::iMMia( int j )
 
 /**
  * \brief    Irreversible Michaelis-Menten kinetics + regulation
- * \details  Formula: tau_j = prod(1+Km_f[,j]/xc)/KR[,j]*kcat_f[j]
+ * \details  Formula: tau_j = prod((Km_f[,j]+xc)/(xc*f(xc))) * 1/kcat_f[j] with f(xc) = exp( -0.5*((xc-JR[:j])/10.0)^2 )
  * \param    int j
  * \return   \e void
  */
@@ -1694,8 +1694,10 @@ void Model::iMMr( int j )
   double term1 = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    double gaussian_term = dexp(gsl_vector_get(_xc, i), gsl_matrix_get(_KR, i, j), 10.0);
-    term1               *= (gsl_matrix_get(_KM_f, i, j)+gsl_vector_get(_xc, i))/(gsl_vector_get(_xc, i)*gaussian_term);
+    double x             = gsl_vector_get(_xc, i);
+    double mu            = gsl_matrix_get(_KR, i, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, i, j) : x;
+    double gaussian_term = dexp(gsl_vector_get(_xc, i), mu, 10.0);
+    term1               *= (gsl_matrix_get(_KM_f, i, j)+x)/(x*gaussian_term);
   }
   double term2 = gsl_vector_get(_kcat_f, j);
   gsl_vector_set(_tau_j, j, term1/term2);
@@ -1884,6 +1886,38 @@ void Model::diMMia( int j )
 }
 
 /**
+ * \brief    Derivative of iMMr with respect to metabolite concentrations
+ * \details  Formula: --
+ * \param    int j
+ * \return   \e void
+ */
+void Model::diMMr( int j )
+{
+  double constant1 = gsl_vector_get(_kcat_f, j);
+  for (int i = 0; i < _nc; i++)
+  {
+    int    y             = i+_nx;
+    double x             = gsl_vector_get(_c, i);
+    double KM            = gsl_matrix_get(_KM_f, y, j);
+    double mu            = gsl_matrix_get(_KR, y, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, y, j) : x;
+    double gaussian_term = dexp(x, mu, 10.0);
+    double term1         = gaussian_term*(-KM/(x*x)+(KM+x)/x*(x-mu)/100.0);
+    double term2         = 1.0;
+    for (int index = 0; index < _ni; index++)
+    {
+      if (index != y)
+      {
+        double x             = gsl_vector_get(_xc, index);
+        double KR            = gsl_matrix_get(_KR, index, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, index, j) : x;
+        double gaussian_term = dexp(x, KR, 10.0);
+        term2               *= (gsl_matrix_get(_KM_f, index, j)+x)/(x*gaussian_term);
+      }
+      gsl_matrix_set(_ditau_j, j, i, term1*term2/constant1);
+    }
+  }
+}
+
+/**
  * \brief    Derivative of rMM with respect to metabolite concentrations
  * \details  Formula: --
  * \param    int j
@@ -1934,36 +1968,6 @@ void Model::drMM( int j )
     double term5 = term1*constant1/term3-term2*constant2/term4;
     double term6 = constant1/constant3-constant2/constant4;
     gsl_matrix_set(_ditau_j, j, i, -term5/gsl_pow_int(term6, 2));
-  }
-}
-
-/**
- * \brief    Derivative of iMMr with respect to metabolite concentrations
- * \details  Formula: --
- * \param    int j
- * \return   \e void
- */
-void Model::diMMr( int j )
-{
-  double constant1 = gsl_vector_get(_kcat_f, j);
-  for (int i = 0; i < _nc; i++)
-  {
-    int    y             = i+_nx;
-    double x             = gsl_vector_get(_c, i);
-    double KM            = gsl_matrix_get(_KM_f, y, j);
-    double KR            = gsl_matrix_get(_KR, y, j);
-    double gaussian_term = dexp(x, KR, 10.0);
-    double term1         = gaussian_term*(-KM/(x*x)+(KM+x)/x*(x-KR)/100.0);
-    double term2         = 1.0;
-    for (int index = 0; index < _ni; index++)
-    {
-      if (index != y)
-      {
-        double gaussian_term = dexp(gsl_vector_get(_xc, index), gsl_matrix_get(_KR, index, j), 10.0);
-        term2               *= (gsl_matrix_get(_KM_f, index, j)+gsl_vector_get(_xc, index))/(gsl_vector_get(_xc, index)*gaussian_term);
-      }
-      gsl_matrix_set(_ditau_j, j, i, term1*term2/constant1);
-    }
   }
 }
 
