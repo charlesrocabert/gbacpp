@@ -238,7 +238,8 @@ build_proteomics_data <- function( data_path, model_name, d_p, i )
   D              = filter(D, id%in%obs_proteomics$protein)
   D$obs_mass     = obs_proteomics[D$id, "obs_mass"]
   D              = filter(D, !id%in%excluded)
-  D$obs_fraction = D$obs_mass/sum(D$obs_mass)
+  D$obs_fraction = D$obs_mass
+  #D$obs_fraction = D$obs_mass/sum(D$obs_mass)
   #D$sim_fraction = D$sim_mass/sum(D$sim_mass)
   D$obsp3        = D$obs_fraction*3
   D$obsm3        = D$obs_fraction/3
@@ -377,8 +378,8 @@ plot_predicted_mass_fractions <- function( mf_data, R2, r2 )
     #geom_smooth(method="lm") +
     scale_x_log10() + scale_y_log10() +
     #geom_text_repel(aes(label=id), size = 3.5) +
-    annotate("text", x=1e-5, y=10, label=paste0("italic(R)^2", "==", round(R2,5)), hjust=0, parse=T) +
-    annotate("text", x=1e-5, y=0.5, label=paste0("italic(r)^2", "==", round(r2,5)), hjust=0, parse=T) +
+    annotate("text", x=1e-5, y=10, label=paste0("italic(R)^2", "==", round(R2,2)), hjust=0, parse=T) +
+    annotate("text", x=1e-5, y=1, label=paste0("italic(r)^2", "==", round(r2,2)), hjust=0, parse=T) +
     xlab("Observed") +
     ylab("Simulated") +
     ggtitle("Metabolite mass fractions") +
@@ -527,9 +528,9 @@ p13 = ggplot(d_c, aes(iter, dUTPase)) +
   ggtitle(d_c[nrow(d_c),"dUTPase"]) +
   xlab("Iteration") + ylab("dUTPase") +
   theme_classic()
-p11 = plot_housekeeping_proteins_fraction(d_p, 1-0.5)
-
-plot_grid(p1, p2, p3, p4, p_mf[[3]], p5, p_pr[[3]], p11, p12, p13, ncol=2)
+p11 = plot_predicted_housekeeping_fraction(d_p, 1-0.5)
+#plot_grid(p1, p4)
+plot_grid(p1, p2, p3, p4, p_mf[[3]], p5, p_pr[[3]], p11, ncol=2)
 
 #MF[,c("id", "sim_fraction", "obs_fraction")]
 filter(MF, Category=="Macromolecules")

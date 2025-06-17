@@ -45,6 +45,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_sf_exp.h>
+#include <gsl/gsl_sf_log.h>
 #include <assert.h>
 
 #include "Macros.hpp"
@@ -119,7 +120,8 @@ protected:
    *----------------------------*/
   
   bool   is_file_exist( std::string filename );
-  double dexp( double x, double mu, double sigma );
+  double gaussian_term( double x, double mu );
+  double gaussian_kernel( double x, double mu );
   
   void load_metabolite_identifiers( void );
   void load_reaction_identifiers( void );

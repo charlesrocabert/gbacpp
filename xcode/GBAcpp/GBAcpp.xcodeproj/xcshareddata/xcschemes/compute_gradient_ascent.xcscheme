@@ -31,7 +31,7 @@
       shouldAutocreateTestPlan = "YES">
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -54,7 +54,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-path /Users/charlesrocabert/git/charlesrocabert/gbapy/tutorials/MMSYN_tutorial/models -name mmsyn_fcr_v1 -condition 1 -dt 0.01 -maxt 100000 -save -output /Users/charlesrocabert/Desktop/mmsyn_output"
+            argument = "-path /Users/charlesrocabert/git/charlesrocabert/gbapy/tutorials/MMSYN_tutorial/models -name mmsyn_fcr_v1 -condition 67 -dt 0.01 -maxt 100000 -save -output /Users/charlesrocabert/git/charlesrocabert/gbapy/tutorials/MMSYN_tutorial/output/optimization"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

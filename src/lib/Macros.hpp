@@ -44,6 +44,7 @@
 #define TRAJECTORY_INCONSISTENT_COUNT 10000  /*!< Number of inconsistent trajectories required to stop the simulation */
 #define TRAJECTORY_CONVERGENCE_TOL    1e-10  /*!< Analytical trajectory convergence tolerance                         */
 #define EXPORT_DATA_COUNT             100    /*!< Data is exported at this period in number of iterations             */
+#define REGULATION_SIGMA              10.0    /*!< Metabolite Gaussian kernel function width                           */
 
 
 #endif /* defined(__GBAcpp__Macros__) */

@@ -846,16 +846,39 @@ bool Model::is_file_exist( std::string filename )
 }
 
 /**
- * \brief    Return a de-normalized gaussian term
+ * \brief    Return a Gaussian kernel term
  * \details  --
  * \param    double x
  * \param    double mu
- * \param    double sigma
  * \return   \e double
  */
-double Model::dexp( double x, double mu, double sigma )
+double Model::gaussian_term( double x, double mu )
 {
-  return(gsl_sf_exp(-0.5*(x-mu)/sigma*(x-mu)/sigma));
+  double sigma = REGULATION_SIGMA*x;
+  double val = (x-mu)/(sigma*sigma);
+  return(val);
+}
+
+/**
+ * \brief    Return a Gaussian kernel value
+ * \details  --
+ * \param    double x
+ * \param    double mu
+ * \return   \e double
+ */
+double Model::gaussian_kernel( double x, double mu )
+{
+  double sigma = REGULATION_SIGMA*x;
+  double val = (x-mu)/sigma;
+  double res = -0.5*val*val;
+  if (res < -700)
+  {
+    return(0.0);
+  }
+  else
+  {
+    return(gsl_sf_exp(res));
+  }
 }
 
 /**
@@ -1694,10 +1717,11 @@ void Model::iMMr( int j )
   double term1 = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    double x             = gsl_vector_get(_xc, i);
-    double mu            = gsl_matrix_get(_KR, i, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, i, j) : x;
-    double gaussian_term = dexp(gsl_vector_get(_xc, i), mu, 10.0);
-    term1               *= (gsl_matrix_get(_KM_f, i, j)+x)/(x*gaussian_term);
+    double x       = gsl_vector_get(_xc, i);
+    double KM      = gsl_matrix_get(_KM_f, i, j);
+    double KR      = gsl_matrix_get(_KR, i, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, i, j) : x;
+    double gkernel = gaussian_kernel(x, KR);
+    term1         *= (KM+x)/(x*gkernel);
   }
   double term2 = gsl_vector_get(_kcat_f, j);
   gsl_vector_set(_tau_j, j, term1/term2);
@@ -1896,21 +1920,22 @@ void Model::diMMr( int j )
   double constant1 = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _nc; i++)
   {
-    int    y             = i+_nx;
-    double x             = gsl_vector_get(_c, i);
-    double KM            = gsl_matrix_get(_KM_f, y, j);
-    double mu            = gsl_matrix_get(_KR, y, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, y, j) : x;
-    double gaussian_term = dexp(x, mu, 10.0);
-    double term1         = gaussian_term*(-KM/(x*x)+(KM+x)/x*(x-mu)/100.0);
-    double term2         = 1.0;
+    int    y       = i+_nx;
+    double x       = gsl_vector_get(_c, i);
+    double KM      = gsl_matrix_get(_KM_f, y, j);
+    double KR      = gsl_matrix_get(_KR, y, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, y, j) : x;
+    double gkernel = gaussian_kernel(x, KR);
+    double gterm   = gaussian_term(x, KR);
+    double term1   = gkernel*(-KM/(x*x)+(KM+x)/x*gterm);
+    double term2   = 1.0;
     for (int index = 0; index < _ni; index++)
     {
       if (index != y)
       {
-        double x             = gsl_vector_get(_xc, index);
-        double KR            = gsl_matrix_get(_KR, index, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, index, j) : x;
-        double gaussian_term = dexp(x, KR, 10.0);
-        term2               *= (gsl_matrix_get(_KM_f, index, j)+x)/(x*gaussian_term);
+        double x       = gsl_vector_get(_xc, index);
+        double KR      = gsl_matrix_get(_KR, index, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, index, j) : x;
+        double gkernel = gaussian_kernel(x, KR);
+        term2         *= (gsl_matrix_get(_KM_f, index, j)+x)/(x*gkernel);
       }
       gsl_matrix_set(_ditau_j, j, i, term1*term2/constant1);
     }
