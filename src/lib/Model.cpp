@@ -271,7 +271,7 @@ void Model::load_model( void )
   load_KR();
   load_kcat();
   load_conditions();
-  load_directions();
+  //load_directions();
   load_constant_reactions();
   load_f0();
 }
@@ -1678,7 +1678,6 @@ void Model::iMMa( int j )
   {
     term1 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
     term2 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    
   }
   double term3 = gsl_vector_get(_kcat_f, j);
   gsl_vector_set(_tau_j, j, term1*term2/term3);
@@ -1769,11 +1768,11 @@ void Model::compute_tau( int j )
     case IMMIA:
       iMMia(j);
       break;
+    case IMMR:
+      iMMr(j);
     case RMM:
       rMM(j);
       break;
-    case IMMR:
-      iMMr(j);
   }
 }
 
@@ -1832,8 +1831,8 @@ void Model::diMMi( int j )
       {
         term3 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
-      gsl_matrix_set(_ditau_j, j, i, (term1-constant2*term2*term3)/constant3);
     }
+    gsl_matrix_set(_ditau_j, j, i, (term1-constant2*term2*term3)/constant3);
   }
 }
 
@@ -1865,8 +1864,8 @@ void Model::diMMa( int j )
       {
         term3 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
-      gsl_matrix_set(_ditau_j, j, i, -(constant1*term1+constant2*term2*term3)/constant3);
     }
+    gsl_matrix_set(_ditau_j, j, i, -(constant1*term1+constant2*term2*term3)/constant3);
   }
 }
 
@@ -1937,8 +1936,8 @@ void Model::diMMr( int j )
         double gkernel = gaussian_kernel(x, KR);
         term2         *= (gsl_matrix_get(_KM_f, index, j)+x)/(x*gkernel);
       }
-      gsl_matrix_set(_ditau_j, j, i, term1*term2/constant1);
     }
+    gsl_matrix_set(_ditau_j, j, i, term1*term2/constant1);
   }
 }
 
@@ -1959,22 +1958,6 @@ void Model::drMM( int j )
     constant3 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
     constant4 *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
   }
-  /*
-   constant1 = self.kcat_f[j]
-   constant2 = self.kcat_b[j]
-   constant3 = np.prod(1+self.KM_f[:,j]/self.xc)
-   constant4 = np.prod(1+self.KM_b[:,j]/self.xc)
-   for i in range(self.nc):
-       y       = i+self.nx
-       indices = np.arange(self.ni) != y
-       term1   = self.KM_f[y,j] / np.power(self.c[i] + self.KM_f[y,j], 2.0)
-       term2   = self.KM_b[y,j] / np.power(self.c[i] + self.KM_b[y,j], 2.0)
-       term3   = np.prod(1 + self.KM_f[indices,j]/self.xc[indices])
-       term4   = np.prod(1 + self.KM_b[indices,j]/self.xc[indices])
-       term5   = term1*constant1/term3-term2*constant2/term4
-       term6   = constant1/constant3-constant2/constant4
-       self.ditau_j[j,i] = -term5/np.power(term6, 2.0)
-   */
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -2018,11 +2001,11 @@ void Model::compute_dtau( int j )
     case IMMIA:
       diMMia(j);
       break;
-    case RMM:
-      drMM(j);
-      break;
     case IMMR:
       diMMr(j);
+      break;
+    case RMM:
+      drMM(j);
       break;
   }
 }

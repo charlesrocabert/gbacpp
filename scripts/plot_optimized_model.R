@@ -473,7 +473,7 @@ setwd(directory)
 # 1) Define main model properties #
 #---------------------------------#
 data_path  = "../../gbapy/tutorials/MMSYN_tutorial"
-model_name = "mmsyn_fcr_v1"
+model_name = "mmsyn_fcr_v2"
 condition  = 67
 
 #---------------------------------#
@@ -518,12 +518,12 @@ p10 = ggplot(d_p, aes(iter, ATPase)) +
   theme_classic()
 p12 = ggplot(d_c, aes(iter, ACP)) +
   geom_line() +
-  geom_hline(yintercept=0.018*352*0.01, col="pink") +
+  geom_hline(yintercept=0.018*349*0.01, col="pink") +
   ggtitle(d_c[nrow(d_c),"ACP"]) +
   xlab("Iteration") + ylab("ACP") +
   theme_classic()
 p13 = ggplot(d_c, aes(iter, dUTPase)) +
-  geom_hline(yintercept=0.003*352*0.01, col="pink") +
+  geom_hline(yintercept=0.003*349*0.01, col="pink") +
   geom_line() +
   ggtitle(d_c[nrow(d_c),"dUTPase"]) +
   xlab("Iteration") + ylab("dUTPase") +
@@ -533,12 +533,12 @@ p11 = plot_predicted_housekeeping_fraction(d_p, 1-0.5)
 plot_grid(p1, p2, p3, p4, p_mf[[3]], p5, p_pr[[3]], p11, ncol=2)
 
 #MF[,c("id", "sim_fraction", "obs_fraction")]
-filter(MF, Category=="Macromolecules")
+#filter(MF, Category=="Macromolecules")
 
-# X1 = tapply(MF$sim_fraction, MF$Category, sum)
-# X2 = tapply(MF$obs_fraction, MF$Category, sum)
-# X1
-# X2
+X1 = tapply(MF$sim_fraction, MF$Category, sum)
+X2 = tapply(MF$obs_fraction, MF$Category, sum)
+#X1
+#X2
 # par(mfrow=c(1,2))
 # barplot(X1, ylim=c(0,1), las=2, main="Simulated")
 # barplot(X2, ylim=c(0,1), las=2, main="Observed")
