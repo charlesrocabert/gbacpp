@@ -62,6 +62,7 @@ Model::Model( std::string model_path, std::string model_name )
   
   _Mx         = NULL;
   _M          = NULL;
+  _KM         = NULL;
   _KM_f       = NULL;
   _KM_b       = NULL;
   _KI         = NULL;
@@ -161,6 +162,7 @@ Model::~Model( void )
   
   gsl_matrix_free(_Mx);
   gsl_matrix_free(_M);
+  gsl_matrix_free(_KM);
   gsl_matrix_free(_KM_f);
   gsl_matrix_free(_KM_b);
   gsl_matrix_free(_KI);
@@ -172,6 +174,7 @@ Model::~Model( void )
   gsl_matrix_free(_conditions);
   _Mx         = NULL;
   _M          = NULL;
+  _KM         = NULL;
   _KM_f       = NULL;
   _KM_b       = NULL;
   _KI         = NULL;
@@ -261,8 +264,7 @@ void Model::load_model( void )
   load_reaction_identifiers();
   load_vector_sizes();
   load_M();
-  load_KM_forward();
-  load_KM_backward();
+  load_KM();
   load_KI();
   load_KA();
   load_KR();
@@ -1009,20 +1011,23 @@ void Model::load_M( void )
 }
 
 /**
- * \brief    Load the KM forward matrix
+ * \brief    Load the KM matrix
  * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::load_KM_forward( void )
+void Model::load_KM( void )
 {
-  assert(_KM_f==NULL);
-  _KM_f = gsl_matrix_alloc(_ni, _nj);
-  gsl_matrix_set_zero(_KM_f);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Load the complete KM matrix             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  assert(_KM==NULL);
+  _KM = gsl_matrix_alloc(_ni, _nj);
+  gsl_matrix_set_zero(_KM);
   int row = 0;
   int col = 0;
-  assert(is_file_exist(_model_path+"/"+_model_name+"/KM_forward.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/KM_forward.csv", std::ios::in);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/KM.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/KM.csv", std::ios::in);
   assert(file);
   std::string line;
   std::string id;
@@ -1039,53 +1044,32 @@ void Model::load_KM_forward( void )
     while(getline(flux, str_value, ';'))
     {
       double value = stod(str_value);
-      gsl_matrix_set(_KM_f, row, col, value);
+      gsl_matrix_set(_KM, row, col, value);
       col++;
     }
     row++;
   }
   file.close();
-}
-
-/**
- * \brief    Load the KM backward matrix
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::load_KM_backward( void )
-{
-  assert(_KM_b==NULL);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Create forward and backward KM matrices */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  _KM_f = gsl_matrix_alloc(_ni, _nj);
   _KM_b = gsl_matrix_alloc(_ni, _nj);
+  gsl_matrix_set_zero(_KM_f);
   gsl_matrix_set_zero(_KM_b);
-  if (is_file_exist(_model_path+"/"+_model_name+"/KM_backward.csv"))
+  for (int i = 0; i < _ni; i++)
   {
-    int row = 0;
-    int col = 0;
-    assert(is_file_exist(_model_path+"/"+_model_name+"/KM_backward.csv"));
-    std::ifstream file(_model_path+"/"+_model_name+"/KM_backward.csv", std::ios::in);
-    assert(file);
-    std::string line;
-    std::string id;
-    std::string str_value;
-    /*** skip header line ***/
-    getline(file, line);
-    while(getline(file, line))
+    for (int j = 0; j < _nj; j++)
     {
-      std::stringstream flux(line.c_str());
-      /*** get metabolite id ***/
-      getline(flux, id, ';');
-      col = 0;
-      /*** fill the matrices for the given line ***/
-      while(getline(flux, str_value, ';'))
+      if (gsl_matrix_get(_Mx, i, j) < 0.0)
       {
-        double value = stod(str_value);
-        gsl_matrix_set(_KM_b, row, col, value);
-        col++;
+        gsl_matrix_set(_KM_f, i, j, gsl_matrix_get(_KM, i, j));
       }
-      row++;
+      else if (gsl_matrix_get(_Mx, i, j) > 0.0)
+      {
+        gsl_matrix_set(_KM_b, i, j, gsl_matrix_get(_KM, i, j));
+      }
     }
-    file.close();
   }
 }
 
