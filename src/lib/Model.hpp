@@ -134,7 +134,6 @@ protected:
   void load_KR( void );
   void load_kcat( void );
   void load_conditions( void );
-  void load_directions( void );
   void load_constant_reactions( void );
   void load_f0( void );
   void reload_f0( void );
@@ -204,7 +203,6 @@ protected:
   gsl_vector*                             _kcat_b;             /*!< Backward kcat vector                    */
   rtype*                                  _type;               /*!< Reaction type                           */
   gsl_matrix*                             _conditions;         /*!< List of conditions                      */
-  std::string*                            _directions;         /*!< List of reaction directions             */
   std::unordered_map<std::string, double> _constant_reactions; /*!< Constant reactions with constant values */
 
   /*----------------------------------------------- Vector lengths */

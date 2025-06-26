@@ -71,7 +71,6 @@ Model::Model( std::string model_path, std::string model_name )
   _kcat_b     = NULL;
   _type       = NULL;
   _conditions = NULL;
-  _directions = NULL;
   _constant_reactions.clear();
 
   /*----------------------------------------------- Vector lengths */
@@ -171,7 +170,6 @@ Model::~Model( void )
   gsl_vector_free(_kcat_b);
   delete[] _type;
   gsl_matrix_free(_conditions);
-  delete[] _directions;
   _Mx         = NULL;
   _M          = NULL;
   _KM_f       = NULL;
@@ -183,7 +181,6 @@ Model::~Model( void )
   _kcat_b     = NULL;
   _type       = NULL;
   _conditions = NULL;
-  _directions = NULL;
   _constant_reactions.clear();
   
   /*----------------------------------------------- Other model variables */
@@ -271,7 +268,6 @@ void Model::load_model( void )
   load_KR();
   load_kcat();
   load_conditions();
-  //load_directions();
   load_constant_reactions();
   load_f0();
 }
@@ -1335,38 +1331,6 @@ void Model::load_conditions( void )
 }
 
 /**
- * \brief    Load directions
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::load_directions( void )
-{
-  assert(_directions==NULL);
-  _directions = new std::string[_nj];
-  assert(is_file_exist(_model_path+"/"+_model_name+"/directions.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/directions.csv", std::ios::in);
-  assert(file);
-  std::string line;
-  std::string reaction_id;
-  std::string direction;
-  getline(file, line);
-  while(getline(file, line))
-  {
-    std::stringstream flux(line.c_str());
-    getline(flux, reaction_id, ';');
-    getline(flux, direction, ';');
-    assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
-    _directions[_reaction_indices[reaction_id]] = direction;
-    if (direction != "forward" && direction != "backward" && direction != "reversible")
-    {
-      throw std::invalid_argument("> Incorrect direction value");
-    }
-  }
-  file.close();
-}
-
-/**
  * \brief    Load constant reactions
  * \details  --
  * \param    void
@@ -2202,7 +2166,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 1) Reaction is irreversible and positive    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_directions[j+1] == "forward" && gsl_vector_get(_f_trunc, j) <= MIN_FLUX_FRACTION)
+    if (_type[j+1] != RMM && gsl_vector_get(_f_trunc, j) <= MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
       if (gsl_vector_get(_GCC_f, j+1) < 0.0)
@@ -2213,7 +2177,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 2) Reaction is irreversible and negative    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_directions[j+1] == "backward" && gsl_vector_get(_f_trunc, j) >= -MIN_FLUX_FRACTION)
+    if (_type[j+1] == RMM && gsl_vector_get(_f_trunc, j) >= -MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
       if (gsl_vector_get(_GCC_f, j+1) > 0.0)
@@ -2224,7 +2188,7 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 3) Reaction is reversible and tends to zero */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    else if (_directions[j+1] == "reversible" && fabs(gsl_vector_get(_f_trunc, j)) <= MIN_FLUX_FRACTION)
+    else if (_type[j+1] == RMM && fabs(gsl_vector_get(_f_trunc, j)) <= MIN_FLUX_FRACTION)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
       if (gsl_vector_get(_f_trunc, j) >= 0.0)

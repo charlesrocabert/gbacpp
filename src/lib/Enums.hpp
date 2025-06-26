@@ -44,17 +44,6 @@ enum rtype
   RMM   = 5  /*!< Reversible Michaelis-Menten                                  */
 };
 
-/**
- * \brief   Reaction direction
- * \details --
- */
-enum rdir
-{
-  FORWARD    = 0, /*!< Forward irreversible reaction  */
-  BACKWARD   = 1, /*!< Backward irreversible reaction */
-  REVERSIBLE = 2  /*!< Reversible reaction            */
-};
-
 
 #endif /* defined(__GBAcpp__Enums__) */
 

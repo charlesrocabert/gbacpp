@@ -307,10 +307,7 @@ plot_predicted_growth_rate <- function( d_state, d_obs )
 ### Plot predicted protein fraction ###
 plot_predicted_protein_fraction <- function( d_c )
 {
-  # proteins            = c("ACP", "ACP", "ACP",
-  #                         "PdhC", "PdhC", "PdhC", "PdhC",
-  #                         "dUTPase", "Protein")
-  # proteins            = proteins[proteins%in%colnames(d_c)]
+  proteins = c("ACP", "PdhC", "dUTPase", "Protein")
   dl                  = d_c[,-which(names(d_c)%in%c("condition","iter","t","dt", "h2o"))]
   dl$sum              = rowSums(dl)
   #dl$Protein_fraction = rowSums(dl[,proteins])/dl$sum
