@@ -43,20 +43,21 @@ def load_conditions_from_csv( model_path, model_name ):
     return conditions
 
 ### Build the command line ###
-def build_command_line( exec_path, model_path, model_name, condition, dt, maxt, output_path ):
+def build_command_line( exec_path, model_path, model_name, condition, dt, maxt, max_mu_count, output_path ):
     cmd  = exec_path
     cmd += " -path " + model_path
     cmd += " -name " + model_name
     cmd += " -condition " + condition
     cmd += " -dt " + str(dt)
     cmd += " -maxt " + str(maxt)
+    cmd += " -max-mu-count "+str(max_mu_count)
     #cmd += " -save"
     cmd += " -output " + output_path
     return cmd
 
 ### Build and run the qsub script ###
-def build_and_run_qsub_script( exec_path, model_path, model_name, condition, dt, maxt, output_path ):
-    cmd = build_command_line(exec_path, model_path, model_name, condition, dt, maxt, output_path)
+def build_and_run_qsub_script( exec_path, model_path, model_name, condition, dt, maxt, max_mu_count, output_path ):
+    cmd = build_command_line(exec_path, model_path, model_name, condition, dt, maxt, max_mu_count, output_path)
     f   = open("GBAcpp_job.sh", "w")
     f.write("#!/bin/bash\n")
     f.write("#PBS -l select=1:ncpus=1:mem=4GB\n")
@@ -80,12 +81,13 @@ if __name__ == "__main__":
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # 1) Define main parameters       #
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-    EXEC_PATH   = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
-    MODEL_PATH  = "/gpfs/project/dam82xot/GBAcpp/csv_models"
-    MODEL_NAMES = ["mmsyn_fcr_v1", "mmsyn_fcr_v2"]
-    DT          = 0.01
-    MAXT        = 1000000.0
-    OUTPUT_PATH = "/gpfs/project/dam82xot/GBAcpp/output"
+    EXEC_PATH    = "/gpfs/project/dam82xot/GBAcpp/build/bin/compute_gradient_ascent"
+    MODEL_PATH   = "/gpfs/project/dam82xot/GBAcpp/csv_models"
+    MODEL_NAMES  = ["mmsyn_fcr_v1", "mmsyn_fcr_v2"]
+    DT           = 0.01
+    MAXT         = 1000000.0
+    MAX_MU_COUNT = 1000
+    OUTPUT_PATH  = "/gpfs/project/dam82xot/GBAcpp/output"
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # 2) Run a job for each condition #
@@ -93,5 +95,5 @@ if __name__ == "__main__":
     for model_name in MODEL_NAMES:
         conditions = load_conditions_from_csv(MODEL_PATH, model_name)
         for condition in conditions:
-            build_and_run_qsub_script(EXEC_PATH, MODEL_PATH, model_name, condition, DT, MAXT, OUTPUT_PATH)
+            build_and_run_qsub_script(EXEC_PATH, MODEL_PATH, model_name, condition, DT, MAXT, MAX_MU_COUNT, OUTPUT_PATH)
 

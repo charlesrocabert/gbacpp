@@ -95,9 +95,9 @@ public:
   void initialize_variables( void );
   void calculate( void );
   
-  bool compute_gradient_ascent( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
-  void compute_local_optimums( double initial_dt, double max_t, bool save_trajectory, std::string output_path );
-  void compute_random_solutions( int nb_initial_points, double initial_dt, double max_t, bool save_trajectory, std::string output_path );
+  bool compute_gradient_ascent( std::string condition, double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path );
+  void compute_local_optimums( double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path );
+  void compute_random_solutions( int nb_initial_points, double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path );
   
   void save_report( std::string filename );
   

@@ -41,7 +41,7 @@
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, double &initial_dt, double &max_t, bool &save, std::string &output_path );
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, double &initial_dt, double &max_t, int &max_mu_count, bool &save, std::string &output_path );
 void printUsage( void );
 void printHeader( void );
 
@@ -60,19 +60,20 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Read parameters                             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  std::string path       = "";
-  std::string name       = "";
-  double      initial_dt = 0.0;
-  double      max_t      = 0.0;
-  bool        save       = false;
-  std::string output     = "";
-  readArgs(argc, argv, path, name, initial_dt, max_t, save, output);
+  std::string path         = "";
+  std::string name         = "";
+  double      initial_dt   = 0.0;
+  double      max_t        = 0.0;
+  int         max_mu_count = 0;
+  bool        save         = false;
+  std::string output       = "";
+  readArgs(argc, argv, path, name, initial_dt, max_t, max_mu_count, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Load the model and calculate the trajectory */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   Model* model = new Model(path, name);
-  model->compute_local_optimums(initial_dt, max_t, save, output);
+  model->compute_local_optimums(initial_dt, max_t, max_mu_count, save, output);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Free memory and exit                        */
@@ -94,11 +95,12 @@ int main(int argc, char const** argv)
  * \param    std::string &name
  * \param    double &initial_dt
  * \param    double &max_t
+ * \param    int &max_mu_count
  * \param    bool &save
  * \param    std::string &output
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, double &initial_dt, double &max_t, bool &save, std::string &output )
+void readArgs( int argc, char const** argv, std::string &path, std::string &name, double &initial_dt, double &max_t, int &max_mu_count, bool &save, std::string &output )
 {
   if (argc == 1)
   {
@@ -168,7 +170,18 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
         counter++;
       }
     }
-        else if (strcmp(argv[i], "-save") == 0 || strcmp(argv[i], "--save-trajectory") == 0)
+    else if (strcmp(argv[i], "-max-mu-count") == 0 || strcmp(argv[i], "--max-mu-count") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> max mu count value is missing");
+      }
+      else
+      {
+        max_mu_count = atoi(argv[i+1]);
+      }
+    }
+    else if (strcmp(argv[i], "-save") == 0 || strcmp(argv[i], "--save-trajectory") == 0)
     {
       save = true;
     }
@@ -231,6 +244,8 @@ void printUsage( void )
   std::cout << "        specify the initial gradient timestep\n";
   std::cout << "  -maxt, --max-time\n";
   std::cout << "        specify the maximal time\n";
+  std::cout << "  -max-mu-count, --max-mu-count\n";
+  std::cout << "        specify the maximal number of iterations with unchanged mu\n";
   std::cout << "  -save, --save-trajectory\n";
   std::cout << "        specify if the trajectory should be saved as output files\n";
   std::cout << "  -output, --output-path\n";

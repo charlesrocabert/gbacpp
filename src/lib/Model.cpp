@@ -354,14 +354,21 @@ void Model::calculate( void )
  * \param    std::string condition
  * \param    double initial_dt
  * \param    double max_t
+ * \param    int max_mu_count
  * \param    bool save_trajectory
  * \param    std::string output_path
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
+bool Model::compute_gradient_ascent( std::string condition, double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path )
 {
   assert(initial_dt > 0.0);
   assert(max_t > 0.0);
+  assert(max_mu_count >= 0);
+  int TRAJECTORY_MU_COUNT = TRAJECTORY_STABLE_MU_COUNT;
+  if (max_mu_count > 0)
+  {
+    TRAJECTORY_MU_COUNT = max_mu_count;
+  }
   if (save_trajectory)
   {
     open_trajectory_output_files(output_path, condition);
@@ -389,7 +396,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
   while (t < max_t)
   {
     nb_iterations++;
-    if (constant_mu_counter >= TRAJECTORY_STABLE_MU_COUNT)
+    if (constant_mu_counter >= TRAJECTORY_MU_COUNT)
     {
       break;
     }
@@ -463,7 +470,7 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
     write_trajectory_output_files(condition, nb_iterations, t, dt);
     close_trajectory_ouput_files();
   }
-  if (constant_mu_counter >= TRAJECTORY_STABLE_MU_COUNT)
+  if (constant_mu_counter >= TRAJECTORY_MU_COUNT)
   {
     std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
     return(true);
@@ -480,11 +487,12 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
  * \details  --
  * \param    double initial_dt
  * \param    double max_t
+ * \param    int max_mu_count
  * \param    bool save_trajectory
  * \param    std::string output_path
  * \return   \e bool
  */
-void Model::compute_local_optimums( double initial_dt, double max_t, bool save_trajectory, std::string output_path )
+void Model::compute_local_optimums( double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path )
 {
   open_optimum_output_files(output_path, "");
   for (int i = 0; i < (int)_condition_ids.size(); i++)
@@ -492,7 +500,7 @@ void Model::compute_local_optimums( double initial_dt, double max_t, bool save_t
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
     set_condition(condition);
-    bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, save_trajectory, output_path);
+    bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, max_mu_count, save_trajectory, output_path);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     write_optimum_output_files(condition, converged, runtime);
@@ -506,11 +514,12 @@ void Model::compute_local_optimums( double initial_dt, double max_t, bool save_t
  * \param    int nb_initial_points
  * \param    double initial_dt
  * \param    double max_t
+ * \param    int max_mu_count
  * \param    bool save_trajectory
  * \param    std::string output_path
  * \return   \e bool
  */
-void Model::compute_random_solutions( int nb_initial_points, double initial_dt, double max_t, bool save_trajectory, std::string output_path )
+void Model::compute_random_solutions( int nb_initial_points, double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path )
 {
   assert(nb_initial_points <= _nb_random_solutions);
   set_condition("1");
@@ -521,7 +530,7 @@ void Model::compute_random_solutions( int nb_initial_points, double initial_dt, 
     std::clock_t begin     = clock();
     std::string  condition = std::to_string(i);
     gsl_vector_memcpy(_f0, _random_solutions[i]);
-    bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, save_trajectory, output_path);
+    bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, max_mu_count, save_trajectory, output_path);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     write_optimum_output_files(condition, converged, runtime);
