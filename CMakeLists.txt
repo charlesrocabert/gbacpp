@@ -1,8 +1,8 @@
 
-#***************************************************************************
-# GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
-# Copyright © 2024 Charles Rocabert
-# Web: https://github.com/charlesrocabert/GBA_Evolution_2
+#***********************************************************************
+# GBAcpp (Growth Balance Analysis for C++)
+# Copyright © 2024-2025 Charles Rocabert
+# Web: https://github.com/charlesrocabert/GBAcpp
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# ***************************************************************************
+#***********************************************************************
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the minimum required CMake version                                    #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
