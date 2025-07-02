@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #***************************************************************************
-# GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
-# Copyright © 2024 Charles Rocabert
-# Web: https://github.com/charlesrocabert/GBA_Evolution_2
+# GBAcpp (Growth Balance Analysis for C++)
+# Copyright © 2024-2025 Charles Rocabert
+# Web: https://github.com/charlesrocabert/gbacpp
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

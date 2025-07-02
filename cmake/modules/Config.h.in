@@ -3,15 +3,15 @@
  * \file      Config.h
  * \authors   Charles Rocabert
  * \date      22-07-2024
- * \copyright GBA_Evolution. Copyright © 2024 Charles Rocabert. All rights reserved
+ * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     Definition of CMake configuration parameters
  */
 
 /****************************************************************************
- * GBA_Evolution (Evolutionary Algorithms for Growth Balance Analysis)
- * Copyright © 2024 Charles Rocabert
- * Web: https://github.com/charlesrocabert/GBA_Evolution_CPP
+ * GBAcpp (Growth Balance Analysis for C++)
+ * Copyright © 2024-2025 Charles Rocabert
+ * Web: https://github.com/charlesrocabert/gbacpp
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
