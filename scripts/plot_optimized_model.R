@@ -176,7 +176,7 @@ collect_excluded_proteins <- function( pcontributions )
   unmodeled_reactions = colnames(M1)[!colnames(M1)%in%colnames(M2)]
   for(p_id in rownames(M2))
   {
-    reactions = M1[p_id,]
+    reactions = M2[p_id,]
     reactions = reactions[reactions>0]
     reactions = reactions[!reactions%in%AMINO_ACID_TRANSPORTERS & !reactions%in%CHARGING_REACTIONS]
     reactions = names(reactions)
@@ -193,12 +193,13 @@ calculate_simulated_proteomics <- function( pcontributions, d_p, i )
 {
   M1               = pcontributions[["original"]]
   M2               = pcontributions[["reduced"]]
+  M                = M2
   X                = d_p[,-which(names(d_p)%in%c("condition", "iter", "t", "dt"))]
   X                = data.frame(colnames(d_p), t(d_p[i,]))
-  X                = X[colnames(M2),]
-  Y                = M2%*%X[,2]
-  r_ids            = colnames(M2)
-  p_ids            = rownames(M2)
+  X                = X[colnames(M),]
+  Y                = M%*%X[,2]
+  r_ids            = colnames(M)
+  p_ids            = rownames(M)
   res              = data.frame(p_ids, Y)
   names(res)       = c("p_id", "sim_mass")
   rownames(res)    = res$p_id
@@ -493,6 +494,9 @@ PR_optim      = proteomics_optimization(data_path, model_name, d_p, 10)
 modeled_pfrac = calculate_modeled_proteome_fraction(data_path, model_name, d_p)
 phi_obs       = calculate_phi_obs(data_path)
 
+#---------------------------------#
+# 4) Build the figures            #
+#---------------------------------#
 p1 = plot_predicted_growth_rate(d_state, d_obs)
 p2 = plot_predicted_protein_fraction(d_c)
 p3 = plot_predicted_ribosome_fraction(d_p, phi_obs)
