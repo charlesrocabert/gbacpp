@@ -42,7 +42,7 @@
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, std::string &condition, double &initial_dt, double &max_t, int &max_mu_count, bool &save, std::string &output_path );
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_trajectory, std::string &output_path, double &tol, int &stable_count, double &max_time, bool &verbose );
 void printUsage( void );
 void printHeader( void );
 
@@ -56,42 +56,51 @@ void printHeader( void );
  */
 int main(int argc, char const** argv)
 {
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Read parameters                             */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  std::string path         = "";
-  std::string name         = "";
-  std::string condition    = "";
-  double      initial_dt   = 0.0;
-  double      max_t        = 0.0;
-  int         max_mu_count = 0;
-  bool        save         = false;
-  std::string output       = "";
-  readArgs(argc, argv, path, name, condition, initial_dt, max_t, max_mu_count, save, output);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Read parameters                                */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  std::string model_path       = "";
+  std::string model_name       = "";
+  std::string condition        = "";
+  bool        print_optimum    = false;
+  bool        write_trajectory = false;
+  std::string output_path      = "";
+  double      tol              = 1e-10;
+  int         stable_count     = 1000;
+  double      max_time         = 100000.0;
+  bool        verbose          = false;
+  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_trajectory, output_path, tol, stable_count, max_time, verbose);
   
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Load the model and calculate the trajectory */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  std::clock_t begin = clock();
-  Model*       model     = new Model(path, name);
-  model->set_condition(condition);
-  bool         converged = model->compute_gradient_ascent(condition, initial_dt, max_t, max_mu_count, save, output);
-  std::clock_t end       = clock();
-  double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Load the model                                 */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  Model* model = new Model(model_path, model_name);
+  model->set_tol(tol);
   
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Save the optimum in case of convergence     */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  model->open_optimum_output_files(output, condition);
-  model->write_optimum_output_files(condition, converged, runtime);
-  model->close_optimum_ouput_files();
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Run the calculation depending on the condition */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  if (condition != "all")// && condition != "random")
+  {
+    model->compute_optimum(condition, print_optimum, write_trajectory, output_path, stable_count, max_time, verbose);
+  }
+  else
+  {
+    model->compute_optimum_by_condition(print_optimum, write_trajectory, output_path, stable_count, max_time, verbose);
+  }
+  /*
+  else if (condition == "random")
+  {
+    model->read_random_solutions();
+    model->compute_optimum_by_random_solution(condition, print_optimum, write_trajectory, output_path, stable_count, max_time, verbose);
+  }
+  */
   
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Free memory and exit                        */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 4) Free memory and exit                           */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   delete model;
   model = NULL;
-  std::cout << "Elapsed time: " << runtime << " seconds" << std::endl;
   return EXIT_SUCCESS;
 }
 
@@ -100,17 +109,19 @@ int main(int argc, char const** argv)
  * \details  --
  * \param    int argc
  * \param    char const** argv
- * \param    std::string &path
- * \param    std::string &name
+ * \param    std::string &model_path
+ * \param    std::string &model_name
  * \param    std::string &condition
- * \param    double &initial_dt
- * \param    double &max_t
- * \param    int &max_mu_count
- * \param    bool &save
- * \param    std::string &output
+ * \param    bool &print_optimum
+ * \param    bool &write_trajectory
+ * \param    std::string &output_path
+ * \param    double &tol
+ * \param    double &stable_count
+ * \param    double &max_time
+ * \param    bool &verbose
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &path, std::string &name, std::string &condition, double &initial_dt, double &max_t, int &max_mu_count, bool &save, std::string &output )
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_trajectory, std::string &output_path, double &tol, int &stable_count, double &max_time, bool &verbose )
 {
   if (argc == 1)
   {
@@ -136,11 +147,11 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
     {
       if (i+1 == argc)
       {
-        throw std::invalid_argument("> model path value is missing");
+        throw std::invalid_argument("> Error: Model path value is missing");
       }
       else
       {
-        path = argv[i+1];
+        model_path = argv[i+1];
         counter++;
       }
     }
@@ -148,11 +159,11 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
     {
       if (i+1 == argc)
       {
-        throw std::invalid_argument("> model name value is missing");
+        throw std::invalid_argument("> Error: Model name value is missing");
       }
       else
       {
-        name = argv[i+1];
+        model_name = argv[i+1];
         counter++;
       }
     }
@@ -160,7 +171,7 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
     {
       if (i+1 == argc)
       {
-        throw std::invalid_argument("> condition value is missing");
+        throw std::invalid_argument("> Error: Condition is missing");
       }
       else
       {
@@ -168,65 +179,64 @@ void readArgs( int argc, char const** argv, std::string &path, std::string &name
         counter++;
       }
     }
-    else if (strcmp(argv[i], "-dt") == 0 || strcmp(argv[i], "--initial-dt") == 0)
+    else if (strcmp(argv[i], "-print") == 0 || strcmp(argv[i], "--print-trajectory") == 0)
     {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> initial dt value is missing");
-      }
-      else
-      {
-        initial_dt = atof(argv[i+1]);
-        counter++;
-      }
+      print_optimum = true;
     }
-    else if (strcmp(argv[i], "-maxt") == 0 || strcmp(argv[i], "--max-time") == 0)
+    else if (strcmp(argv[i], "-write") == 0 || strcmp(argv[i], "--write-trajectory") == 0)
     {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> max time value is missing");
-      }
-      else
-      {
-        max_t = atof(argv[i+1]);
-        counter++;
-      }
-    }
-    else if (strcmp(argv[i], "-max-mu-count") == 0 || strcmp(argv[i], "--max-mu-count") == 0)
-    {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> max mu count value is missing");
-      }
-      else
-      {
-        max_mu_count = atoi(argv[i+1]);
-      }
-    }
-    else if (strcmp(argv[i], "-save") == 0 || strcmp(argv[i], "--save-trajectory") == 0)
-    {
-      if (i+1 == argc)
-      {
-        throw std::invalid_argument("> output path value is missing");
-      }
-      else
-      {
-        save = true;
-      }
+      write_trajectory = true;
     }
     else if (strcmp(argv[i], "-output") == 0 || strcmp(argv[i], "--output-path") == 0)
     {
       if (i+1 == argc)
       {
-        throw std::invalid_argument("> output path value is missing");
+        throw std::invalid_argument("> Error: Output path value is missing");
       }
       else
       {
-        output = argv[i+1];
+        output_path = argv[i+1];
       }
     }
+    else if (strcmp(argv[i], "-tol") == 0 || strcmp(argv[i], "--tolerance") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> Error: Tolerance value is missing");
+      }
+      else
+      {
+        tol = atof(argv[i+1]);
+      }
+    }
+    else if (strcmp(argv[i], "-stable") == 0 || strcmp(argv[i], "--stable-count") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> Error: Stable mu count is missing");
+      }
+      else
+      {
+        stable_count = atof(argv[i+1]);
+      }
+    }
+    else if (strcmp(argv[i], "-max") == 0 || strcmp(argv[i], "--max-time") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> Error: Trajectory max time is missing");
+      }
+      else
+      {
+        max_time = atof(argv[i+1]);
+      }
+    }
+    else if (strcmp(argv[i], "-verbose") == 0 || strcmp(argv[i], "--verbose") == 0)
+    {
+      verbose = true;
+    }
   }
-  if (counter < 5)
+  if (counter < 3)
   {
     throw std::invalid_argument("> You must provide all the mandatory arguments (see -h or --help)");
   }
@@ -270,17 +280,21 @@ void printUsage( void )
   std::cout << "  -name, --model-name (MANDATORY)\n";
   std::cout << "        specify the name of the GBA model to be loaded\n";
   std::cout << "  -condition, --condition (MANDATORY)\n";
-  std::cout << "        specify the external condition identifier\n";
-  std::cout << "  -dt, --initial-dt (MANDATORY)\n";
-  std::cout << "        specify the initial gradient timestep\n";
-  std::cout << "  -maxt, --max-time (MANDATORY)\n";
-  std::cout << "        specify the maximal time\n";
-  std::cout << "  -max-mu-count, --max-mu-count\n";
-  std::cout << "        specify the maximal number of iterations with unchanged mu\n";
-  std::cout << "  -save, --save-trajectory\n";
-  std::cout << "        specify if the trajectory should be saved as output files\n";
+  std::cout << "        specify the condition (condition identifier / all)\n";
+  std::cout << "  -print, --print-optimum\n";
+  std::cout << "        indicates if the trajectory should be written as output files\n";
+  std::cout << "  -write, --write-trajectory\n";
+  std::cout << "        indicates if the optimum should be written in the standard output\n";
   std::cout << "  -output, --output-path\n";
   std::cout << "        specify the path of output files\n";
+  std::cout << "  -tol, --tolerance\n";
+  std::cout << "        specify the tolerance value\n";
+  std::cout << "  -stable-count, --stable-count\n";
+  std::cout << "        specify the maximal number of iterations with unchanged mu\n";
+  std::cout << "  -maxt, --max-time\n";
+  std::cout << "        specify the maximal trajectory time\n";
+  std::cout << "  -verbose, --verbose\n";
+  std::cout << "        indicates if the program should run in verbose mode\n";
   std::cout << "\n";
 }
 
@@ -311,5 +325,4 @@ void printHeader( void )
   std::cout << "*********************************************************************\n";
   std::cout << "\n";
 }
-
 

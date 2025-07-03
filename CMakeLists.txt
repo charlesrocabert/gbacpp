@@ -29,7 +29,6 @@ cmake_minimum_required(VERSION 3.5)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 project(GBAcpp)
 
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the package name                                                      #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -47,7 +46,7 @@ set(VERSION_PATCH 1)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Add definitions to CXX flags                                                 #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-ADD_DEFINITIONS(-std=c++11)
+ADD_DEFINITIONS(-std=c++17)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -72,14 +71,8 @@ set(EXECUTABLE_OUTPUT_PATH ../build/bin)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the executables                                                       #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-set(TRAJECTORY_EXECUTABLE compute_gradient_ascent)
-add_executable(${TRAJECTORY_EXECUTABLE} src/compute_gradient_ascent.cpp)
-
-set(OPTIMUM_EXECUTABLE compute_local_optimums)
-add_executable(${OPTIMUM_EXECUTABLE} src/compute_local_optimums.cpp)
-
-set(RANDOM_EXECUTABLE compute_random_solutions)
-add_executable(${RANDOM_EXECUTABLE} src/compute_random_solutions.cpp)
+set(OPTIMUM_EXECUTABLE compute_optimum)
+add_executable(${OPTIMUM_EXECUTABLE} src/compute_optimum.cpp)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -88,9 +81,7 @@ add_executable(${RANDOM_EXECUTABLE} src/compute_random_solutions.cpp)
 find_package(GSL REQUIRED)
 if(GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
-  target_link_libraries(${TRAJECTORY_EXECUTABLE} ${GSL_LIBRARIES})
   target_link_libraries(${OPTIMUM_EXECUTABLE} ${GSL_LIBRARIES})
-  target_link_libraries(${RANDOM_EXECUTABLE} ${GSL_LIBRARIES})
 endif(GSL_FOUND)
 
 
@@ -104,12 +95,8 @@ add_library(
   src/lib/Model.hpp
   src/lib/Model.cpp
 )
-
 target_link_libraries(gbacpp gsl gslcblas)
-
-target_link_libraries(${TRAJECTORY_EXECUTABLE} gbacpp)
 target_link_libraries(${OPTIMUM_EXECUTABLE} gbacpp)
-target_link_libraries(${RANDOM_EXECUTABLE} gbacpp)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

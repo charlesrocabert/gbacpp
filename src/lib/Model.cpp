@@ -44,8 +44,13 @@ Model::Model( std::string model_path, std::string model_name )
 {
   /*----------------------------------------------- Model path and name */
   
+  assert(is_path_exist(model_path +"/"+model_name));
   _model_path = model_path;
   _model_name = model_name;
+  
+  /*----------------------------------------------- Tolerance value */
+  
+  _tol = 1e-10;
   
   /*----------------------------------------------- Identifier lists */
   
@@ -131,7 +136,7 @@ Model::Model( std::string model_path, std::string model_name )
   
   /*----------------------------------------------- Load the model */
   
-  load_model();
+  read_from_csv();
   initialize_variables();
 }
 
@@ -253,12 +258,12 @@ Model::~Model( void )
  *----------------------------*/
 
 /**
- * \brief    Load the model from CSV files
+ * \brief    Read the model from CSV files
  * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::load_model( void )
+void Model::read_from_csv( void )
 {
   load_metabolite_identifiers();
   load_reaction_identifiers();
@@ -275,14 +280,15 @@ void Model::load_model( void )
 }
 
 /**
- * \brief    Load random solutions
- * \details  Re-load the vector from the last trajectory point
+ * \brief    Read pre-generated random solutions
+ * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::load_random_solutions( void )
+void Model::read_random_solutions( void )
 {
   assert(_random_solutions.size()==0);
+  assert(is_path_exist(_model_path+"/"+_model_name));
   assert(is_file_exist(_model_path+"/"+_model_name+"/random_solutions.csv"));
   std::ifstream file(_model_path+"/"+_model_name+"/random_solutions.csv", std::ios::in);
   assert(file);
@@ -304,11 +310,10 @@ void Model::load_random_solutions( void )
   _nb_random_solutions = 0;
   while(getline(file, line))
   {
-    /* 2.1) Initialize the new solution vector */
-    _nb_random_solutions++;
+    /*** 2.1) Initialize the new solution vector ***/
     _random_solutions[_nb_random_solutions] = gsl_vector_alloc(_nj);
     gsl_vector_set_zero(_random_solutions[_nb_random_solutions]);
-    /* 2.2) Parse the line --------------------*/
+    /*** 2.2) Parse the line ***/
     std::stringstream flux(line.c_str());
     int pos = 0;
     while(getline(flux, str_value, ';'))
@@ -319,74 +324,197 @@ void Model::load_random_solutions( void )
       }
       pos++;
     }
+    /*** 2.3) Update the number of random solutions ***/
+    _nb_random_solutions++;
   }
   file.close();
 }
 
 /**
- * \brief    Initialize all mathematical variables
+ * \brief    Compute the optimum for one condition
  * \details  --
- * \param    void
- * \return   \e void
+ * \param    std::string condition
+ * \param    bool print_optimum
+ * \param    bool write_trajectory
+ * \param    std::string output_path
+ * \param    int stable_count
+ * \param    double max_t
+ * \param    bool verbose
+ * \return   \e bool
  */
-void Model::initialize_variables( void )
+void Model::compute_optimum( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
 {
-  initialize_static_variables();
-  initialize_dynamic_variables();
+  std::clock_t begin = clock();
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+  std::clock_t end   = clock();
+  double runtime     = double(end-begin)/CLOCKS_PER_SEC;
+  open_optimum_output_files(output_path, condition);
+  write_optimum_output_files(condition, converged, runtime);
+  close_optimum_ouput_files();
+  if (print_optimum)
+  {
+    print_to_standard_ouput(condition, converged, runtime);
+  }
+  if (verbose)
+  {
+    std::cout << "> Elapsed time for condition " << condition << ": " << runtime << " seconds" << std::endl;
+  }
 }
 
 /**
- * \brief    Calculate model state
+ * \brief    Compute the optimum for all the conditions
  * \details  --
- * \param    void
- * \return   \e void
+ * \param    bool print_optimum
+ * \param    bool write_trajectory
+ * \param    std::string output_path
+ * \param    int stable_count
+ * \param    double max_t
+ * \param    bool verbose
+ * \return   \e bool
  */
-void Model::calculate( void )
+void Model::compute_optimum_by_condition( bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
 {
-  calculate_first_order_terms();
-  calculate_second_order_terms();
-  check_model_consistency();
+  open_optimum_output_files(output_path, "all");
+  for (int i = 0; i < (int)_condition_ids.size(); i++)
+  {
+    std::clock_t begin     = clock();
+    std::string  condition = _condition_ids[i];
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+    std::clock_t end       = clock();
+    double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
+    write_optimum_output_files(condition, converged, runtime);
+    if (print_optimum)
+    {
+      print_to_standard_ouput(condition, converged, runtime);
+    }
+    if (verbose)
+    {
+      std::cout << "> Elapsed time for condition " << condition << ": " << runtime << " seconds" << std::endl;
+    }
+  }
+  close_optimum_ouput_files();
+}
+
+/**
+ * \brief    Compute the optimum for all random solution and for a given condition
+ * \details  --
+ * \param    std::string condition
+ * \param    bool print_optimum
+ * \param    bool write_trajectory
+ * \param    std::string output_path
+ * \param    int stable_count
+ * \param    double max_t
+ * \param    bool verbose
+ * \return   \e bool
+ */
+/*
+void Model::compute_optimum_by_random_solution( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
+{
+  open_optimum_output_files(output_path, "random");
+  for (int i = 0; i < _nb_random_solutions; i++)
+  {
+    
+    std::clock_t begin = clock();
+    gsl_vector_memcpy(_f0, _random_solutions[i]);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+    std::clock_t end       = clock();
+    double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
+    write_optimum_output_files(condition, converged, runtime);
+    if (print_optimum)
+    {
+      print_to_standard_ouput(condition, converged, runtime);
+    }
+    if (verbose)
+    {
+      std::cout << "> Elapsed time for random solution " << i << ": " << runtime << " seconds" << std::endl;
+    }
+  }
+  close_optimum_ouput_files();
+}
+*/
+
+/*----------------------------
+ * PROTECTED METHODS
+ *----------------------------*/
+
+/**
+ * \brief    Test path existence
+ * \details  --
+ * \param    std::string path
+ * \return   \e bool
+ */
+bool Model::is_path_exist( std::string path )
+{
+  return std::filesystem::exists(path);
+}
+
+/**
+ * \brief    Test file existence
+ * \details  --
+ * \param    std::string filename
+ * \return   \e bool
+ */
+bool Model::is_file_exist( std::string filename )
+{
+  bool is_file_exist = false;
+  std::ifstream infile(filename.c_str());
+  is_file_exist = infile.good();
+  infile.close();
+  return is_file_exist;
 }
 
 /**
  * \brief    Compute the gradient ascent trajectory
  * \details  --
  * \param    std::string condition
- * \param    double initial_dt
- * \param    double max_t
- * \param    int max_mu_count
- * \param    bool save_trajectory
+ * \param    bool write_trajectory
  * \param    std::string output_path
+ * \param    int stable_count
+ * \param    double max_t
+ * \param    bool verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path )
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
 {
-  assert(initial_dt > 0.0);
-  assert(max_t > 0.0);
-  assert(max_mu_count >= 0);
-  int TRAJECTORY_MU_COUNT = TRAJECTORY_STABLE_MU_COUNT;
-  if (max_mu_count > 0)
+  auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
+  if (it==_condition_ids.end())
   {
-    TRAJECTORY_MU_COUNT = max_mu_count;
+    throw std::invalid_argument("> Error: Unknown condition");
   }
-  if (save_trajectory)
+  if (!is_path_exist(output_path))
+  {
+    throw std::invalid_argument("> Error: Path "+output_path+" does not exist");
+  }
+  if (stable_count < 0)
+  {
+    throw std::invalid_argument("> Error: The stable count parameter must be positive or null");
+  }
+  if (max_t <= 0.0)
+  {
+    throw std::invalid_argument("> Error: The maximum time must be positive");
+  }
+  if (write_trajectory)
   {
     open_trajectory_output_files(output_path, condition);
   }
   _adjust_concentrations = false;
+  set_condition(condition);
   initialize_f();
   calculate();
-  std::cout << "> Initial growth rate = " << _mu << "\n";
+  if (verbose)
+  {
+    std::cout << "> Initial growth rate = " << _mu << "\n";
+  }
   if (!_consistent)
   {
-    throw std::invalid_argument("> Model initial state f0 is inconsistent");
+    throw std::runtime_error("> Error: The initial solution f0 is not consistent");
   }
   gsl_vector* previous_f_trunc = gsl_vector_alloc(_nj-1);
   gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
   gsl_vector_memcpy(previous_f_trunc, _f_trunc);
   double previous_mu         = 0.0;
   double t                   = 0.0;
-  double dt                  = initial_dt;
+  double dt                  = 0.01;
   int    dt_counter          = 0;
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
@@ -396,23 +524,17 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
   while (t < max_t)
   {
     nb_iterations++;
-    if (constant_mu_counter >= TRAJECTORY_MU_COUNT)
+    if (constant_mu_counter >= stable_count)
     {
       break;
     }
-    /*
-    if (inconsistent_count >= TRAJECTORY_INCONSISTENT_COUNT)
-    {
-      break;
-    }
-      */
     previous_mu = _mu;
     block_reactions();
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
     gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
     gsl_vector_scale(scaled_dmudt, dt);
     gsl_vector_add(_f_trunc, scaled_dmudt);
-    set_f();
+    calculate_f_from_f_trunc();
     calculate();
     if (_consistent && _mu >= previous_mu)
     {
@@ -421,12 +543,15 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
       inconsistent_count = 0;
       t                  = t+dt;
       dt_counter++;
-      if (save_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
+      if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
-        std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+        if (verbose)
+        {
+          std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+        }
         write_trajectory_output_files(condition, nb_iterations, t, dt);
       }
-      if (fabs(_mu-previous_mu) < TRAJECTORY_CONVERGENCE_TOL)
+      if (fabs(_mu-previous_mu) < stable_count)
       {
         constant_mu_counter++;
       }
@@ -447,141 +572,39 @@ bool Model::compute_gradient_ascent( std::string condition, double initial_dt, d
     else
     {
       gsl_vector_memcpy(_f_trunc, previous_f_trunc);
-      set_f();
+      calculate_f_from_f_trunc();
       calculate();
       assert(_consistent);
       inconsistent_count++;
       dt         /= DECREASING_DT_FACTOR;
       dt_counter  = 0;
-      /*
-      if (dt < MIN_DT)
-      {
-        throw std::invalid_argument("> dt value is too small");
-      }
-        */
     }
   }
   gsl_vector_free(previous_f_trunc);
   gsl_vector_free(scaled_dmudt);
   previous_f_trunc = NULL;
   scaled_dmudt     = NULL;
-  if (save_trajectory)
+  if (write_trajectory)
   {
     write_trajectory_output_files(condition, nb_iterations, t, dt);
     close_trajectory_ouput_files();
   }
-  if (constant_mu_counter >= TRAJECTORY_MU_COUNT)
+  if (constant_mu_counter >= stable_count)
   {
-    std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
+    if (verbose)
+    {
+      std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
+    }
     return(true);
   }
   else
   {
-    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
+    if (verbose)
+    {
+      std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
+    }
     return(false);
   }
-}
-
-/**
- * \brief    Compute local optimum for all conditions
- * \details  --
- * \param    double initial_dt
- * \param    double max_t
- * \param    int max_mu_count
- * \param    bool save_trajectory
- * \param    std::string output_path
- * \return   \e bool
- */
-void Model::compute_local_optimums( double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path )
-{
-  open_optimum_output_files(output_path, "");
-  for (int i = 0; i < (int)_condition_ids.size(); i++)
-  {
-    std::clock_t begin     = clock();
-    std::string  condition = _condition_ids[i];
-    set_condition(condition);
-    bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, max_mu_count, save_trajectory, output_path);
-    std::clock_t end       = clock();
-    double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
-    write_optimum_output_files(condition, converged, runtime);
-  }
-  close_optimum_ouput_files();
-}
-
-/**
- * \brief    Compute local optimum for all random solutions
- * \details  --
- * \param    int nb_initial_points
- * \param    double initial_dt
- * \param    double max_t
- * \param    int max_mu_count
- * \param    bool save_trajectory
- * \param    std::string output_path
- * \return   \e bool
- */
-void Model::compute_random_solutions( int nb_initial_points, double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path )
-{
-  assert(nb_initial_points <= _nb_random_solutions);
-  set_condition("1");
-  open_optimum_output_files(output_path, "");
-  for (int i = 1; i <= nb_initial_points; i++)
-  {
-    
-    std::clock_t begin     = clock();
-    std::string  condition = std::to_string(i);
-    gsl_vector_memcpy(_f0, _random_solutions[i]);
-    bool         converged = compute_gradient_ascent(condition, initial_dt, max_t, max_mu_count, save_trajectory, output_path);
-    std::clock_t end       = clock();
-    double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
-    write_optimum_output_files(condition, converged, runtime);
-  }
-  close_optimum_ouput_files();
-}
-
-/**
- * \brief    Save a report of the model state
- * \details  --
- * \param    std::string filename
- * \return   \e bool
- */
-void Model::save_report( std::string filename )
-{
-  std::ofstream report_file(filename.c_str(), std::ios::out | std::ios::trunc);
-  report_file << _model_path << "/" << _model_name << "\n\n";
-  report_file << "Condition     = " << _current_condition << "\n";
-  report_file << "Rho           = " << _current_rho << "\n";
-  report_file << "Density       = " << _density << "\n";
-  report_file << "Mu            = " << _mu << "\n";
-  report_file << "Mu            = " << _doubling_time << "\n";
-  report_file << "Doubling time = " << _consistent << "\n\n";
-  report_file << "F vector:\n--------\n\n";
-  for( int j = 0; j < _nj; j++)
-  {
-    report_file << _reaction_ids[j] << " " << gsl_vector_get(_f, j);
-    if (fabs(gsl_vector_get(_f, j)) < MIN_CONCENTRATION)
-    {
-      report_file << " --------------------- TOO_LOW\n";
-    }
-    else
-    {
-      report_file << "\n";
-    }
-  }
-  report_file << "\nC vector:\n--------\n\n";
-  for( int i = 0; i < _nc; i++)
-  {
-    report_file << _c_ids[i] << " " << gsl_vector_get(_c, i);
-    if (gsl_vector_get(_c, i) < MIN_CONCENTRATION)
-    {
-      report_file << " --------------------- TOO_LOW\n";
-    }
-    else
-    {
-      report_file << "\n";
-    }
-  }
-  report_file << "\n";
-  report_file.close();
 }
 
 /**
@@ -725,24 +748,12 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   std::stringstream v_optimum_filename;
   std::stringstream p_optimum_filename;
   std::stringstream b_optimum_filename;
-  if (condition != "")
-  {
-    state_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_state_optimum.csv";
-    f_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_f_optimum.csv";
-    c_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_c_optimum.csv";
-    v_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_v_optimum.csv";
-    p_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_p_optimum.csv";
-    b_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_b_optimum.csv";
-  }
-  else
-  {
-    state_optimum_filename << output_path << "/" << _model_name << "_state_optimum.csv";
-    f_optimum_filename << output_path << "/" << _model_name << "_f_optimum.csv";
-    c_optimum_filename << output_path << "/" << _model_name << "_c_optimum.csv";
-    v_optimum_filename << output_path << "/" << _model_name << "_v_optimum.csv";
-    p_optimum_filename << output_path << "/" << _model_name << "_p_optimum.csv";
-    b_optimum_filename << output_path << "/" << _model_name << "_b_optimum.csv";
-  }
+  state_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_state_optimum.csv";
+  f_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_f_optimum.csv";
+  c_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_c_optimum.csv";
+  v_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_v_optimum.csv";
+  p_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_p_optimum.csv";
+  b_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_b_optimum.csv";
   /*~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Create files     */
   /*~~~~~~~~~~~~~~~~~~~~~*/
@@ -833,59 +844,102 @@ void Model::close_optimum_ouput_files( void )
   _b_optimum_file.close();
 }
 
-/*----------------------------
- * PROTECTED METHODS
- *----------------------------*/
-
 /**
- * \brief    Test file existence
+ * \brief    Print the optimum to the standard output
  * \details  --
- * \param    std::string filename
- * \return   \e bool
+ * \param    std::string condition
+ * \param    bool converged
+ * \param    double runtime
+ * \return   \e void
  */
-bool Model::is_file_exist( std::string filename )
+void Model::print_to_standard_ouput( std::string condition, bool converged, double runtime )
 {
-  bool is_file_exist = false;
-  std::ifstream infile(filename.c_str());
-  is_file_exist = infile.good();
-  infile.close();
-  return is_file_exist;
-}
-
-/**
- * \brief    Return a Gaussian kernel term
- * \details  --
- * \param    double x
- * \param    double mu
- * \return   \e double
- */
-double Model::gaussian_term( double x, double mu )
-{
-  double sigma = REGULATION_SIGMA*x;
-  double val = (x-mu)/(sigma*sigma);
-  return(val);
-}
-
-/**
- * \brief    Return a Gaussian kernel value
- * \details  --
- * \param    double x
- * \param    double mu
- * \return   \e double
- */
-double Model::gaussian_kernel( double x, double mu )
-{
-  double sigma = REGULATION_SIGMA*x;
-  double val = (x-mu)/sigma;
-  double res = -0.5*val*val;
-  if (res < -700)
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Print condition */
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  std::cout << "CONDITION " << condition << std::endl;
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) State output    */
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  std::cout << "\ncell state" << std::endl;
+  std::cout << "condition\tmu\tdoubling_time\tdensity\tconsistent\tconverged\trun_time" << std::endl;
+  std::cout << condition << "\t" << _mu << "\t" << _doubling_time << "\t" << _density << "\t" << _consistent << "\t" << converged << "\t" << runtime << "\n";
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) f vector output */
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  std::cout << "\nf vector" << std::endl;
+  std::cout << "condition";
+  for (int j = 0; j < _nj; j++)
   {
-    return(0.0);
+    std::cout << "\t" << _reaction_ids[j];
   }
-  else
+  std::cout << std::endl << condition;
+  for (int j = 0; j < _nj; j++)
   {
-    return(gsl_sf_exp(res));
+    std::cout << "\t" << gsl_vector_get(_f, j);
   }
+  std::cout << std::endl;
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  /* 4) v vector output */
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  std::cout << "\nv vector" << std::endl;
+  std::cout << "condition";
+  for (int j = 0; j < _nj; j++)
+  {
+    std::cout << "\t" << _reaction_ids[j];
+  }
+  std::cout << std::endl << condition;
+  for (int j = 0; j < _nj; j++)
+  {
+    std::cout << "\t" << gsl_vector_get(_v, j);
+  }
+  std::cout << std::endl;
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  /* 5) p vector output */
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  std::cout << "\np vector" << std::endl;
+  std::cout << "condition";
+  for (int j = 0; j < _nj; j++)
+  {
+    std::cout << "\t" << _reaction_ids[j];
+  }
+  std::cout << std::endl << condition;
+  for (int j = 0; j < _nj; j++)
+  {
+    std::cout << "\t" << gsl_vector_get(_p, j);
+  }
+  std::cout << std::endl;
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  /* 6) b vector output */
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  std::cout << "\nb vector" << std::endl;
+  std::cout << "condition";
+  for (int j = 0; j < _nc; j++)
+  {
+    std::cout << "\t" << _c_ids[j];
+  }
+  std::cout << std::endl << condition;
+  for (int j = 0; j < _nc; j++)
+  {
+    std::cout << "\t" << gsl_vector_get(_b, j);
+  }
+  std::cout << std::endl;
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  /* 7) c vector output */
+  /*~~~~~~~~~~~~~~~~~~~~*/
+  std::cout << "\nc vector" << std::endl;
+  std::cout << "condition";
+  for (int j = 0; j < _nc; j++)
+  {
+    std::cout << "\t" << _c_ids[j];
+  }
+  std::cout << std::endl << condition;
+  for (int j = 0; j < _nc; j++)
+  {
+    std::cout << "\t" << gsl_vector_get(_c, j);
+  }
+  std::cout << std::endl;
+  std::cout << std::endl;
 }
 
 /**
@@ -1411,6 +1465,18 @@ void Model::reload_f0( void )
 }
 
 /**
+ * \brief    Initialize all mathematical variables
+ * \details  --
+ * \param    void
+ * \return   \e void
+ */
+void Model::initialize_variables( void )
+{
+  initialize_static_variables();
+  initialize_dynamic_variables();
+}
+
+/**
  * \brief    Initialize static variables
  * \details  --
  * \param    void
@@ -1446,10 +1512,10 @@ void Model::initialize_static_variables( void )
     gsl_matrix_get_col(KI_vec, _KI, j);
     gsl_matrix_get_col(KA_vec, _KA, j);
     gsl_matrix_get_col(KR_vec, _KR, j);
-    bool kcat_b_zero = fabs(gsl_vector_get(_kcat_b, j)) < MIN_PARAMETER;
-    bool KI_sum_zero = fabs(gsl_blas_dasum(KI_vec)) < MIN_PARAMETER;
-    bool KA_sum_zero = fabs(gsl_blas_dasum(KA_vec)) < MIN_PARAMETER;
-    bool KR_sum_zero = fabs(gsl_blas_dasum(KR_vec)) < MIN_PARAMETER;
+    bool kcat_b_zero = fabs(gsl_vector_get(_kcat_b, j)) < _tol;
+    bool KI_sum_zero = fabs(gsl_blas_dasum(KI_vec)) < _tol;
+    bool KA_sum_zero = fabs(gsl_blas_dasum(KA_vec)) < _tol;
+    bool KR_sum_zero = fabs(gsl_blas_dasum(KR_vec)) < _tol;
     if (kcat_b_zero && KI_sum_zero && KA_sum_zero && KR_sum_zero)
     {
       _type[j] = IMM;
@@ -1552,6 +1618,55 @@ void Model::initialize_dynamic_variables( void )
 }
 
 /**
+ * \brief    Return a Gaussian kernel term
+ * \details  --
+ * \param    double x
+ * \param    double mu
+ * \return   \e double
+ */
+double Model::gaussian_term( double x, double mu )
+{
+  double sigma = REGULATION_SIGMA*x;
+  double val = (x-mu)/(sigma*sigma);
+  return(val);
+}
+
+/**
+ * \brief    Return a Gaussian kernel value
+ * \details  --
+ * \param    double x
+ * \param    double mu
+ * \return   \e double
+ */
+double Model::gaussian_kernel( double x, double mu )
+{
+  double sigma = REGULATION_SIGMA*x;
+  double val = (x-mu)/sigma;
+  double res = -0.5*val*val;
+  if (res < -700)
+  {
+    return(0.0);
+  }
+  else
+  {
+    return(gsl_sf_exp(res));
+  }
+}
+
+/**
+ * \brief    Calculate model state
+ * \details  --
+ * \param    void
+ * \return   \e void
+ */
+void Model::calculate( void )
+{
+  calculate_first_order_terms();
+  calculate_second_order_terms();
+  check_model_consistency();
+}
+
+/**
  * \brief    Compute internal concentrations
  * \details  Formula: rho*M*f
  * \param    void
@@ -1564,9 +1679,9 @@ void Model::compute_c( void )
   {
     for (int i = 0; i < _nc; i++)
     {
-      if (gsl_vector_get(_c, i) < MIN_CONCENTRATION)
+      if (gsl_vector_get(_c, i) < _tol)
       {
-        gsl_vector_set(_c, i, MIN_CONCENTRATION);
+        gsl_vector_set(_c, i, _tol);
       }
     }
   }
@@ -1675,7 +1790,7 @@ void Model::iMMr( int j )
   {
     double x       = gsl_vector_get(_xc, i);
     double KM      = gsl_matrix_get(_KM_f, i, j);
-    double KR      = gsl_matrix_get(_KR, i, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, i, j) : x;
+    double KR      = gsl_matrix_get(_KR, i, j) > _tol ? gsl_matrix_get(_KR, i, j) : x;
     double gkernel = gaussian_kernel(x, KR);
     term1         *= (KM+x)/(x*gkernel);
   }
@@ -1879,7 +1994,7 @@ void Model::diMMr( int j )
     int    y       = i+_nx;
     double x       = gsl_vector_get(_c, i);
     double KM      = gsl_matrix_get(_KM_f, y, j);
-    double KR      = gsl_matrix_get(_KR, y, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, y, j) : x;
+    double KR      = gsl_matrix_get(_KR, y, j) > _tol ? gsl_matrix_get(_KR, y, j) : x;
     double gkernel = gaussian_kernel(x, KR);
     double gterm   = gaussian_term(x, KR);
     double term1   = gkernel*(-KM/(x*x)+(KM+x)/x*gterm);
@@ -1889,7 +2004,7 @@ void Model::diMMr( int j )
       if (index != y)
       {
         double x       = gsl_vector_get(_xc, index);
-        double KR      = gsl_matrix_get(_KR, index, j) > MIN_CONCENTRATION ? gsl_matrix_get(_KR, index, j) : x;
+        double KR      = gsl_matrix_get(_KR, index, j) > _tol ? gsl_matrix_get(_KR, index, j) : x;
         double gkernel = gaussian_kernel(x, KR);
         term2         *= (gsl_matrix_get(_KM_f, index, j)+x)/(x*gkernel);
       }
@@ -2116,7 +2231,7 @@ void Model::check_model_consistency( void )
   /* 1) Test density constraint                 */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test1 = true;
-  if (fabs(_density-1.0) >= DENSITY_CONSTRAINT_TOL)
+  if (fabs(_density-1.0) >= _tol)
   {
     test1 = false;
   }
@@ -2124,7 +2239,7 @@ void Model::check_model_consistency( void )
   /* 2) Test negative concentrations constraint */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test2 = true;
-  if (gsl_vector_min(_c) < -NEGATIVE_C_TOL)
+  if (gsl_vector_min(_c) < -_tol)
   {
     test2 = false;
   }
@@ -2132,7 +2247,7 @@ void Model::check_model_consistency( void )
   /* 3) Test negative proteins constraint       */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test3 = true;
-  if (gsl_vector_min(_p) < -NEGATIVE_P_TOL)
+  if (gsl_vector_min(_p) < -_tol)
   {
     test3 = false;
   }
@@ -2159,9 +2274,9 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 1) Reaction is irreversible and positive    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_type[j+1] != RMM && gsl_vector_get(_f_trunc, j) <= MIN_FLUX_FRACTION)
+    if (_type[j+1] != RMM && gsl_vector_get(_f_trunc, j) <= _tol)
     {
-      gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
+      gsl_vector_set(_f_trunc, j, _tol);
       if (gsl_vector_get(_GCC_f, j+1) < 0.0)
       {
         gsl_vector_set(_GCC_f, j+1, 0.0);
@@ -2170,9 +2285,9 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 2) Reaction is irreversible and negative    */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if (_type[j+1] == RMM && gsl_vector_get(_f_trunc, j) >= -MIN_FLUX_FRACTION)
+    if (_type[j+1] == RMM && gsl_vector_get(_f_trunc, j) >= -_tol)
     {
-      gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
+      gsl_vector_set(_f_trunc, j, -_tol);
       if (gsl_vector_get(_GCC_f, j+1) > 0.0)
       {
         gsl_vector_set(_GCC_f, j+1, 0.0);
@@ -2181,16 +2296,16 @@ void Model::block_reactions( void )
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* 3) Reaction is reversible and tends to zero */
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    else if (_type[j+1] == RMM && fabs(gsl_vector_get(_f_trunc, j)) <= MIN_FLUX_FRACTION)
+    else if (_type[j+1] == RMM && fabs(gsl_vector_get(_f_trunc, j)) <= _tol)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
       if (gsl_vector_get(_f_trunc, j) >= 0.0)
       {
-        gsl_vector_set(_f_trunc, j, MIN_FLUX_FRACTION);
+        gsl_vector_set(_f_trunc, j, _tol);
       }
       else if (gsl_vector_get(_f_trunc, j) < 0.0)
       {
-        gsl_vector_set(_f_trunc, j, -MIN_FLUX_FRACTION);
+        gsl_vector_set(_f_trunc, j, -_tol);
       }
     }
   }

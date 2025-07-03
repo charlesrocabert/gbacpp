@@ -38,6 +38,9 @@
 #include <thread>
 #include <unordered_map>
 #include <cmath>
+#include <algorithm>
+#include <filesystem>
+#include <assert.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -46,7 +49,6 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_sf_exp.h>
 #include <gsl/gsl_sf_log.h>
-#include <assert.h>
 
 #include "Macros.hpp"
 #include "Enums.hpp"
@@ -81,33 +83,21 @@ public:
    *----------------------------*/
   Model& operator=(const Model&) = delete;
   
+  inline void set_tol( double tol );
   inline void set_condition( std::string condition );
   inline void initialize_f( void );
-  inline void set_f_trunc( void );
-  inline void set_f( void );
+  inline void calculate_f_from_f_trunc( void );
   
   /*----------------------------
    * PUBLIC METHODS
    *----------------------------*/
   
-  void load_model( void );
-  void load_random_solutions( void );
-  void initialize_variables( void );
-  void calculate( void );
+  void read_from_csv( void );
+  void read_random_solutions( void );
   
-  bool compute_gradient_ascent( std::string condition, double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path );
-  void compute_local_optimums( double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path );
-  void compute_random_solutions( int nb_initial_points, double initial_dt, double max_t, int max_mu_count, bool save_trajectory, std::string output_path );
-  
-  void save_report( std::string filename );
-  
-  void open_trajectory_output_files( std::string output_path, std::string condition );
-  void write_trajectory_output_files( std::string condition, int iter, double t, double dt );
-  void close_trajectory_ouput_files( void );
-  
-  void open_optimum_output_files( std::string output_path, std::string condition );
-  void write_optimum_output_files( std::string condition, bool converged, double runtime );
-  void close_optimum_ouput_files( void );
+  void compute_optimum( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
+  void compute_optimum_by_condition( bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
+  //void compute_optimum_by_random_solution( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -119,9 +109,20 @@ protected:
    * PROTECTED METHODS
    *----------------------------*/
   
-  bool   is_file_exist( std::string filename );
-  double gaussian_term( double x, double mu );
-  double gaussian_kernel( double x, double mu );
+  bool is_path_exist( std::string path );
+  bool is_file_exist( std::string filename );
+  
+  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
+  
+  void open_trajectory_output_files( std::string output_path, std::string condition );
+  void write_trajectory_output_files( std::string condition, int iter, double t, double dt );
+  void close_trajectory_ouput_files( void );
+  
+  void open_optimum_output_files( std::string output_path, std::string condition );
+  void write_optimum_output_files( std::string condition, bool converged, double runtime );
+  void close_optimum_ouput_files( void );
+  
+  void print_to_standard_ouput( std::string condition, bool converged, double runtime );
   
   void load_metabolite_identifiers( void );
   void load_reaction_identifiers( void );
@@ -137,9 +138,13 @@ protected:
   void load_f0( void );
   void reload_f0( void );
   
+  void initialize_variables( void );
   void initialize_static_variables( void );
   void initialize_dynamic_variables( void );
   
+  double gaussian_term( double x, double mu );
+  double gaussian_kernel( double x, double mu );
+  void calculate( void );
   void compute_c( void );
   void compute_xc( void );
   void iMM( int j );
@@ -176,6 +181,10 @@ protected:
   
   std::string _model_path; /*!< Model path */
   std::string _model_name; /*!< Model name */
+  
+  /*----------------------------------------------- Tolerance value */
+  
+  double _tol; /*!< Tolerance value */
   
   /*----------------------------------------------- Identifier lists */
   
@@ -260,8 +269,8 @@ protected:
   
   /*----------------------------------------------- Solutions */
   
-  int                                  _nb_random_solutions; /*!< Number of random solutions */
-  std::unordered_map<int, gsl_vector*> _random_solutions;    /*!< List of random f vectors   */
+  int                                  _nb_random_solutions; /*!< Number of random solutions                    */
+  std::unordered_map<int, gsl_vector*> _random_solutions;    /*!< List of random f vectors                      */
   
   /*----------------------------------------------- Output files */
   
@@ -311,6 +320,21 @@ inline double Model::get_doubling_time( void )
  *----------------------------*/
 
 /**
+ * \brief    Set the tolerance value
+ * \details  --
+ * \param    double tol
+ * \return   \e void
+ */
+inline void Model::set_tol( double tol )
+{
+  if (tol <= 0.0)
+  {
+    throw std::invalid_argument("> Error: tolerance value is too low ("+std::to_string(tol)+")");
+  }
+  _tol = tol;
+}
+
+/**
  * \brief    Set the external condition
  * \details  --
  * \param    std::string condition
@@ -318,9 +342,12 @@ inline double Model::get_doubling_time( void )
  */
 inline void Model::set_condition( std::string condition )
 {
-  assert(_condition_indices.find(condition) != _condition_indices.end());
+  if (_condition_indices.find(condition) == _condition_indices.end())
+  {
+    throw std::invalid_argument("> Error: Unknown condition "+condition);
+  }
   _current_condition = condition;
-  int cond_index = _condition_indices[condition];
+  int cond_index     = _condition_indices[condition];
   for(int i = 0; i < (int)_condition_params.size(); i++)
   {
     std::string param = _condition_params[i];
@@ -351,24 +378,12 @@ inline void Model::initialize_f( void )
 }
 
 /**
- * \brief    Set f_trunc from f
+ * \brief    Calculate f from f_trunc
  * \details  --
  * \param    void
  * \return   \e void
  */
-inline void Model::set_f_trunc( void )
-{
-  gsl_vector_view f_view = gsl_vector_subvector(_f, 1, _nj-1);
-  gsl_vector_memcpy(_f_trunc, &f_view.vector);
-}
-
-/**
- * \brief    Set f from f_trunc
- * \details  --
- * \param    void
- * \return   \e void
- */
-inline void Model::set_f( void )
+inline void Model::calculate_f_from_f_trunc( void )
 {
   gsl_vector_view sM_view = gsl_vector_subvector(_sM, 1, _nj-1);
   double term = 0.0;
