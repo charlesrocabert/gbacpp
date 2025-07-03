@@ -10,10 +10,20 @@
 <a href="https://github.com/charlesrocabert/gbacpp/LICENSE.html"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 </p>
 
-
-
 -----------------
 
+<p align="justify">
+<strong>gbacpp</strong> was implemented to optimize cell growth models (CGMs), using gradient ascent in the growth balance analysis formalism (GBA, see <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
+This software is especially intended to solve genome-scale models having a convex solution space and a unique growth rate optimum (implying the absence of column linear dependencies in the stoichiometric matrix).
+</p>
+
+<p align="justify">
+The software relies on a CGM model, formatted following GBA formalism (a tutorial is available at https://cellgrowthsim.com/). It can easily be deployed on HPC architectures.
+</p>
+
+<p align="justify">
+To learn how to use <strong>gbacpp</strong>, first download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a>, and follow the <a href="installation_instructions">installation instructions</a> and the <a href="first_usage">first usage</a> guide. <strong>gbacpp</strong> software requires a CGM model formatted as a set of CSV files. To learn how to build this files, read the <a href="https://github.com/charlesrocabert/gbacpp/blob/master/INPUT_FILES_TUTORIAL.md">input files tutorial</a>.
+</p>
 
 # Installation instructions <a name="installation_instructions"></a>
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
