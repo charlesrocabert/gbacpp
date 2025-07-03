@@ -44,10 +44,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+          apt: libgsl-dev
+          choco: gsl
 
-    - name: Intall GSL
-      # GSL must be installed to compile this project
-      run: sudo apt-get install libgsl-dev
+    #- name: Intall GSL
+    #  # GSL must be installed to compile this project
+    #  run: sudo apt-get install libgsl-dev
     
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
