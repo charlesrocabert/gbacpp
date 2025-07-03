@@ -26,7 +26,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include "../cmake/Config.h"
+#include "Config.h"
 
 #include <iostream>
 #include <fstream>
