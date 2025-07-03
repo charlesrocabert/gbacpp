@@ -26,8 +26,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include "Config.h"
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -38,6 +36,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 
+#include "Config.h"
 #include "./lib/Macros.hpp"
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
