@@ -4,6 +4,9 @@
 *.Rapp.history
 clean_folders.sh
 xcode/**
+scripts/**
+hpc_download/**
+output/**
 
 # Compilation products
 output/**
