@@ -27,8 +27,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef __GBA_Evolution__Config__
-#define __GBA_Evolution__Config__
+#ifndef __gbacpp__Config__
+#define __gbacpp__Config__
 
 
 /*--------------------------*/
@@ -46,4 +46,4 @@
 #define VERSION_PATCH @VERSION_PATCH@
 
 
-#endif /* defined(__GBA_Evolution__Config__) */
+#endif /* defined(__gbacpp__Config__) */
