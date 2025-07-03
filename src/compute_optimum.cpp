@@ -2,13 +2,13 @@
  * \file      compute_gradient_ascent.cpp
  * \author    Charles Rocabert
  * \date      22-07-2024
- * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
+ * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     compute_gradient_ascent executable
  */
 
 /****************************************************************************
- * GBAcpp (Growth Balance Analysis for C++)
+ * gbacpp (growth balance analysis for C++)
  * Copyright © 2024-2025 Charles Rocabert
  * Web: https://github.com/charlesrocabert/gbacpp
  *
@@ -258,7 +258,7 @@ void printUsage( void )
   std::cout << " " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
 #endif
   std::cout << "                                                                     \n";
-  std::cout << " GBAcpp (Growth Balance Analysis for C++)                            \n";
+  std::cout << " gbacpp (growth balance analysis for C++)                            \n";
   std::cout << " Copyright © 2024-2025 Charles Rocabert                              \n";
   std::cout << " Web: https://github.com/charlesrocabert/gbacpp                      \n";
   std::cout << "                                                                     \n";
@@ -314,7 +314,7 @@ void printHeader( void )
   std::cout << " " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
 #endif
   std::cout << "                                                                     \n";
-  std::cout << " GBAcpp (Growth Balance Analysis for C++)                            \n";
+  std::cout << " gbacpp (growth balance analysis for C++)                           \n";
   std::cout << " Copyright © 2024-2025 Charles Rocabert                              \n";
   std::cout << " Web: https://github.com/charlesrocabert/gbacpp                      \n";
   std::cout << "                                                                     \n";

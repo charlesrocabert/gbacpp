@@ -2,13 +2,13 @@
  * \file      Macros.hpp
  * \author    Charles Rocabert
  * \date      12-08-2024
- * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
+ * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     Definition of macro-variables
  */
 
 /************************************************************************
- * GBAcpp (Growth Balance Analysis for C++)
+ * gbacpp (growth balance analysis for C++)
  * Copyright © 2024-2025 Charles Rocabert
  * Web: https://github.com/charlesrocabert/gbacpp
  *
@@ -26,8 +26,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ************************************************************************/
 
-#ifndef __GBAcpp__Macros__
-#define __GBAcpp__Macros__
+#ifndef __gbacpp__Macros__
+#define __gbacpp__Macros__
+
 
 #define DECREASING_DT_FACTOR 5.0    /*!< Factor dividing dt                                      */
 #define INCREASING_DT_FACTOR 2.0    /*!< Factor multiplying dt                                   */
@@ -37,5 +38,5 @@
 #define REGULATION_SIGMA     10.0   /*!< Metabolite Gaussian kernel function width               */
 
 
-#endif /* defined(__GBAcpp__Macros__) */
+#endif /* defined(__gbacpp__Macros__) */
 

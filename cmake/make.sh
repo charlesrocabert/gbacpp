@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #***************************************************************************
-# GBAcpp (Growth Balance Analysis for C++)
+# gbacpp (growth balance analysis for C++)
 # Copyright © 2024-2025 Charles Rocabert
 # Web: https://github.com/charlesrocabert/gbacpp
 #

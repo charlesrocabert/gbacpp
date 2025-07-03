@@ -2,13 +2,13 @@
  * \file      Enums.hpp
  * \author    Charles Rocabert
  * \date      21-08-2024
- * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
+ * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     Definition of enumerations
  */
 
 /****************************************************************************
- * GBAcpp (Growth Balance Analysis for C++)
+ * gbacpp (growth balance analysis for C++)
  * Copyright © 2024-2025 Charles Rocabert
  * Web: https://github.com/charlesrocabert/gbacpp
  *
@@ -26,8 +26,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef __GBAcpp__Enums__
-#define __GBAcpp__Enums__
+#ifndef __gbacpp__Enums__
+#define __gbacpp__Enums__
 
 
 /**
@@ -45,5 +45,5 @@ enum rtype
 };
 
 
-#endif /* defined(__GBAcpp__Enums__) */
+#endif /* defined(__gbacpp__Enums__) */
 

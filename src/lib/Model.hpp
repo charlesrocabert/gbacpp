@@ -2,13 +2,13 @@
  * \file      Model.hpp
  * \author    Charles Rocabert
  * \date      22-07-2024
- * \copyright GBAcpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
+ * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
  * \brief     Model class declaration
  */
 
 /****************************************************************************
- * GBAcpp (Growth Balance Analysis for C++)
+ * gbacpp (growth balance analysis for C++)
  * Copyright © 2024-2025 Charles Rocabert
  * Web: https://github.com/charlesrocabert/gbacpp
  *
@@ -27,8 +27,8 @@
  ****************************************************************************/
 
 
-#ifndef __GBAcpp__Model__
-#define __GBAcpp__Model__
+#ifndef __gbacpp__Model__
+#define __gbacpp__Model__
 
 #include <iostream>
 #include <fstream>
@@ -395,4 +395,4 @@ inline void Model::calculate_f_from_f_trunc( void )
 }
 
 
-#endif /* defined(__GBAcpp_Model__) */
+#endif /* defined(__gbacpp__Model__) */
