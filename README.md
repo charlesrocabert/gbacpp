@@ -12,9 +12,49 @@
 
 -----------------
 
-<p align="center" style="font-size: 2.5em;">
-Documentation coming soon ...
-</p>
+
+# Installation instructions <a name="installation_instructions"></a>
+Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
+
+## Supported platforms <a name="supported_platforms"></a>
+<strong>gbacpp</strong> software has been successfully tested on Unix/Linux and macOS platforms.
+
+## Dependencies <a name="dependencies"></a>
+* A C++ compiler (GCC, LLVM, ...),
+* CMake (command line version),
+* GSL for C/C++,
+* CBLAS for C/C++.
+
+## Software compilation <a name="software_compilation"></a>
+
+### User mode
+To compile <strong>gbacpp</strong>, run the following instructions on the command line:
+
+    cd cmake/
+
+and
+
+    bash make.sh
+
+### Debug mode
+To compile the software in DEBUG mode, use <code>make_debug.sh</code> script instead of <code>make.sh</code>:
+
+    bash make_debug.sh
+
+This mode should only be used for test or development phases.
+
+### Executable files emplacement
+Binary executable files are in <code>build/bin</code> folder.
+
+### Delete compiled files
+To delete compiled files and binary executables, run:
+
+    bash make_clean.sh
+    
+# First usage <a name="first_usage"></a>
+Once <strong>gbacpp</strong> has been compiled, follow the next steps for a first usage of the software.
+
+TO DO.
 
 ## Copyright <a name="copyright"></a>
 Copyright © 2024-2025 Charles Rocabert. All rights reserved.
