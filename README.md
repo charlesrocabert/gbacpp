@@ -14,7 +14,7 @@
 
 <p align="justify">
 <strong>gbacpp</strong> was implemented to optimize cell growth models (CGMs), using gradient ascent in the growth balance analysis formalism (GBA, see <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
-This software is especially intended to solve genome-scale models having a convex solution space and a unique growth rate optimum (implying the absence of column linear dependencies in the stoichiometric matrix).
+This software is especially intended to solve genome-scale models having a convex solution space with a single optimum, implying the absence of linear dependencies among metabolic reactions in the model.
 </p>
 
 <p align="justify">
