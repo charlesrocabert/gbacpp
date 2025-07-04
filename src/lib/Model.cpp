@@ -1379,22 +1379,24 @@ void Model::load_conditions( void )
 void Model::load_constant_reactions( void )
 {
   _constant_reactions.clear();
-  assert(is_file_exist(_model_path+"/"+_model_name+"/constant_reactions.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/constant_reactions.csv", std::ios::in);
-  assert(file);
-  std::string line;
-  std::string reaction_id;
-  std::string str_value;
-  getline(file, line);
-  while(getline(file, line))
+  if (is_file_exist(_model_path+"/"+_model_name+"/constant_reactions.csv"))
   {
-    std::stringstream flux(line.c_str());
-    getline(flux, reaction_id, ';');
-    getline(flux, str_value, ';');
-    assert(_constant_reactions.find(reaction_id) == _constant_reactions.end());
-    _constant_reactions[reaction_id] = stod(str_value);
+    std::ifstream file(_model_path+"/"+_model_name+"/constant_reactions.csv", std::ios::in);
+    assert(file);
+    std::string line;
+    std::string reaction_id;
+    std::string str_value;
+    getline(file, line);
+    while(getline(file, line))
+    {
+      std::stringstream flux(line.c_str());
+      getline(flux, reaction_id, ';');
+      getline(flux, str_value, ';');
+      assert(_constant_reactions.find(reaction_id) == _constant_reactions.end());
+      _constant_reactions[reaction_id] = stod(str_value);
+    }
+    file.close();
   }
-  file.close();
 }
 
 /**
