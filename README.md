@@ -18,7 +18,21 @@
 
 -----------------
 
-## Roadmap
+## Table of contents
+- [Roadmap](#roadmap)
+- [Installation instructions](#installation_instructions)
+  - [Supported platforms](#supported_platforms)
+  - [Dependencies](#dependencies)
+  - [Software compilation](#software_compilation)
+- [First usage](#first_usage)
+  - [Ready-to-use examples](#examples)
+  - [Run a gradient ascent](#gradient_ascent)
+  - [Gradient ascent parameters](#gradient_ascent_parameters)
+- [Input files tutorial](#input_files_tutorial)
+- [Copyright](#copyright)
+- [License](#license)
+
+## Roadmap <a name="roadmap"></a>
 
 - [x] Gradient ascent (best for full column-rank CGMs),
 - [ ] MCMC algorithm,
@@ -89,12 +103,17 @@ The command line parameters are described below. The description is also availab
 
     ./build/bin/compute_optimum -h
 
-#### Parameters:
+### Gradient ascent parameters <a name="gradient_ascent_parameters"></a>
+
 - <code>-h</code>, <code>--help</code>: Print the help, then exit,
 - <code>-v</code>, <code>--version</code>: Print the current version, then exit,
-- <code>-path</code>, <code>--model-path</code>: Specify the path of the CGM to be loaded (<strong>MANDATORY</strong>),
-- <code>-name</code>, <code>--model-name</code> (MANDATORY): Specify the name of the CGM to be loaded (<strong>MANDATORY</strong>),
-- <code>-condition</code>, <code>--condition</code> (MANDATORY): Specify the external condition. If <code>all</code> is selected, all conditions are tested (<strong>MANDATORY</strong>),
+
+#### • Mandatory parameters
+- <code>-path</code>, <code>--model-path</code>: Specify the path of the CGM to be loaded,
+- <code>-name</code>, <code>--model-name</code>: Specify the name of the CGM to be loaded,
+- <code>-condition</code>, <code>--condition</code>: Specify the external condition. If <code>all</code> is selected, all conditions are applied.
+
+#### • Optional parameters
 - <code>-print</code>, <code>--print-optimum</code>: Indicates if the optimum should be printed in the standard output. This option is useful to pass the result to another program,
 - <code>-write</code>, <code>--write-trajectory</code>: Indicates if the trajectory should be written as output files. Tracking the optimization trajectory can be useful during tests,
 - <code>-output</code>, <code>--output-path</code>: Specify the path of output files,
@@ -102,6 +121,10 @@ The command line parameters are described below. The description is also availab
 - <code>-stable-count</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged mu ($10,000$ by default),
 - <code>-maxt</code>, <code>--max-time</code>: Specify the maximal trajectory time ($100,000$ by default),
 - <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
+
+## Input files tutorial <a name="input_files_tutorial"></a>
+
+TO DO.
 
 ## Copyright <a name="copyright"></a>
 Copyright © 2024-2025 Charles Rocabert. All rights reserved.
