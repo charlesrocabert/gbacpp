@@ -529,7 +529,6 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
   int    nb_successes        = 0;
-  int    inconsistent_count  = 0;
   write_trajectory_output_files(condition, nb_iterations, t, dt);
   while (t < max_t)
   {
@@ -550,9 +549,8 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     {
       gsl_vector_memcpy(previous_f_trunc, _f_trunc);
       nb_successes++;
-      inconsistent_count = 0;
-      t                  = t+dt;
       dt_counter++;
+      t = t+dt;
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         if (verbose)
@@ -585,7 +583,6 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       calculate_f_from_f_trunc();
       calculate();
       assert(_consistent);
-      inconsistent_count++;
       dt         /= DECREASING_DT_FACTOR;
       dt_counter  = 0;
     }
