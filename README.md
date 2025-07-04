@@ -10,36 +10,49 @@
 <a href="https://github.com/charlesrocabert/gbacpp/LICENSE.html"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 </p>
 
+<p align="center">
+  <a href="https://www.cs.hhu.de/en/research-groups/computational-cell-biology" target="_blank"><img src="https://github.com/user-attachments/assets/4e4b3b79-0d6a-4328-9c3f-3497401887e4" width=150 /></a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.hhu.de/en/" target="_blank"><img src="https://github.com/user-attachments/assets/7db5c8f7-e37a-415f-88c3-1b06a49e1f28" width=150 /></a>
+</p>
+
 -----------------
 
-<p align="justify">
-<strong>gbacpp</strong> was implemented to optimize cell growth models (CGMs), using gradient ascent in the growth balance analysis formalism (GBA, see <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
-This software is especially intended to solve genome-scale models having a convex solution space with a single optimum, implying the absence of linear dependencies among metabolic reactions in the model.
-</p>
+## Table of contents
+- [Roadmap](#roadmap)
+- [Installation instructions](#installation_instructions)
+  - [Supported platforms](#supported_platforms)
+  - [Dependencies](#dependencies)
+  - [Software compilation](#software_compilation)
+- [First usage](#first_usage)
+  - [Ready-to-use examples](#examples)
+  - [Run a gradient ascent](#gradient_ascent)
+  - [Gradient ascent parameters](#gradient_ascent_parameters)
+- [Input files tutorial](#input_files_tutorial)
+- [Copyright](#copyright)
+- [License](#license)
 
-<p align="justify">
-The software relies on a CGM model, formatted following GBA formalism (a tutorial is available at https://cellgrowthsim.com/). It can easily be deployed on HPC architectures.
-</p>
+## Roadmap <a name="roadmap"></a>
 
-<p align="justify">
-To learn how to use <strong>gbacpp</strong>, first download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a>, and follow the <a href="installation_instructions">installation instructions</a> and the <a href="first_usage">first usage</a> guide. <strong>gbacpp</strong> software requires a CGM model formatted as a set of CSV files. To learn how to build this files, read the <a href="https://github.com/charlesrocabert/gbacpp/blob/master/INPUT_FILES_TUTORIAL.md">input files tutorial</a>.
-</p>
+- [x] Gradient ascent (best for full column-rank CGMs),
+- [ ] MCMC algorithm,
+- [ ] Forward-in-time population level simulations,
+- [ ] Lineage tracking.
 
-# Installation instructions <a name="installation_instructions"></a>
+## Installation instructions <a name="installation_instructions"></a>
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
 
-## Supported platforms <a name="supported_platforms"></a>
-<strong>gbacpp</strong> software has been successfully tested on Unix/Linux and macOS platforms.
+### Supported platforms <a name="supported_platforms"></a>
+<strong>gbacpp</strong> software has been successfully tested on latest Unix/Linux and macOS platforms.
 
-## Dependencies <a name="dependencies"></a>
-* A C++ compiler (GCC, LLVM, ...),
-* CMake (command line version),
-* GSL for C/C++,
-* CBLAS for C/C++.
+### Dependencies <a name="dependencies"></a>
+* A C++ compiler (GCC, LLVM, ...; C++17 required),
+* CMake $\geq$ 3.5 (command line version),
+* GSL $\geq$ 2.8 (https://www.gnu.org/software/gsl/).
 
-## Software compilation <a name="software_compilation"></a>
+### Software compilation <a name="software_compilation"></a>
 
-### User mode
+#### • User mode
 To compile <strong>gbacpp</strong>, run the following instructions on the command line:
 
     cd cmake/
@@ -48,23 +61,68 @@ and
 
     bash make.sh
 
-### Debug mode
+#### • Debug mode
 To compile the software in DEBUG mode, use <code>make_debug.sh</code> script instead of <code>make.sh</code>:
 
     bash make_debug.sh
 
 This mode should only be used for test or development phases.
 
-### Executable files emplacement
+#### • Executable files emplacement
 Binary executable files are in <code>build/bin</code> folder.
 
-### Delete compiled files
-To delete compiled files and binary executables, run:
+#### • Delete compiled files
+To clean compiled files and binary executables, run:
 
     bash make_clean.sh
-    
-# First usage <a name="first_usage"></a>
-Once <strong>gbacpp</strong> has been compiled, follow the next steps for a first usage of the software.
+
+## First usage <a name="first_usage"></a>
+Once MoRIS has been installed, follow the next steps for a first usage of the software.
+
+### Ready-to-use examples <a name="examples"></a>
+Ready-to-use examples are available in the folder <code>examples</code> (place yourself in the folder <code>examples</code> using the <code>cd</code> command):
+
+• <code>model_A_condition_1.sh</code>: This script will run a single gradient ascent on model A in external condition 1 (2 reactions, 2 metabolites). You can execute it using the following command line:
+
+    bash model_A_condition_1.sh
+
+At the end of the optimization, CSV files are written in the folder <code>examples/output</code>. You can edit the parameter values at will to test the behaviour of the gradient ascent. See below for a full description of the parameters.
+
+• <code>model_B_all_conditions.sh</code>: This script will calculate the optimal growth rate on model B for all external conditions. You can execute it using the following command line:
+
+    bash model_B_all_conditions.sh
+
+All the optimums are written in the folder <code>examples/output</code>.
+
+### Run a gradient ascent <a name="gradient_ascent"></a>
+To run a gradient ascent optimization,execute the following command line:
+
+    ./build/bin/compute_optimum <parameters>
+
+The command line parameters are described below. The description is also available by executing the following command line in a terminal:
+
+    ./build/bin/compute_optimum -h
+
+### Gradient ascent parameters <a name="gradient_ascent_parameters"></a>
+
+- <code>-h</code>, <code>--help</code>: Print the help, then exit,
+- <code>-v</code>, <code>--version</code>: Print the current version, then exit,
+
+#### • Mandatory parameters
+- <code>-path</code>, <code>--model-path</code>: Specify the path of the CGM to be loaded,
+- <code>-name</code>, <code>--model-name</code>: Specify the name of the CGM to be loaded,
+- <code>-condition</code>, <code>--condition</code>: Specify the external condition. If <code>all</code> is selected, all conditions are applied.
+
+#### • Optional parameters
+- <code>-print</code>, <code>--print-optimum</code>: Indicates if the optimum should be printed in the standard output. This option is useful to pass the result to another program,
+- <code>-write</code>, <code>--write-trajectory</code>: Indicates if the trajectory should be written as output files. Tracking the optimization trajectory can be useful during tests,
+- <code>-output</code>, <code>--output-path</code>: Specify the path of output files,
+- <code>-tol</code>, <code>--tolerance</code>: Specify the tolerance value ($10^{-10}$ by default),
+- <code>-stable-count</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged mu ($10,000$ by default),
+- <code>-maxt</code>, <code>--max-time</code>: Specify the maximal trajectory time ($100,000$ by default),
+- <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
+
+## Input files tutorial <a name="input_files_tutorial"></a>
 
 TO DO.
 
