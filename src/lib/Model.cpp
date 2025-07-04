@@ -863,19 +863,17 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   /*~~~~~~~~~~~~~~~~~~~~*/
   /* 2) State output    */
   /*~~~~~~~~~~~~~~~~~~~~*/
-  std::cout << "\ncell state" << std::endl;
-  std::cout << "condition\tmu\tdoubling_time\tdensity\tconsistent\tconverged\trun_time" << std::endl;
-  std::cout << condition << "\t" << _mu << "\t" << _doubling_time << "\t" << _density << "\t" << _consistent << "\t" << converged << "\t" << runtime << "\n";
+  std::cout << "mu\tdoubling_time\tdensity\tconsistent\tconverged\trun_time" << std::endl;
+  std::cout << _mu << "\t" << _doubling_time << "\t" << _density << "\t" << _consistent << "\t" << converged << "\t" << runtime << "\n";
   /*~~~~~~~~~~~~~~~~~~~~*/
   /* 3) f vector output */
   /*~~~~~~~~~~~~~~~~~~~~*/
-  std::cout << "\nf vector" << std::endl;
-  std::cout << "condition";
+  std::cout << "variable";
   for (int j = 0; j < _nj; j++)
   {
     std::cout << "\t" << _reaction_ids[j];
   }
-  std::cout << std::endl << condition;
+  std::cout << std::endl << "f";
   for (int j = 0; j < _nj; j++)
   {
     std::cout << "\t" << gsl_vector_get(_f, j);
@@ -884,13 +882,12 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   /*~~~~~~~~~~~~~~~~~~~~*/
   /* 4) v vector output */
   /*~~~~~~~~~~~~~~~~~~~~*/
-  std::cout << "\nv vector" << std::endl;
-  std::cout << "condition";
+  std::cout << "variable";
   for (int j = 0; j < _nj; j++)
   {
     std::cout << "\t" << _reaction_ids[j];
   }
-  std::cout << std::endl << condition;
+  std::cout << std::endl << "v";
   for (int j = 0; j < _nj; j++)
   {
     std::cout << "\t" << gsl_vector_get(_v, j);
@@ -899,13 +896,12 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   /*~~~~~~~~~~~~~~~~~~~~*/
   /* 5) p vector output */
   /*~~~~~~~~~~~~~~~~~~~~*/
-  std::cout << "\np vector" << std::endl;
-  std::cout << "condition";
+  std::cout << "variable";
   for (int j = 0; j < _nj; j++)
   {
     std::cout << "\t" << _reaction_ids[j];
   }
-  std::cout << std::endl << condition;
+  std::cout << std::endl << "p";
   for (int j = 0; j < _nj; j++)
   {
     std::cout << "\t" << gsl_vector_get(_p, j);
@@ -914,13 +910,12 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   /*~~~~~~~~~~~~~~~~~~~~*/
   /* 6) b vector output */
   /*~~~~~~~~~~~~~~~~~~~~*/
-  std::cout << "\nb vector" << std::endl;
-  std::cout << "condition";
+  std::cout << "variable";
   for (int j = 0; j < _nc; j++)
   {
     std::cout << "\t" << _c_ids[j];
   }
-  std::cout << std::endl << condition;
+  std::cout << std::endl << "b";
   for (int j = 0; j < _nc; j++)
   {
     std::cout << "\t" << gsl_vector_get(_b, j);
@@ -929,13 +924,12 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   /*~~~~~~~~~~~~~~~~~~~~*/
   /* 7) c vector output */
   /*~~~~~~~~~~~~~~~~~~~~*/
-  std::cout << "\nc vector" << std::endl;
-  std::cout << "condition";
+  std::cout << "variable";
   for (int j = 0; j < _nc; j++)
   {
     std::cout << "\t" << _c_ids[j];
   }
-  std::cout << std::endl << condition;
+  std::cout << std::endl << "c";
   for (int j = 0; j < _nc; j++)
   {
     std::cout << "\t" << gsl_vector_get(_c, j);
