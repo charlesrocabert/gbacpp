@@ -7,10 +7,9 @@ xcode/**
 scripts/**
 hpc_download/**
 output/**
+examples/output/**
 
 # Compilation products
-output/**
-hpc_download/**
 build/**
 cmake/CmakeFiles/
 cmake/CMakeCache.txt
@@ -50,3 +49,4 @@ cmake/Config.h
 *.exe
 *.out
 *.app
+

@@ -95,7 +95,6 @@ add_library(
   src/lib/Model.hpp
   src/lib/Model.cpp
 )
-target_link_libraries(gbacpp gsl gslcblas)
 target_link_libraries(${OPTIMUM_EXECUTABLE} gbacpp)
 
 
