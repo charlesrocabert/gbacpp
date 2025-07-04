@@ -1,10 +1,10 @@
 /**
- * \file      compute_gradient_ascent.cpp
+ * \file      compute_optimum.cpp
  * \author    Charles Rocabert
  * \date      22-07-2024
  * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
- * \brief     compute_gradient_ascent executable
+ * \brief     compute_optimum executable
  */
 
 /****************************************************************************
@@ -267,8 +267,8 @@ void printUsage( void )
   std::cout << " certain conditions; See the GNU General Public License for details  \n";
   std::cout << "*********************************************************************\n";
   std::cout << "\n";
-  std::cout << "Usage: compute_gradient_ascent -h or --help\n";
-  std::cout << "   or: compute_gradient_ascent [options]\n";
+  std::cout << "Usage: compute_optimum -h or --help\n";
+  std::cout << "   or: compute_optimum [options]\n";
   std::cout << "Options are:\n";
   std::cout << "  -h, --help\n";
   std::cout << "        print this help, then exit\n";
