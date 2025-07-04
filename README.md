@@ -34,10 +34,12 @@
 
 ## Roadmap <a name="roadmap"></a>
 
-- [x] Gradient ascent (best for full column-rank CGMs),
-- [ ] MCMC algorithm,
-- [ ] Forward-in-time population level simulations,
-- [ ] Lineage tracking.
+| Task | Status |
+|---|---|
+| Gradient ascent (best for full column-rank CGMs) | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Done-green.svg"/></a> |
+| MCMC algorithm | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
+| Forward-in-time population level simulations | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
+| Lineage tracking | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
 
 ## Installation instructions <a name="installation_instructions"></a>
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
