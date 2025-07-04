@@ -114,7 +114,7 @@ The command line parameters are described below. The description is also availab
 - <code>-condition</code>, <code>--condition</code>: Specify the external condition. If <code>all</code> is selected, all conditions are applied.
 
 #### • Optional parameters
-- <code>-print</code>, <code>--print-optimum</code>: Indicates if the optimum should be printed in the standard output. This option is useful to pass the result to another program,
+- <code>-print</code>, <code>--print-optimum</code>: Indicates if the optimum should be printed in the standard output. This option is useful to pass the result to another program (<code>-verbose</code> option should not be used),
 - <code>-write</code>, <code>--write-trajectory</code>: Indicates if the trajectory should be written as output files. Tracking the optimization trajectory can be useful during tests,
 - <code>-output</code>, <code>--output-path</code>: Specify the path of output files,
 - <code>-tol</code>, <code>--tolerance</code>: Specify the tolerance value ($10^{-10}$ by default),
