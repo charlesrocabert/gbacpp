@@ -19,5 +19,5 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***********************************************************************
 
-../build/bin/compute_optimum -path ../csv_models -name A -condition 1 -output ./output -verbose
+../build/bin/compute_optimum -path ./models -name A -condition 1 -output ./output -verbose
 
