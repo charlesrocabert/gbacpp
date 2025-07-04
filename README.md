@@ -38,7 +38,7 @@ Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest"
 
 ### Software compilation <a name="software_compilation"></a>
 
-#### User mode
+#### • User mode
 To compile <strong>gbacpp</strong>, run the following instructions on the command line:
 
     cd cmake/
@@ -47,25 +47,61 @@ and
 
     bash make.sh
 
-#### Debug mode
+#### • Debug mode
 To compile the software in DEBUG mode, use <code>make_debug.sh</code> script instead of <code>make.sh</code>:
 
     bash make_debug.sh
 
 This mode should only be used for test or development phases.
 
-#### Executable files emplacement
+#### • Executable files emplacement
 Binary executable files are in <code>build/bin</code> folder.
 
-#### Delete compiled files
+#### • Delete compiled files
 To clean compiled files and binary executables, run:
 
     bash make_clean.sh
-    
-## First usage <a name="first_usage"></a>
-Once <strong>gbacpp</strong> has been compiled, follow the next steps for a first usage of the software.
 
-TO DO.
+## First usage <a name="first_usage"></a>
+Once MoRIS has been installed, follow the next steps for a first usage of the software.
+
+### Ready-to-use examples <a name="examples"></a>
+Ready-to-use examples are available in the folder <code>examples</code> (place yourself in the folder <code>examples</code> using the <code>cd</code> command):
+
+• <code>model_A_condition_1.sh</code>: This script will run a single gradient ascent on model A in external condition 1 (2 reactions, 2 metabolites). You can execute it using the following command line:
+
+    bash model_A_condition_1.sh
+
+At the end of the optimization, CSV files are written in the folder <code>examples/output</code>. You can edit the parameter values at will to test the behaviour of the gradient ascent. See below for a full description of the parameters.
+
+• <code>model_B_all_conditions.sh</code>: This script will calculate the optimal growth rate on model B for all external conditions. You can execute it using the following command line:
+
+    bash model_B_all_conditions.sh
+
+All the optimums are written in the folder <code>examples/output</code>.
+
+### Run a gradient ascent <a name="gradient_ascent"></a>
+To run a gradient ascent optimization,execute the following command line:
+
+    ./build/bin/compute_optimum <parameters>
+
+The command line parameters are described below. The description is also available by executing the following command line in a terminal:
+
+    ./build/bin/compute_optimum -h
+
+#### Parameters:
+- <code>-h</code>, <code>--help</code>: Print the help, then exit,
+- <code>-v</code>, <code>--version</code>: Print the current version, then exit,
+- <code>-path</code>, <code>--model-path</code>: Specify the path of the CGM to be loaded (<strong>MANDATORY</strong>),
+- <code>-name</code>, <code>--model-name</code> (MANDATORY): Specify the name of the CGM to be loaded (<strong>MANDATORY</strong>),
+- <code>-condition</code>, <code>--condition</code> (MANDATORY): Specify the external condition. If <code>all</code> is selected, all conditions are tested (<strong>MANDATORY</strong>),
+- <code>-print</code>, <code>--print-optimum</code>: Indicates if the optimum should be printed in the standard output. This option is useful to pass the result to another program,
+- <code>-write</code>, <code>--write-trajectory</code>: Indicates if the trajectory should be written as output files. Tracking the optimization trajectory can be useful during tests,
+- <code>-output</code>, <code>--output-path</code>: Specify the path of output files,
+- <code>-tol</code>, <code>--tolerance</code>: Specify the tolerance value ($10^{-10}$ by default),
+- <code>-stable-count</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged mu ($10,000$ by default),
+- <code>-maxt</code>, <code>--max-time</code>: Specify the maximal trajectory time ($100,000$ by default),
+- <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 
 ## Copyright <a name="copyright"></a>
 Copyright © 2024-2025 Charles Rocabert. All rights reserved.
