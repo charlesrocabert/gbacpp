@@ -10,6 +10,10 @@
 <a href="https://github.com/charlesrocabert/gbacpp/LICENSE.html"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 </p>
 
+<p align="center">
+  <a href="https://www.cs.hhu.de/en/research-groups/computational-cell-biology" target="_blank"><img src="https://github.com/user-attachments/assets/4e4b3b79-0d6a-4328-9c3f-3497401887e4" width=150 /></a>
+</p>
+
 -----------------
 
 ## Roadmap
