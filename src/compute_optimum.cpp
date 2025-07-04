@@ -71,13 +71,21 @@ int main(int argc, char const** argv)
   readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_trajectory, output_path, tol, stable_count, max_time, verbose);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Load the model                                 */
+  /* 2) Print the header in verbose mode               */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  if (verbose)
+  {
+    printHeader();
+  }
+  
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Load the model                                 */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   Model* model = new Model(model_path, model_name);
   model->set_tol(tol);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Run the calculation depending on the condition */
+  /* 4) Run the calculation depending on the condition */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   if (condition != "all")// && condition != "random")
   {
@@ -96,7 +104,7 @@ int main(int argc, char const** argv)
   */
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Free memory and exit                           */
+  /* 5) Free memory and exit                           */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   delete model;
   model = NULL;
