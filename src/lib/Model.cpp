@@ -355,9 +355,13 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
   {
     print_to_standard_ouput(condition, converged, runtime);
   }
-  if (verbose)
+  if (verbose && converged)
   {
-    std::cout << "> Elapsed time for condition " << condition << ": " << runtime << " seconds" << std::endl;
+    std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
+  }
+  else if (verbose && !converged)
+  {
+    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
   }
 }
 
@@ -387,9 +391,13 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_traject
     {
       print_to_standard_ouput(condition, converged, runtime);
     }
-    if (verbose)
+    if (verbose && converged)
     {
-      std::cout << "> Elapsed time for condition " << condition << ": " << runtime << " seconds" << std::endl;
+      std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
+    }
+    else if (verbose && !converged)
+    {
+      std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
     }
   }
   close_optimum_ouput_files();
@@ -501,10 +509,12 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   set_condition(condition);
   initialize_f();
   calculate();
+  /*
   if (verbose)
   {
     std::cout << "> Initial growth rate = " << _mu << "\n";
   }
+   */
   if (!_consistent)
   {
     throw std::runtime_error("> Error: The initial solution f0 is not consistent");
@@ -591,18 +601,10 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   }
   if (constant_mu_counter >= stable_count)
   {
-    if (verbose)
-    {
-      std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", nb iterations=" << nb_iterations << ")" << std::endl;
-    }
     return(true);
   }
   else
   {
-    if (verbose)
-    {
-      std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (nb iterations=" << nb_iterations << ")" << std::endl;
-    }
     return(false);
   }
 }

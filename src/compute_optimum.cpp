@@ -65,7 +65,7 @@ int main(int argc, char const** argv)
   bool        write_trajectory = false;
   std::string output_path      = "";
   double      tol              = 1e-10;
-  int         stable_count     = 1000;
+  int         stable_count     = 10000;
   double      max_time         = 100000.0;
   bool        verbose          = false;
   readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_trajectory, output_path, tol, stable_count, max_time, verbose);
