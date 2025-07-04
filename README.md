@@ -14,25 +14,21 @@
 
 # Roadmap
 
-- [x] Gradient ascent (best for full column-rank CGMs<sup>*</sup>),
+- [x] Gradient ascent (best for full column-rank CGMs),
 - [ ] MCMC algorithm,
 - [ ] Forward-in-time population level simulations,
-- [ ] Lineage tracking. 
-
-<sup>*</sup>Cell growth model
-<sup>*</sup>Markov chain Monte Carlo
+- [ ] Lineage tracking.
 
 # Installation instructions <a name="installation_instructions"></a>
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
 
 ## Supported platforms <a name="supported_platforms"></a>
-<strong>gbacpp</strong> software has been successfully tested on Unix/Linux and macOS platforms.
+<strong>gbacpp</strong> software has been successfully tested on latest Unix/Linux and macOS platforms.
 
 ## Dependencies <a name="dependencies"></a>
-* A C++ compiler (GCC, LLVM, ...),
-* CMake (command line version),
-* GSL for C/C++,
-* CBLAS for C/C++.
+* A C++ compiler (GCC, LLVM, ...; C++17 required),
+* CMake $\geq$ 3.5 (command line version),
+* GSL $\geq$ 2.8 (https://www.gnu.org/software/gsl/).
 
 ## Software compilation <a name="software_compilation"></a>
 
