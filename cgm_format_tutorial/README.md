@@ -78,6 +78,7 @@ The mandatory file `M.csv` contains the mass fraction matrix $\mathbf{M}$, which
 - The last row corresponds to total protein amount (`Protein`).
 - The last column corresponds to the ribosome reaction (`Ribosome`), producing the total protein amount.
 - All metabolites starting with `x_` are external metabolites with constant concentration.
+- :warning: Stoichiometric coefficients must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>).
 
 For example, the toy model B has the following mass fraction matrix:
 
@@ -89,7 +90,23 @@ For example, the toy model B has the following mass fraction matrix:
 | **Protein** |     0    |     0    |       1      |
 
 ### 2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="kcat"></a>
+
+The mandatory file `kcat.csv` contains the vectors of forward (`kcat_f`) and backward (`kcat_b`) turnover rates $k_\text{cat}$:
+- For forward irreversible reactions, backward values will be zero.
+- :warning: $k_\text{cat}$ must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>)
+
+For example, the toy model B has the following $k_\text{cat}$ vectors:
+
+|            | **rxn1** | **rnx2** | **Ribosome** |
+|:----------:|:--------:|:--------:|:------------:|
+| **kcat_f** |    150   |    50    |     4.55     |
+| **kcat_b** |     0    |     0    |       0      |
+
 ### 2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="K"></a>
+
+This file contains the matrix of forward Michaelis constants $K_\text{M}$. This file is mandatory for the minimal kinetics (<em>i.e.</em> irreversible forward Michaelis-Menten kinetics).
+One can add a second matrix for backward Michaelis constants (`KM_backward.csv`) if backward or reversible reactions are present in the model.
+
 ### 2.4) External conditions matrix (<code>conditions.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="conditions"></a>
 ### 2.4) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="f0"></a>
 ### 2.5) Activation constants matrix $\mathbf{K_A}$ (<code>KA.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KA"></a>
