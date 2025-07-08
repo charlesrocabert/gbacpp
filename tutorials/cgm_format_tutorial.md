@@ -93,7 +93,7 @@ The file `M.csv` contains the mass fraction matrix $\mathbf{M}$, which is the pe
 - The last row corresponds to total protein amount (`Protein`).
 - The last column corresponds to the ribosome reaction (`Ribosome`), producing the total protein amount.
 - All metabolites starting with `x_` are external metabolites with constant concentration.
-- :warning: Stoichiometric coefficients must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>).
+- :warning: Stoichiometric coefficients must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
 For example, the toy model B has the following mass fraction matrix:
 
@@ -110,7 +110,7 @@ The file `kcat.csv` contains the vectors of forward (`kcat_f`) and backward (`kc
 - Reactions are in column.
 - `kcat_f` and `kcat_b` vectors are in row.
 - For forward irreversible reactions, backward values will be zero.
-- :warning: $k_\text{cat}$ values must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>).
+- :warning: $k_\text{cat}$ values must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
 For example, the toy model B has the following $k_\text{cat}$ vectors:
 
@@ -124,7 +124,7 @@ For example, the toy model B has the following $k_\text{cat}$ vectors:
 The file `K.csv` contains the matrix of Michaelis constants $\mathbf{K}$ (usually, in g.L<sup>-1</sup>). This file is mandatory to have minimal kinetics:
 - Metabolites are in row, reactions in columns (as in the matrix $\mathbf{M}$).
 - The matrix maps Michaelis constants from reactions to substrates and products, therefore including forward and backward $K_\text{M}$ values.
-- :warning: $K_\text{M}$ values must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>).
+- :warning: $K_\text{M}$ values must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
 For example, the toy model B has the following Michaelis constant matrix:
 
