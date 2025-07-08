@@ -31,12 +31,12 @@ The CGM is organized as a set of CSV files located in a folder having the name o
            └── protein_contributions.csv
 
 Some files are mandatory to set a minimal CGM. These are:
-- M.csv
-- kcat.csv
-- K.csv
-- KA.csv
-- conditions.csv
-- f0.csv
+- `M.csv`
+- `kcat.csv`
+- `K.csv`
+- `KA.csv`
+- `conditions.csv`
+- `f0.csv`
 
 Other files are optional.
 
