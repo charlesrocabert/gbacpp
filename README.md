@@ -29,7 +29,7 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 <p align="justify">
 :heavy_check_mark: Note that CGMs must comply to a standardized format. A tutorial is available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/cgm_format_tutorial.md" target="_blank">CGM format tutorial</a>.
 
-:heavy_check_mark: When building a CGM, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/tutorials/cgm_format_tutorial.md" target="_blank">Unit conversion tutorial</a>.
+:heavy_check_mark: When building a CGM, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">Unit conversion tutorial</a>.
 
 
 :heavy_check_mark: <strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
