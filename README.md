@@ -26,7 +26,7 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 </p>
 
 <p align="justify">
-⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section <a href="#cgm_files_tutorial">CGM files tutorial</a>
+⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section <a href="#cgm_files_tutorial">CGM files tutorial</a>.
 </p>
 
 <p align="justify">
