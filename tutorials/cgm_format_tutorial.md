@@ -48,7 +48,6 @@ Some files are mandatory to set a minimal CGM. These are:
 - `M.csv`
 - `kcat.csv`
 - `K.csv`
-- `KA.csv`
 - `conditions.csv`
 - `f0.csv`
 
