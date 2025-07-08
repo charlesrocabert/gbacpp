@@ -127,9 +127,9 @@ The command line parameters are described below. The description is also availab
 
 ### 3.3) Usage example <a name="usage_example"></a>
 
-In this example, we will find optimums for all the external conditions in the <em>Escherichia coli</em> toy model EC12b, provided in the folder <code>examples</code> of this repository.
+In this example, we will find optimums for all the external conditions in the <em>Escherichia coli</em> toy model EC12b, provided in the folder <code>./examples</code> of this repository.
 
-First, place yourself in the folder <code>examples</code> using the <code>cd</code> command:
+First, navigate to the folder <code>./examples</code> using the <code>cd</code> command:
 
     cd ./examples
 
@@ -140,19 +140,19 @@ Then run the optimization algorithm:
 Here, the optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
 ### 3.4) Ready-to-use examples <a name="examples"></a>
-Ready-to-use examples are available in the folder <code>examples</code> (place yourself in the folder <code>examples</code> using the <code>cd</code> command):
+Ready-to-use examples are available in the folder <code>./examples</code> (navigate to the folder <code>examples</code> using the <code>cd</code> command):
 
 • <code>model_A_condition_1.sh</code>: This script will run a single gradient ascent on model A in external condition 1 (2 reactions, 2 metabolites). You can execute it using the following command line:
 
     bash model_A_condition_1.sh
 
-At the end of the optimization, CSV files are written in the folder <code>examples/output</code>. You can edit the parameter values at will to test the behaviour of the gradient ascent. See below for a full description of the parameters.
+At the end of the optimization, CSV files are written in the folder <code>./examples/output</code>. You can edit the parameter values at will to test the behaviour of the gradient ascent. See below for a full description of the parameters.
 
 • <code>model_B_all_conditions.sh</code>: This script will calculate the optimal growth rate on model B for all external conditions. You can execute it using the following command line:
 
     bash model_B_all_conditions.sh
 
-All the optimums are written in the folder <code>examples/output</code>.
+All the optimums are written in the folder <code>./examples/output</code>.
 
 ## 4) CGM files tutorial <a name="cgm_files_tutorial"></a>
 
