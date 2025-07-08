@@ -155,7 +155,7 @@ All the optimums are written in the folder <code>examples/output</code>.
 
 ## 4) CGM files tutorial <a name="cgm_files_tutorial"></a>
 
-TO DO.
+Coming soon. You can refer to the https://cellgrowthsim.com/ tutorial.
 
 ## 5) Copyright <a name="copyright"></a>
 Copyright © 2024-2025 Charles Rocabert. All rights reserved.
