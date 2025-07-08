@@ -41,20 +41,20 @@ Other files are optional.
 
 # 2) Files content
 
-### 2.1) CGM information (<code>Info.csv</code>) <a name="info"></a>
+### 2.1) CGM information (<code>Info.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="info"></a>
 
 
 
-### 2.2) Mass fraction matrix $\mathbf{M}$ (<code>M.csv</code>) <a name="M"></a>
-### 2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat.csv</code>) <a name="kcat"></a>
-### 2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K.csv</code>) <a name="K"></a>
-### 2.4) External conditions matrix (<code>conditions.csv</code>) <a name="conditions"></a>
-### 2.4) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>) <a name="f0"></a>
-### 2.5) Activation constants matrix $\mathbf{K_A}$ (<code>KA.csv</code>) <a name="KA"></a>
-### 2.6) Inhibition constants matrix $\mathbf{K_I}$ (<code>KI.csv</code>) <a name="KI"></a>
-### 2.6) List of constant metabolite fractions in the initial solution (<code>constant_rhs.csv</code>) <a name="constant_rhs"></a>
-### 2.6) List of constant reactions (<code>constant_reactions.csv</code>) <a name="constant_reactions"></a>
-### 2.6) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>) <a name="protein_contributions"></a>
+### 2.2) Mass fraction matrix $\mathbf{M}$ (<code>M.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="M"></a>
+### 2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="kcat"></a>
+### 2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="K"></a>
+### 2.4) External conditions matrix (<code>conditions.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="conditions"></a>
+### 2.4) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="f0"></a>
+### 2.5) Activation constants matrix $\mathbf{K_A}$ (<code>KA.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KA"></a>
+### 2.6) Inhibition constants matrix $\mathbf{K_I}$ (<code>KI.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KI"></a>
+### 2.6) List of constant metabolite fractions in the initial solution (<code>constant_rhs.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="constant_rhs"></a>
+### 2.6) List of constant reactions (<code>constant_reactions.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="constant_reactions"></a>
+### 2.6) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="protein_contributions"></a>
 
 
 
