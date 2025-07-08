@@ -13,7 +13,22 @@ Cell growth models (CGMs) must comply to a standard format to be compatible with
 
 Two formats are used to distribute CGMs: the text format CSV and the OpenDocument Spreadsheet format ODS. Data organization is strictly identical in both formats. As for now, <strong>gbacpp</strong> reads CGMs in CSV format only.
 
-# 1) Files organization
+# Table of contents
+- [1) Files organization](#files_organization)
+- [2) Files content](#files_content)
+  - [2.1) CGM information (<code>Info.csv</code>)](#info)
+  - [2.2) Mass fraction matrix $\mathbf{M}$ (<code>M.csv</code>)](#M)
+  - [2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat.csv</code>)](#kcat)
+  - [2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K.csv</code>)](#K)
+  - [2.5) External conditions matrix (<code>conditions.csv</code>)](#conditions)
+  - [2.6) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>)](#f0)
+  - [2.7) Activation constants matrix $\mathbf{K_A}$ (<code>KA.csv</code>)](#KA)
+  - [2.8) Inhibition constants matrix $\mathbf{K_I}$ (<code>KI.csv</code>)](#KI)
+  - [2.9) List of constant metabolite fractions in the initial solution (<code>constant_rhs.csv</code>)](#constant_rhs)
+  - [2.10) List of constant reactions (<code>constant_reactions.csv</code>)](#constant_reactions)
+  - [2.11) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>)](#protein_contributions)
+
+# 1) Files organization <a name="files_organization"></a>
 
 The CGM is organized as a set of CSV files located in a folder having the name of the model. They usually contain GBA variables (such as matrices, or vectors), but also additional variables and information.
 
@@ -42,7 +57,7 @@ Other files are optional.
 
 ⚠️ All CSV files have `;` separators, and `\n` line breaks.
 
-# 2) Files content
+# 2) Files content <a name="files_content"></a>
 
 ### 2.1) CGM information (<code>Info.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="info"></a>
 
@@ -74,7 +89,7 @@ For example, the toy model A has the following information:
 
 ### 2.2) Mass fraction matrix $\mathbf{M}$ (<code>M.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="M"></a>
 
-The mandatory file `M.csv` contains the mass fraction matrix $\mathbf{M}$, which is the pendant of the stoichiometric matrix in normalized mass units (see <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al., 2023</a>):
+The file `M.csv` contains the mass fraction matrix $\mathbf{M}$, which is the pendant of the stoichiometric matrix in normalized mass units (see <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al., 2023</a>). This file is mandatory to have minimal kinetics:
 - Metabolites are in row, reactions in columns.
 - The last row corresponds to total protein amount (`Protein`).
 - The last column corresponds to the ribosome reaction (`Ribosome`), producing the total protein amount.
@@ -92,9 +107,11 @@ For example, the toy model B has the following mass fraction matrix:
 
 ### 2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="kcat"></a>
 
-The mandatory file `kcat.csv` contains the vectors of forward (`kcat_f`) and backward (`kcat_b`) turnover rates $k_\text{cat}$:
+The file `kcat.csv` contains the vectors of forward (`kcat_f`) and backward (`kcat_b`) turnover rates $k_\text{cat}$. This file is mandatory to have minimal kinetics:
+- Reactions are in column.
+- `kcat_f` and `kcat_b` vectors are in row.
 - For forward irreversible reactions, backward values will be zero.
-- :warning: $k_\text{cat}$ must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>)
+- :warning: $k_\text{cat}$ values must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>).
 
 For example, the toy model B has the following $k_\text{cat}$ vectors:
 
@@ -105,16 +122,18 @@ For example, the toy model B has the following $k_\text{cat}$ vectors:
 
 ### 2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="K"></a>
 
-This file contains the matrix of forward Michaelis constants $K_\text{M}$. This file is mandatory for the minimal kinetics (<em>i.e.</em> irreversible forward Michaelis-Menten kinetics).
-One can add a second matrix for backward Michaelis constants (`KM_backward.csv`) if backward or reversible reactions are present in the model.
+The file `K.csv` contains the matrix of Michaelis constants $\mathbf{K}$. This file is mandatory to have minimal kinetics:
+- Metabolites are in row, reactions in columns (as in the matrix $\mathbf{M}$).
+- The matrix maps Michaelis constants from reactions to substrates and products, therefore including forward and backward $K_\text{M}$ values.
+- :warning: $K_\text{M}$ values must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>).
 
-### 2.4) External conditions matrix (<code>conditions.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="conditions"></a>
-### 2.4) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="f0"></a>
-### 2.5) Activation constants matrix $\mathbf{K_A}$ (<code>KA.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KA"></a>
-### 2.6) Inhibition constants matrix $\mathbf{K_I}$ (<code>KI.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KI"></a>
-### 2.6) List of constant metabolite fractions in the initial solution (<code>constant_rhs.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="constant_rhs"></a>
-### 2.6) List of constant reactions (<code>constant_reactions.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="constant_reactions"></a>
-### 2.6) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="protein_contributions"></a>
+### 2.5) External conditions matrix (<code>conditions.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="conditions"></a>
+### 2.6) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="f0"></a>
+### 2.7) Activation constants matrix $\mathbf{K_A}$ (<code>KA.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KA"></a>
+### 2.8) Inhibition constants matrix $\mathbf{K_I}$ (<code>KI.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KI"></a>
+### 2.9) List of constant metabolite fractions in the initial solution (<code>constant_rhs.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="constant_rhs"></a>
+### 2.10) List of constant reactions (<code>constant_reactions.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="constant_reactions"></a>
+### 2.11) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="protein_contributions"></a>
 
 
 
