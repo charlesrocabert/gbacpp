@@ -162,7 +162,7 @@ All the optimums are written in the folder <code>./examples/output</code>.
 A tutorial is available to better understand the content of cell growth model:
 
 <p align="center">
-<a href="https://github.com/charlesrocabert/gbacpp/blob/e65a987c935f033c3f3c3d3232a9a69d76b627cd/tutorials/cgm_format_tutorial.md" target="_blank">:link: CGM format tutorial</a>
+<a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/cgm_format_tutorial.md" target="_blank">:link: CGM format tutorial</a>
 </p>
 
 ## 5) Units conversion tutorial <a name="units_conversion_tutorial"></a>
@@ -170,7 +170,7 @@ A tutorial is available to better understand the content of cell growth model:
 A tutorial is available for users starting from standard metabolic models stoichiometric coefficients and kinetic parameters, and wanting to convert them into GBA formalism:
 
 <p align="center">
-<a href="https://github.com/charlesrocabert/gbacpp/blob/e65a987c935f033c3f3c3d3232a9a69d76b627cd/tutorials/units_conversion_tutorial.ipynb" target="_blank">:link: Units conversion tutorial</a>
+<a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">:link: Units conversion tutorial</a>
 </p>
 
 ## 5) Copyright <a name="copyright"></a>
