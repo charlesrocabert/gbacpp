@@ -25,11 +25,11 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 </p>
 
 <p align="justify">
-⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section [CGM files tutorial](#cgm_files_tutorial).
+⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section <a href="#cgm_files_tutorial">CGM files tutorial</a>
 </p>
 
 <p align="justify">
-<strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future (see [Roadmap](#roadmap)).
+<strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
 </p>
 
 # Table of contents
