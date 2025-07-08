@@ -25,7 +25,9 @@ The optimization process relies on growth rate gradient ascent, and is therefore
 
 <strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future.
 
-## Table of contents
+⚠️ Note that CGMs must comply to the standard CGM format. A tutorial is available in the section [CGM files tutorial](#cgm_files_tutorial).
+
+# Table of contents
 - [Roadmap](#roadmap)
 - [Installation instructions](#installation_instructions)
   - [Supported platforms](#supported_platforms)
@@ -33,13 +35,13 @@ The optimization process relies on growth rate gradient ascent, and is therefore
   - [Software compilation](#software_compilation)
 - [First usage](#first_usage)
   - [Ready-to-use examples](#examples)
-  - [Run a gradient ascent](#gradient_ascent)
-  - [Gradient ascent parameters](#gradient_ascent_parameters)
+  - [Find an optimum](#find_optimum)
+  - [Optimization parameters](#optimization_parameters)
 - [CGM files tutorial](#cgm_files_tutorial)
 - [Copyright](#copyright)
 - [License](#license)
 
-## Roadmap <a name="roadmap"></a>
+# Roadmap <a name="roadmap"></a>
 
 | Task | Status |
 |---|---|
@@ -48,7 +50,7 @@ The optimization process relies on growth rate gradient ascent, and is therefore
 | Forward-in-time population level simulations | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
 | Lineage tracking | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
 
-## Installation instructions <a name="installation_instructions"></a>
+# Installation instructions <a name="installation_instructions"></a>
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
 
 ### Supported platforms <a name="supported_platforms"></a>
@@ -85,8 +87,8 @@ To clean compiled files and binary executables, run:
 
     bash make_clean.sh
 
-## First usage <a name="first_usage"></a>
-Once MoRIS has been installed, follow the next steps for a first usage of the software.
+# First usage <a name="first_usage"></a>
+Once <strong>gbacpp</strong> has been compiled, follow the next steps for a first usage of the software.
 
 ### Ready-to-use examples <a name="examples"></a>
 Ready-to-use examples are available in the folder <code>examples</code> (place yourself in the folder <code>examples</code> using the <code>cd</code> command):
@@ -103,16 +105,16 @@ At the end of the optimization, CSV files are written in the folder <code>exampl
 
 All the optimums are written in the folder <code>examples/output</code>.
 
-### Run a gradient ascent <a name="gradient_ascent"></a>
-To run a gradient ascent optimization,execute the following command line:
+### Find an optimum <a name="find_optimum"></a>
+To run a gradient ascent optimization on a CGM, execute the following command line:
 
-    ./build/bin/compute_optimum <parameters>
+    ./build/bin/find_optimum <parameters>
 
 The command line parameters are described below. The description is also available by executing the following command line in a terminal:
 
-    ./build/bin/compute_optimum -h
+    ./build/bin/find_optimum -h
 
-### Gradient ascent parameters <a name="gradient_ascent_parameters"></a>
+### Optimization parameters <a name="optimization_parameters"></a>
 
 - <code>-h</code>, <code>--help</code>: Print the help, then exit,
 - <code>-v</code>, <code>--version</code>: Print the current version, then exit,
@@ -131,7 +133,11 @@ The command line parameters are described below. The description is also availab
 - <code>-maxt</code>, <code>--max-time</code>: Specify the maximal trajectory time ($100,000$ by default),
 - <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 
-## Input files tutorial <a name="input_files_tutorial"></a>
+#### • Example
+
+To do.
+
+## CGM files tutorial <a name="cgm_files_tutorial"></a>
 
 TO DO.
 
