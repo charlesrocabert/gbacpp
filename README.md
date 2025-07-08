@@ -27,7 +27,8 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 </p>
 
 <p align="justify">
-⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section <a href="#cgm_format_tutorial">CGM format tutorial</a>.
+- ⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/c240795f113cb76dd2324051f74e7c16519b8671/tutorials/cgm_format_tutorial/README.md" target="_blank">CGM format tutorial</a>.
+- ⚠️ When building a CGM, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="" target="_blank">Unit conversion tutorial</a>.
 </p>
 
 <p align="justify">
