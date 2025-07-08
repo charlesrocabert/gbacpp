@@ -127,17 +127,17 @@ The command line parameters are described below. The description is also availab
 
 ### 3.3) Usage example <a name="usage_example"></a>
 
-In this example, we will find optimums for all the external conditions in the <em>Escherichia coli</em> toy model EC12b, provided in the folder <code>./examples</code> of this repository.
+In this example, growth rate optimums are calculated for all the external conditions of the <em>Escherichia coli</em> toy model EC12b (see folder <code>./examples/toy_models</code>).
 
 First, navigate to the folder <code>./examples</code> using the <code>cd</code> command:
 
     cd ./examples
 
-Then run the optimization algorithm:
+Then, call the optimization algorithm:
 
     ../build/bin/find_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
 
-Here, the optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
+Here, optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
 ### 3.4) Ready-to-use examples <a name="examples"></a>
 Ready-to-use examples are available in the folder <code>./examples</code> (navigate to the folder <code>examples</code> using the <code>cd</code> command):
