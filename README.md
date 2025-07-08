@@ -18,6 +18,13 @@
 
 -----------------
 
+<strong>gbacpp</strong> is a C++ implementation of the growth balance analysis mathematical formalism (GBA; <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
+The software has been optimized to solve large-scale cell growth models (CGMs), for which available solvers for non-linear constraint-based problems usually struggle.
+
+The optimization process relies on growth rate gradient ascent, and is therefore preferred for models offering a convex solution space (typically, when all reactions in the metabolic network are linearly independent).
+
+<strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future.
+
 ## Table of contents
 - [Roadmap](#roadmap)
 - [Installation instructions](#installation_instructions)
@@ -28,7 +35,7 @@
   - [Ready-to-use examples](#examples)
   - [Run a gradient ascent](#gradient_ascent)
   - [Gradient ascent parameters](#gradient_ascent_parameters)
-- [Input files tutorial](#input_files_tutorial)
+- [CGM files tutorial](#cgm_files_tutorial)
 - [Copyright](#copyright)
 - [License](#license)
 
@@ -45,7 +52,7 @@
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
 
 ### Supported platforms <a name="supported_platforms"></a>
-<strong>gbacpp</strong> software has been successfully tested on latest Unix/Linux and macOS platforms.
+<strong>gbacpp</strong> software has been primilary developed for Unix/Linux and macOS systems.
 
 ### Dependencies <a name="dependencies"></a>
 * A C++ compiler (GCC, LLVM, ...; C++17 required),
