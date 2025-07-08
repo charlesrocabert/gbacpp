@@ -26,7 +26,7 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 </p>
 
 <p align="justify">
-⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section <a href="#cgm_files_tutorial">CGM files tutorial</a>.
+⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section <a href="#cgm_format_tutorial">CGM format tutorial</a>.
 </p>
 
 <p align="justify">
@@ -44,7 +44,7 @@ The optimization process relies on a gradient ascent approach, and is preferred 
   - [3.2) Optimization parameters](#optimization_parameters)
   - [3.3) Usage example](#usage_example)
   - [3.4) Ready-to-use examples](#examples)
-- [4) CGM files tutorial](#cgm_files_tutorial)
+- [4) CGM format tutorial](#cgm_format_tutorial)
 - [5) Copyright](#copyright)
 - [6) License](#license)
 
@@ -154,7 +154,7 @@ At the end of the optimization, CSV files are written in the folder <code>./exam
 
 All the optimums are written in the folder <code>./examples/output</code>.
 
-## 4) CGM files tutorial <a name="cgm_files_tutorial"></a>
+## 4) CGM format tutorial <a name="cgm_format_tutorial"></a>
 
 Coming soon. You can refer to the https://cellgrowthsim.com/ tutorial.
 
