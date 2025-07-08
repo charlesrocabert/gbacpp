@@ -128,7 +128,7 @@ protected:
   void load_reaction_identifiers( void );
   void load_vector_sizes( void );
   void load_M( void );
-  void load_KM( void );
+  void load_K( void );
   void load_KI( void );
   void load_KA( void );
   void load_KR( void );
@@ -202,7 +202,7 @@ protected:
   
   gsl_matrix*                             _Mx;                 /*!< Total mass fraction matrix              */
   gsl_matrix*                             _M;                  /*!< Internal mass fraction matrix           */
-  gsl_matrix*                             _KM;                 /*!< Complete KM matrix                      */
+  gsl_matrix*                             _K;                  /*!< Complete K matrix                       */
   gsl_matrix*                             _KM_f;               /*!< Forward KM matrix                       */
   gsl_matrix*                             _KM_b;               /*!< Backward KM matrix                      */
   gsl_matrix*                             _KI;                 /*!< KI matrix                               */

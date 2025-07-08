@@ -40,7 +40,7 @@ set(PACKAGE "\"gbacpp\"")
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 1)
-set(VERSION_PATCH 4)
+set(VERSION_PATCH 5)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -71,8 +71,8 @@ set(EXECUTABLE_OUTPUT_PATH ../build/bin)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the executables                                                       #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-set(OPTIMUM_EXECUTABLE compute_optimum)
-add_executable(${OPTIMUM_EXECUTABLE} src/compute_optimum.cpp)
+set(OPTIMUM_EXECUTABLE find_optimum)
+add_executable(${OPTIMUM_EXECUTABLE} src/find_optimum.cpp)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

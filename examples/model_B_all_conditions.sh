@@ -19,5 +19,5 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***********************************************************************
 
-../build/bin/compute_optimum -path ./models -name B -condition all -output ./output -verbose
+../build/bin/find_optimum -path ./toy_models -name B -condition all -output ./output -verbose
 

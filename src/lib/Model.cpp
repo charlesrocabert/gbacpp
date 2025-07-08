@@ -67,7 +67,7 @@ Model::Model( std::string model_path, std::string model_name )
   
   _Mx         = NULL;
   _M          = NULL;
-  _KM         = NULL;
+  _K          = NULL;
   _KM_f       = NULL;
   _KM_b       = NULL;
   _KI         = NULL;
@@ -167,7 +167,7 @@ Model::~Model( void )
   
   gsl_matrix_free(_Mx);
   gsl_matrix_free(_M);
-  gsl_matrix_free(_KM);
+  gsl_matrix_free(_K);
   gsl_matrix_free(_KM_f);
   gsl_matrix_free(_KM_b);
   gsl_matrix_free(_KI);
@@ -179,7 +179,7 @@ Model::~Model( void )
   gsl_matrix_free(_conditions);
   _Mx         = NULL;
   _M          = NULL;
-  _KM         = NULL;
+  _K          = NULL;
   _KM_f       = NULL;
   _KM_b       = NULL;
   _KI         = NULL;
@@ -269,7 +269,7 @@ void Model::read_from_csv( void )
   load_reaction_identifiers();
   load_vector_sizes();
   load_M();
-  load_KM();
+  load_K();
   load_KI();
   load_KA();
   load_KR();
@@ -1067,23 +1067,23 @@ void Model::load_M( void )
 }
 
 /**
- * \brief    Load the KM matrix
+ * \brief    Load the K matrix
  * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::load_KM( void )
+void Model::load_K( void )
 {
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Load the complete KM matrix             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  assert(_KM==NULL);
-  _KM = gsl_matrix_alloc(_ni, _nj);
-  gsl_matrix_set_zero(_KM);
+  assert(_K==NULL);
+  _K = gsl_matrix_alloc(_ni, _nj);
+  gsl_matrix_set_zero(_K);
   int row = 0;
   int col = 0;
-  assert(is_file_exist(_model_path+"/"+_model_name+"/KM.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/KM.csv", std::ios::in);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/K.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/K.csv", std::ios::in);
   assert(file);
   std::string line;
   std::string id;
@@ -1100,7 +1100,7 @@ void Model::load_KM( void )
     while(getline(flux, str_value, ';'))
     {
       double value = stod(str_value);
-      gsl_matrix_set(_KM, row, col, value);
+      gsl_matrix_set(_K, row, col, value);
       col++;
     }
     row++;
@@ -1119,11 +1119,11 @@ void Model::load_KM( void )
     {
       if (gsl_matrix_get(_Mx, i, j) < 0.0)
       {
-        gsl_matrix_set(_KM_f, i, j, gsl_matrix_get(_KM, i, j));
+        gsl_matrix_set(_KM_f, i, j, gsl_matrix_get(_K, i, j));
       }
       else if (gsl_matrix_get(_Mx, i, j) > 0.0)
       {
-        gsl_matrix_set(_KM_b, i, j, gsl_matrix_get(_KM, i, j));
+        gsl_matrix_set(_KM_b, i, j, gsl_matrix_get(_K, i, j));
       }
     }
   }
