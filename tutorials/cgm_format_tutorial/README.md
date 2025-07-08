@@ -184,3 +184,10 @@ The optional file `protein_contributions.csv` contains a mapping linking enzyme 
 
 :warning: This file could only be obtained with biological knowledge of the constructed CGM, see the Python module <a href="https://github.com/charlesrocabert/gbapy" target="_blank">gbapy</a>.
 
+Here is an exaample:
+
+DADK;protein_0651;1.0
+DADNK;protein_0330;0.979131688089874
+DADNK;protein_0382;1.0208683119101258
+DADNabc;protein_0008;0.1358904650088565
+DADNabc;protein_0009;0.3862941601280572
