@@ -3,58 +3,43 @@
 </p>
 
 <p align="center">
-  <h3 align="center">Cell growth model (CGM) format tutorial</h3>
+  <h3 align="center">Units conversion tutorial</h3>
 </p>
 
 -----------------
 
-Cell growth models (CGMs) must comply to a standard format to be compatible with growth balance analysis (GBA) formalism. Please refer to <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. (2023)</a> and the tutorial available on https://cellgrowthsim.com/ for other detailed sources.
+When building a cell growth model (CGM) relying on growth balance analysis (GBA) formalism, it is necessary to convert stoichiometric coefficients and kinetic parameters to mass units, or mass normalized units. Please refer to <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. (2023)</a> and the tutorial available on https://cellgrowthsim.com/ for other detailed sources.
 
-Two formats are used to distribute CGMs: the text format CSV and the OpenDocument Spreadsheet format ODS. Data organization is strictly identical in both formats. As for now, <strong>gbacpp</strong> reads CGMs in CSV format only.
+Three main variables must be converted. This require to know the molecular mass (in Da) of metabolites and enzymes.
 
-# 1) Files organization
+# Conversion of stoichiometric coefficients <a name="stoichiometric_coefficients"></a>
 
-The CGM is organized as a set of CSV files located in a folder having the name of the model. They usually contain GBA variables (such as matrices, or vectors), but also additional variables and information.
+The stoichiometry of each reaction is converted. For each metabolite $i$ and reaction $j$:
+- Each stoichiometric coefficient is multiplied by the mass of the metabolite $m_i$ (in Da),
+  $$S_{i,j} = S_{i,\cdot} \times m_i$$
+- The calculated mass stoichiometry is then normalized (the sum of reactant coefficients is equal to -1, the sum of product coefficients is equal to 1),
+  $$
+  M_{i,j} =
+  \left\{
+  \begin{array}{rl}
+  \dfrac{S_{i,j}}{\sum_{i \in \text{reactants}} \lvert S_{i,j} \rvert} & \text{ if $i$ reactant}\\\\
+  \dfrac{S_{i,j}}{\sum_{i \in \text{products}} S_{i,j}} & \text{ if $i$ product}
+  \end{array}
+  \right.
+  $$
 
-      └── CGM_name
-           ├── Info.csv
-           ├── M.csv
-           ├── kcat.csv
-           ├── K.csv
-           ├── conditions.csv
-           ├── f0.csv
-           ├── KA.csv
-           ├── KI.csv
-           ├── constant_rhs.csv
-           ├── constant_reactions.csv
-           └── protein_contributions.csv
+# Conversion of Michaelis constant values <a name="km"></a>
 
-Some files are mandatory to set a minimal CGM. These are:
-- M.csv
-- kcat.csv
-- K.csv
-- KA.csv
-- conditions.csv
-- f0.csv
+$K_\text{M}$ values are converted to mass units:
+- Each $K_\text{M}$ value is multiplied by the mass of the metabolite
+  $$K_\text{M,i} = K_\text{M,i} \times m_i \text{ for each metabolite }i$$
 
-Other files are optional.
+# Conversion of turnover rates <a name="kcat"></a>
 
-# 2) Files content
-
-### 2.1) CGM information (<code>Info.csv</code>) <a name="info"></a>
-
-
-
-### 2.2) Mass fraction matrix $\mathbf{M}$ (<code>M.csv</code>) <a name="M"></a>
-### 2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat.csv</code>) <a name="kcat"></a>
-### 2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K.csv</code>) <a name="K"></a>
-### 2.4) External conditions matrix (<code>conditions.csv</code>) <a name="conditions"></a>
-### 2.4) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>) <a name="f0"></a>
-### 2.5) Activation constants matrix $\mathbf{K_A}$ (<code>KA.csv</code>) <a name="KA"></a>
-### 2.6) Inhibition constants matrix $\mathbf{K_I}$ (<code>KI.csv</code>) <a name="KI"></a>
-### 2.6) List of constant metabolite fractions in the initial solution (<code>constant_rhs.csv</code>) <a name="constant_rhs"></a>
-### 2.6) List of constant reactions (<code>constant_reactions.csv</code>) <a name="constant_reactions"></a>
-### 2.6) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>) <a name="protein_contributions"></a>
-
+$k_\text{cat}$ values are converted to mass units:
+- Each $k_\text{cat}$ value is multipled by the sum of the product masses times their stoichiometric coefficient, and divided by the mass of the enzyme $e$. Therefore for the forward $k_\text{cat,j}^f$ of reaction $j$:
+  $$k_\text{cat,j}^f = k_\text{cat,j}^f \times \dfrac{\sum_{i \in \text{products}} S_{ij} \times m_i}{e_j}$$
+- And for the backward $k_\text{cat,j}^b$:
+  $$k_\text{cat,j}^b = k_\text{cat,j}^b \times \dfrac{\sum_{i \in \text{reactants}} S_{ij} \times m_i}{e_j}$$
 
 
