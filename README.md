@@ -31,8 +31,9 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 
 :heavy_check_mark: When building a CGM, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
 
-
 :heavy_check_mark: <strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
+
+:heavy_check_mark: A complete tutorial on GBA formalism is also available at https://cellgrowthsim.com/.
 </p>
 
 # Table of contents
