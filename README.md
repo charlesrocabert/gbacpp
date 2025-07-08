@@ -25,7 +25,7 @@ The optimization process relies on growth rate gradient ascent, and is therefore
 
 <strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future.
 
-⚠️ Note that CGMs must comply to the standard CGM format. A tutorial is available in the section [CGM files tutorial](#cgm_files_tutorial).
+⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section [CGM files tutorial](#cgm_files_tutorial).
 
 # Table of contents
 - [Roadmap](#roadmap)
