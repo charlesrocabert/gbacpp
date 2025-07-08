@@ -27,11 +27,11 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 </p>
 
 <p align="justify">
-⚠️ Note that CGMs must comply to a standardized format. A tutorial is available in the section <a href="#cgm_format_tutorial">CGM format tutorial</a>.
-</p>
+:heavy_check_mark: Note that CGMs must comply to a standardized format. A tutorial is available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/c240795f113cb76dd2324051f74e7c16519b8671/tutorials/cgm_format_tutorial/README.md" target="_blank">CGM format tutorial</a>.
 
-<p align="justify">
-<strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
+:heavy_check_mark: When building a CGM, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="" target="_blank">Unit conversion tutorial</a>.
+
+:heavy_check_mark: <strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
 </p>
 
 # Table of contents
@@ -46,8 +46,9 @@ The optimization process relies on a gradient ascent approach, and is preferred 
   - [3.3) Usage example](#usage_example)
   - [3.4) Ready-to-use examples](#examples)
 - [4) CGM format tutorial](#cgm_format_tutorial)
-- [5) Copyright](#copyright)
-- [6) License](#license)
+- [5) Units conversion tutorial](#units_conversion_tutorial)
+- [6) Copyright](#copyright)
+- [7) License](#license)
 
 # 1) Roadmap <a name="roadmap"></a>
 
@@ -157,7 +158,19 @@ All the optimums are written in the folder <code>./examples/output</code>.
 
 ## 4) CGM format tutorial <a name="cgm_format_tutorial"></a>
 
-Coming soon. You can refer to the https://cellgrowthsim.com/ tutorial.
+A tutorial is available to better understand the content of cell growth model:
+
+<p align="center">
+<a href="https://github.com/charlesrocabert/gbacpp/blob/c240795f113cb76dd2324051f74e7c16519b8671/tutorials/cgm_format_tutorial/README.md" target="_blank">:link: CGM format tutorial</a>
+</p>
+
+## 5) Units conversion tutorial <a name="units_conversion_tutorial"></a>
+
+A tutorial is available for users starting from standard metabolic models stoichiometric coefficients and kinetic parameters, and wanting to convert them into GBA formalism:
+
+<p align="center">
+<a href="https://github.com/charlesrocabert/gbacpp/blob/c240795f113cb76dd2324051f74e7c16519b8671/tutorials/cgm_format_tutorial/README.md" target="_blank">:link: Units conversion tutorial</a>
+</p>
 
 ## 5) Copyright <a name="copyright"></a>
 Copyright © 2024-2025 Charles Rocabert. All rights reserved.
