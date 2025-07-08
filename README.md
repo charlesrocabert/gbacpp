@@ -125,8 +125,8 @@ The command line parameters are described below. The description is also availab
 - <code>-write</code>, <code>--write-trajectory</code>: Indicates if the trajectory should be written as output files. Tracking the optimization trajectory can be useful during tests,
 - <code>-output</code>, <code>--output-path</code>: Specify the path of output files,
 - <code>-tol</code>, <code>--tolerance</code>: Specify the tolerance value ($10^{-10}$ by default),
-- <code>-stable-count</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged mu ($10,000$ by default),
-- <code>-maxt</code>, <code>--max-time</code>: Specify the maximal trajectory time ($100,000$ by default),
+- <code>-stable-count</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged growth rate as a stop criterium ($10,000$ by default),
+- <code>-maxt</code>, <code>--max-time</code>: Specify the maximal trajectory time as a stop criterium ($100,000$ by default),
 - <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 
 ### 3.3) Usage example <a name="usage_example"></a>
