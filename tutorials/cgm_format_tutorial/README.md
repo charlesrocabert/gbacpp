@@ -18,7 +18,7 @@ Two formats are used to distribute CGMs: the text format CSV and the OpenDocumen
 - [2) Files content](#files_content)
   - [2.1) CGM information (<code>Info.csv</code>)](#info)
   - [2.2) Mass fraction matrix (<code>M.csv</code>)](#M)
-  - [2.3) Forward and backward turnover rate vectors (<code>kcat.csv</code>)](#kcat)
+  - [2.3) Forward and backward turnover rates vectors (<code>kcat.csv</code>)](#kcat)
   - [2.4) Michaelis constants matrix (<code>K.csv</code>)](#K)
   - [2.5) External conditions matrix (<code>conditions.csv</code>)](#conditions)
   - [2.6) Initial solution (<code>f0.csv</code>)](#f0)
@@ -184,10 +184,12 @@ The optional file `protein_contributions.csv` contains a mapping linking enzyme 
 
 :warning: This file could only be obtained with biological knowledge of the constructed CGM, see the Python module <a href="https://github.com/charlesrocabert/gbapy" target="_blank">gbapy</a>.
 
-Here is an exaample:
+Here is an example:
 
-DADK;protein_0651;1.0
-DADNK;protein_0330;0.979131688089874
-DADNK;protein_0382;1.0208683119101258
-DADNabc;protein_0008;0.1358904650088565
-DADNabc;protein_0009;0.3862941601280572
+| **Reaction** | **Protein**  | **Contribution**   |
+|:------------:|:------------:|:------------------:|
+| DADK         | protein_0651 | 1.0                |
+| DADNK        | protein_0330 | 0.979131688089874  |
+| DADNK        | protein_0382 | 1.0208683119101258 |
+| DADNabc      | protein_0008 | 0.1358904650088565 |
+| DADNabc      | protein_0009 | 0.3862941601280572 |
