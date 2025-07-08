@@ -17,13 +17,13 @@ Two formats are used to distribute CGMs: the text format CSV and the OpenDocumen
 - [1) Files organization](#files_organization)
 - [2) Files content](#files_content)
   - [2.1) CGM information (<code>Info.csv</code>)](#info)
-  - [2.2) Mass fraction matrix $\mathbf{M}$ (<code>M.csv</code>)](#M)
-  - [2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat.csv</code>)](#kcat)
-  - [2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K.csv</code>)](#K)
+  - [2.2) Mass fraction matrix (<code>M.csv</code>)](#M)
+  - [2.3) Forward and backward turnover rate vectors (<code>kcat.csv</code>)](#kcat)
+  - [2.4) Michaelis constants matrix (<code>K.csv</code>)](#K)
   - [2.5) External conditions matrix (<code>conditions.csv</code>)](#conditions)
-  - [2.6) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>)](#f0)
-  - [2.7) Activation constants matrix $\mathbf{K_A}$ (<code>KA.csv</code>)](#KA)
-  - [2.8) Inhibition constants matrix $\mathbf{K_I}$ (<code>KI.csv</code>)](#KI)
+  - [2.6) Initial solution (<code>f0.csv</code>)](#f0)
+  - [2.7) Activation constants matrix (<code>KA.csv</code>)](#KA)
+  - [2.8) Inhibition constants matrix (<code>KI.csv</code>)](#KI)
   - [2.9) List of constant metabolite fractions in the initial solution (<code>constant_rhs.csv</code>)](#constant_rhs)
   - [2.10) List of constant reactions (<code>constant_reactions.csv</code>)](#constant_reactions)
   - [2.11) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>)](#protein_contributions)
@@ -126,6 +126,15 @@ The file `K.csv` contains the matrix of Michaelis constants $\mathbf{K}$. This f
 - Metabolites are in row, reactions in columns (as in the matrix $\mathbf{M}$).
 - The matrix maps Michaelis constants from reactions to substrates and products, therefore including forward and backward $K_\text{M}$ values.
 - :warning: $K_\text{M}$ values must be converted following GBA formalism (see <a href="" target="_blank">Units conversion tutorial</a>).
+
+For example, the toy model B has the following Michaelis constant matrix:
+
+|             | **rxn1** | **rnx2** | **Ribosome** |
+|:-----------:|:--------:|:--------:|:------------:|
+|   **x_G**   |    10    |     0    |       0      |
+|    **G**    |     0    |    10    |       0      |
+|    **AA**   |     0    |     0    |      8.3     |
+| **Protein** |     0    |     0    |       0      |
 
 ### 2.5) External conditions matrix (<code>conditions.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="conditions"></a>
 ### 2.6) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="f0"></a>
