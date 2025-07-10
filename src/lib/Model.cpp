@@ -2264,11 +2264,12 @@ void Model::check_model_consistency( void )
  */
 void Model::block_reactions( void )
 {
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Manage reactions converging to zero */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int j = 0; j < _nj-1; j++)
   {
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    /* 1) Reaction is irreversible and positive    */
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /*** 1.1) Reaction is irreversible and positive ***/
     if (_type[j+1] != RMM && gsl_vector_get(_f_trunc, j) <= _tol)
     {
       gsl_vector_set(_f_trunc, j, _tol);
@@ -2277,9 +2278,7 @@ void Model::block_reactions( void )
         gsl_vector_set(_GCC_f, j+1, 0.0);
       }
     }
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    /* 2) Reaction is irreversible and negative    */
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /*** 1.2) Reaction is irreversible and negative ***/
     if (_type[j+1] == RMM && gsl_vector_get(_f_trunc, j) >= -_tol)
     {
       gsl_vector_set(_f_trunc, j, -_tol);
@@ -2288,9 +2287,7 @@ void Model::block_reactions( void )
         gsl_vector_set(_GCC_f, j+1, 0.0);
       }
     }
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    /* 3) Reaction is reversible and tends to zero */
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /*** 1.3) Reaction is reversible and tends to zero ***/
     else if (_type[j+1] == RMM && fabs(gsl_vector_get(_f_trunc, j)) <= _tol)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
@@ -2304,6 +2301,9 @@ void Model::block_reactions( void )
       }
     }
   }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Manage constant reactions           */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (auto item : _constant_reactions)
   {
     int    j   = _reaction_indices[item.first];
