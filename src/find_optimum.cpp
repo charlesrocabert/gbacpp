@@ -36,7 +36,8 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-#include "Config.h"
+//#include "Config.h"
+#include "../cmake/Config.h"
 #include "./lib/Macros.hpp"
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"

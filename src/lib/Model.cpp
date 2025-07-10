@@ -491,7 +491,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   }
   if (!is_path_exist(output_path))
   {
-    throw std::invalid_argument("> Error: Path "+output_path+" does not exist");
+    throw std::invalid_argument("> Error: Path '"+output_path+"' does not exist");
   }
   if (stable_count < 0)
   {
@@ -553,12 +553,14 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       t = t+dt;
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
-        if (verbose)
-        {
-          std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
-        }
         write_trajectory_output_files(condition, nb_iterations, t, dt);
       }
+      /*
+      if (nb_iterations%EXPORT_DATA_COUNT == 0 && verbose)
+      {
+        std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+      }
+       */
       if (fabs(_mu-previous_mu) < stable_count)
       {
         constant_mu_counter++;
@@ -585,6 +587,10 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       assert(_consistent);
       dt         /= DECREASING_DT_FACTOR;
       dt_counter  = 0;
+      if (dt < 1e-100)
+      {
+        throw std::runtime_error("> Error: The timestep is too small (1e-100)");
+      }
     }
   }
   gsl_vector_free(previous_f_trunc);
@@ -958,6 +964,7 @@ void Model::load_metabolite_identifiers( void )
   {
     std::stringstream flux(line.c_str());
     getline(flux, id, ';');
+    id.erase(std::remove(id.begin(), id.end(), '\r'), id.end());
     _metabolite_ids.push_back(id);
     _metabolite_indices[id] = index;
     index++;
@@ -994,6 +1001,7 @@ void Model::load_reaction_identifiers( void )
   int index = 0;
   while(getline(flux, id, ';'))
   {
+    id.erase(std::remove(id.begin(), id.end(), '\r'), id.end());
     _reaction_ids.push_back(id);
     _reaction_indices[id] = index;
     index++;
@@ -1331,6 +1339,7 @@ void Model::load_conditions( void )
   int index = 0;
   while(getline(flux1, id, ';'))
   {
+    id.erase(std::remove(id.begin(), id.end(), '\r'), id.end());
     _condition_ids.push_back(id);
     _condition_indices[id] = index;
     index++;
@@ -1342,6 +1351,7 @@ void Model::load_conditions( void )
   {
     std::stringstream flux(line.c_str());
     getline(flux, id, ';');
+    id.erase(std::remove(id.begin(), id.end(), '\r'), id.end());
     _condition_params.push_back(id);
   }
   file.close();
@@ -1392,6 +1402,7 @@ void Model::load_constant_reactions( void )
       std::stringstream flux(line.c_str());
       getline(flux, reaction_id, ';');
       getline(flux, str_value, ';');
+      reaction_id.erase(std::remove(reaction_id.begin(), reaction_id.end(), '\r'), reaction_id.end());
       assert(_constant_reactions.find(reaction_id) == _constant_reactions.end());
       _constant_reactions[reaction_id] = stod(str_value);
     }
@@ -1422,6 +1433,7 @@ void Model::load_f0( void )
     std::stringstream flux(line.c_str());
     getline(flux, reaction_id, ';');
     getline(flux, str_value, ';');
+    reaction_id.erase(std::remove(reaction_id.begin(), reaction_id.end(), '\r'), reaction_id.end());
     assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
     double value = stod(str_value);
     gsl_vector_set(_f0, _reaction_indices[reaction_id], value);
@@ -1452,6 +1464,7 @@ void Model::reload_f0( void )
     std::stringstream flux(line.c_str());
     getline(flux, reaction_id, ';');
     getline(flux, str_value, ';');
+    reaction_id.erase(std::remove(reaction_id.begin(), reaction_id.end(), '\r'), reaction_id.end());
     assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
     double value = stod(str_value);
     gsl_vector_set(_f0, _reaction_indices[reaction_id], value);
@@ -1538,6 +1551,10 @@ void Model::initialize_static_variables( void )
       assert(KI_sum_zero);
       assert(KA_sum_zero);
       _type[j] = IMMR;
+    }
+    else
+    {
+      throw std::runtime_error("> Error: The kinetic scheme of reaction "+_reaction_ids[j]+" is incorrect");
     }
   }
   gsl_vector_free(KI_vec);
@@ -2279,7 +2296,8 @@ void Model::block_reactions( void )
       }
     }
     /*** 1.2) Reaction is irreversible and negative ***/
-    if (_type[j+1] == RMM && gsl_vector_get(_f_trunc, j) >= -_tol)
+    /*
+    if (_type[j+1] != RMM && gsl_vector_get(_f_trunc, j) >= -_tol)
     {
       gsl_vector_set(_f_trunc, j, -_tol);
       if (gsl_vector_get(_GCC_f, j+1) > 0.0)
@@ -2287,7 +2305,9 @@ void Model::block_reactions( void )
         gsl_vector_set(_GCC_f, j+1, 0.0);
       }
     }
+     */
     /*** 1.3) Reaction is reversible and tends to zero ***/
+    /*
     else if (_type[j+1] == RMM && fabs(gsl_vector_get(_f_trunc, j)) <= _tol)
     {
       gsl_vector_set(_GCC_f, j+1, 0.0);
@@ -2300,6 +2320,7 @@ void Model::block_reactions( void )
         gsl_vector_set(_f_trunc, j, -_tol);
       }
     }
+     */
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Manage constant reactions           */
