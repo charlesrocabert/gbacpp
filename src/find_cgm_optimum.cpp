@@ -261,19 +261,19 @@ void printUsage( void )
   std::cout << "\n";
   std::cout << "*********************************************************************\n";
 #ifdef DEBUG
-  std::cout << " " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( debug )\n";
+  std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( debug )\n";
 #endif
 #ifdef NDEBUG
-  std::cout << " " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
+  std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
 #endif
-  std::cout << "                                                                     \n";
-  std::cout << " gbacpp (growth balance analysis for C++)                            \n";
-  std::cout << " Copyright © 2024-2025 Charles Rocabert                              \n";
-  std::cout << " Web: https://github.com/charlesrocabert/gbacpp                      \n";
-  std::cout << "                                                                     \n";
-  std::cout << " This program comes with ABSOLUTELY NO WARRANTY.                     \n";
-  std::cout << " This is free software, and you are welcome to redistribute it under \n";
-  std::cout << " certain conditions; See the GNU General Public License for details  \n";
+  std::cout << "*                                                                     \n";
+  std::cout << "* gbacpp (growth balance analysis for C++)                            \n";
+  std::cout << "* Copyright © 2024-2025 Charles Rocabert                              \n";
+  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                      \n";
+  std::cout << "*                                                                     \n";
+  std::cout << "* This program comes with ABSOLUTELY NO WARRANTY.                     \n";
+  std::cout << "* This is free software, and you are welcome to redistribute it under \n";
+  std::cout << "* certain conditions; See the GNU General Public License for details  \n";
   std::cout << "*********************************************************************\n";
   std::cout << "\n";
   std::cout << "Usage: find_cgm_optimum -h or --help\n";
@@ -317,19 +317,19 @@ void printHeader( void )
   std::cout << "\n";
   std::cout << "*********************************************************************\n";
 #ifdef DEBUG
-  std::cout << " " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( debug )\n";
+  std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( debug )\n";
 #endif
 #ifdef NDEBUG
-  std::cout << " " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
+  std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
 #endif
-  std::cout << "                                                                     \n";
-  std::cout << " gbacpp (growth balance analysis for C++)                           \n";
-  std::cout << " Copyright © 2024-2025 Charles Rocabert                              \n";
-  std::cout << " Web: https://github.com/charlesrocabert/gbacpp                      \n";
-  std::cout << "                                                                     \n";
-  std::cout << " This program comes with ABSOLUTELY NO WARRANTY.                     \n";
-  std::cout << " This is free software, and you are welcome to redistribute it under \n";
-  std::cout << " certain conditions; See the GNU General Public License for details  \n";
+  std::cout << "*                                                                     \n";
+  std::cout << "* gbacpp (growth balance analysis for C++)                           \n";
+  std::cout << "* Copyright © 2024-2025 Charles Rocabert                              \n";
+  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                      \n";
+  std::cout << "*                                                                     \n";
+  std::cout << "* This program comes with ABSOLUTELY NO WARRANTY.                     \n";
+  std::cout << "* This is free software, and you are welcome to redistribute it under \n";
+  std::cout << "* certain conditions; See the GNU General Public License for details  \n";
   std::cout << "*********************************************************************\n";
   std::cout << "\n";
 }
