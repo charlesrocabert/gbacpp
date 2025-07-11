@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/f65c2fd3-d407-4f7e-b1b3-5bd81bb4c9c8" width=250 />
+  <img src="https://github.com/user-attachments/assets/9ee15e4e-fabd-44a8-9efd-888c90777ceb" width=250 />
 
 </p>
 <h3 align="center">Growth Balance Analysis for C++</h3>
