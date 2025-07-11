@@ -104,11 +104,11 @@ Once <strong>gbacpp</strong> has been compiled, follow the next steps for a firs
 ### 3.1) Find an optimum <a name="find_optimum"></a>
 To run a gradient ascent optimization on a CGM, execute the following command line:
 
-    ./build/bin/find_optimum <parameters>
+    ./build/bin/gba_find_optimum <parameters>
 
 The command line parameters are described below. The description is also available by executing the following command line in a terminal:
 
-    ./build/bin/find_optimum -h
+    ./build/bin/gba_find_optimum -h
 
 ### 3.2) Optimization parameters <a name="optimization_parameters"></a>
 
@@ -139,7 +139,7 @@ First, navigate to the folder <code>./examples</code> using the <code>cd</code> 
 
 Then, call the optimization algorithm:
 
-    ../build/bin/find_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
+    ../build/bin/gba_find_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
 
 Here, optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
