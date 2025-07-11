@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# ***************************************************************************
+#***************************************************************************
 
 make clean
 rm -rf ../build/bin/*
@@ -26,3 +26,4 @@ rm cmake_install.cmake
 rm CMakeCache.txt
 rm Config.h
 rm Makefile
+

@@ -1,10 +1,10 @@
 /**
- * \file      find_optimum.cpp
+ * \file      find_cgm_optimum.cpp
  * \author    Charles Rocabert
  * \date      22-07-2024
  * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This project is released under the GNU General Public License
- * \brief     find_optimum executable
+ * \brief     find_cgm_optimum executable
  */
 
 /****************************************************************************
@@ -276,8 +276,8 @@ void printUsage( void )
   std::cout << " certain conditions; See the GNU General Public License for details  \n";
   std::cout << "*********************************************************************\n";
   std::cout << "\n";
-  std::cout << "Usage: find_optimum -h or --help\n";
-  std::cout << "   or: find_optimum [options]\n";
+  std::cout << "Usage: find_cgm_optimum -h or --help\n";
+  std::cout << "   or: find_cgm_optimum [options]\n";
   std::cout << "Options are:\n";
   std::cout << "  -h, --help\n";
   std::cout << "        print this help, then exit\n";

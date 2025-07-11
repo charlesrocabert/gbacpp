@@ -71,8 +71,8 @@ set(EXECUTABLE_OUTPUT_PATH ../build/bin)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the executables                                                       #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-set(OPTIMUM_EXECUTABLE find_optimum)
-add_executable(${OPTIMUM_EXECUTABLE} src/find_optimum.cpp)
+set(OPTIMUM_EXECUTABLE find_cgm_optimum)
+add_executable(${OPTIMUM_EXECUTABLE} src/find_cgm_optimum.cpp)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -95,7 +95,7 @@ add_library(
   src/lib/Model.hpp
   src/lib/Model.cpp
 )
-target_link_libraries(gbacpp gsl gslcblas)
+target_link_libraries(gbacpp PRIVATE GSL::gsl)
 target_link_libraries(${OPTIMUM_EXECUTABLE} gbacpp)
 
 
@@ -108,3 +108,12 @@ configure_file(
 )
 include_directories("${PROJECT_BINARY_DIR}")
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Provide installation instructions                                            #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+install(
+  TARGETS
+    ${OPTIMUM_EXECUTABLE}
+  DESTINATION
+    bin
+)

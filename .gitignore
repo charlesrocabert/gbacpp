@@ -16,6 +16,7 @@ cmake/CMakeCache.txt
 cmake/cmake_install.cmake
 cmake/Makefile
 cmake/Config.h
+cmake/install_manifest.txt
 
 # Prerequisites
 *.d
