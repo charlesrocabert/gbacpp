@@ -112,7 +112,7 @@ protected:
   bool is_path_exist( std::string path );
   bool is_file_exist( std::string filename );
   
-  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
+  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t );
   
   void open_trajectory_output_files( std::string output_path, std::string condition );
   void write_trajectory_output_files( std::string condition, int iter, double t, double dt );
@@ -229,9 +229,9 @@ protected:
   
   /*----------------------------------------------- GBA external condition variables */
   
-  std::string _current_condition; /*!< Current environmental condition    */
-  double      _current_rho;       /*!< Current total density              */
-  gsl_vector* _x;                 /*!< External metabolite concentrations */
+  std::string _condition; /*!< Current environmental condition    */
+  double      _rho;       /*!< Current total density              */
+  gsl_vector* _x;         /*!< External metabolite concentrations */
   
   /*----------------------------------------------- GBA first order variables */
   
@@ -346,14 +346,14 @@ inline void Model::set_condition( std::string condition )
   {
     throw std::invalid_argument("> Error: Unknown condition "+condition);
   }
-  _current_condition = condition;
+  _condition = condition;
   int cond_index     = _condition_indices[condition];
   for(int i = 0; i < (int)_condition_params.size(); i++)
   {
     std::string param = _condition_params[i];
     if (param == "rho")
     {
-      _current_rho = gsl_matrix_get(_conditions, i, cond_index);
+      _rho = gsl_matrix_get(_conditions, i, cond_index);
     }
     else
     {

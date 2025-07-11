@@ -94,9 +94,9 @@ Model::Model( std::string model_path, std::string model_name )
   
   /*----------------------------------------------- GBA external condition variables */
   
-  _current_condition = "";
-  _current_rho       = 0.0;
-  _x                 = NULL;
+  _condition = "";
+  _rho       = 0.0;
+  _x         = NULL;
   
   /*----------------------------------------------- GBA first order variables */
   
@@ -345,7 +345,7 @@ void Model::read_random_solutions( void )
 void Model::compute_optimum( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
 {
   std::clock_t begin = clock();
-  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t);
   std::clock_t end   = clock();
   double runtime     = double(end-begin)/CLOCKS_PER_SEC;
   open_optimum_output_files(output_path, condition);
@@ -383,7 +383,7 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_traject
   {
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     write_optimum_output_files(condition, converged, runtime);
@@ -424,7 +424,7 @@ void Model::compute_optimum_by_random_solution( std::string condition, bool prin
     
     std::clock_t begin = clock();
     gsl_vector_memcpy(_f0, _random_solutions[i]);
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     write_optimum_output_files(condition, converged, runtime);
@@ -479,10 +479,9 @@ bool Model::is_file_exist( std::string filename )
  * \param    std::string output_path
  * \param    int stable_count
  * \param    double max_t
- * \param    bool verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t )
 {
   auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
   if (it==_condition_ids.end())
@@ -509,12 +508,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   set_condition(condition);
   initialize_f();
   calculate();
-  /*
-  if (verbose)
-  {
-    std::cout << "> Initial growth rate = " << _mu << "\n";
-  }
-   */
+  // std::cout << "> Initial growth rate = " << _mu << "\n";
   if (!_consistent)
   {
     throw std::runtime_error("> Error: The initial solution f0 is not consistent");
@@ -528,7 +522,6 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   int    dt_counter          = 0;
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
-  int    nb_successes        = 0;
   write_trajectory_output_files(condition, nb_iterations, t, dt);
   while (t < max_t)
   {
@@ -548,19 +541,13 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     if (_consistent && _mu >= previous_mu)
     {
       gsl_vector_memcpy(previous_f_trunc, _f_trunc);
-      nb_successes++;
       dt_counter++;
       t = t+dt;
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         write_trajectory_output_files(condition, nb_iterations, t, dt);
+        // std::cout << " > " << nb_iterations << " iterations (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
       }
-      /*
-      if (nb_iterations%EXPORT_DATA_COUNT == 0 && verbose)
-      {
-        std::cout << " > " << nb_iterations << " iterations, " << nb_successes << " successes (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
-      }
-       */
       if (fabs(_mu-previous_mu) < stable_count)
       {
         constant_mu_counter++;
@@ -1686,7 +1673,7 @@ void Model::calculate( void )
  */
 void Model::compute_c( void )
 {
-  gsl_blas_dgemv(CblasNoTrans, _current_rho, _M, _f, 0.0, _c);
+  gsl_blas_dgemv(CblasNoTrans, _rho, _M, _f, 0.0, _c);
   if (_adjust_concentrations)
   {
     for (int i = 0; i < _nc; i++)
@@ -1818,16 +1805,16 @@ void Model::iMMr( int j )
  */
 void Model::rMM( int j )
 {
-  double term1 = gsl_vector_get(_kcat_f, j);
-  double term2 = 1.0;
-  double term3 = gsl_vector_get(_kcat_b, j);
-  double term4 = 1.0;
+  double kcatf = gsl_vector_get(_kcat_f, j);
+  double prodf = 1.0;
+  double kcatb = gsl_vector_get(_kcat_b, j);
+  double prodb = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    term2 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    term4 *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
+    prodf *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    prodb *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
   }
-  gsl_vector_set(_tau_j, j, 1.0/(term1/term2-term3/term4));
+  gsl_vector_set(_tau_j, j, 1.0/(kcatf/prodf-kcatb/prodb));
 }
 
 /**
@@ -2033,33 +2020,39 @@ void Model::diMMr( int j )
  */
 void Model::drMM( int j )
 {
-  double constant1 = gsl_vector_get(_kcat_f, j);
-  double constant2 = gsl_vector_get(_kcat_b, j);
-  double constant3 = 1.0;
-  double constant4 = 1.0;
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Calculate constant terms for reaction j */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  double kcatf = gsl_vector_get(_kcat_f, j);
+  double kcatb = gsl_vector_get(_kcat_b, j);
+  double prodf = 1.0;
+  double prodb = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    constant3 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    constant4 *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
+    prodf *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    prodb *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
   }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Calculate terms depending on substrate  */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
-    int    y     = i+_nx;
-    double term1 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_f, y, j), 2);
-    double term2 = gsl_matrix_get(_KM_b, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_b, y, j), 2);
-    double term3 = 1.0;
-    double term4 = 1.0;
+    int    y      = i+_nx;
+    double const1 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_f, y, j), 2);
+    double const2 = gsl_matrix_get(_KM_b, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_b, y, j), 2);
+    double term1  = 1.0;
+    double term2  = 1.0;
     for (int index = 0; index < _ni; index++)
     {
       if (index != y)
       {
         term1 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
-        term3 *= 1.0+gsl_matrix_get(_KM_b, index, j)/gsl_vector_get(_xc, index);
+        term2 *= 1.0+gsl_matrix_get(_KM_b, index, j)/gsl_vector_get(_xc, index);
       }
     }
-    double term5 = term1*constant1/term3-term2*constant2/term4;
-    double term6 = constant1/constant3-constant2/constant4;
-    gsl_matrix_set(_ditau_j, j, i, -term5/gsl_pow_int(term6, 2));
+    double term5 = kcatf/term1*const1 - kcatb/term2*const2;
+    double tauj  =  1.0/(kcatf/prodf-kcatb/prodb);
+    gsl_matrix_set(_ditau_j, j, i, -term5*gsl_pow_int(tauj, 2));
   }
 }
 
@@ -2117,7 +2110,7 @@ void Model::compute_mu( void )
 void Model::compute_v( void )
 {
   gsl_vector_memcpy(_v, _f);
-  gsl_vector_scale(_v, _mu*_current_rho);
+  gsl_vector_scale(_v, _mu*_rho);
 }
 
 /**
@@ -2168,7 +2161,7 @@ void Model::compute_dmu_f( void )
   gsl_matrix_get_row(_dmu_f_term2, _M, _a);
   gsl_vector_scale(_dmu_f_term2, 1.0/_mu);
   /*--------*/
-  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, _current_rho, _ditau_j, _M, 0.0, _dmu_f_term3);
+  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, _rho, _ditau_j, _M, 0.0, _dmu_f_term3);
   gsl_blas_dgemv(CblasTrans, 1.0, _dmu_f_term3, _f, 0.0, _dmu_f_term4);
   /*--------*/
   gsl_vector_memcpy(_dmu_f_term5, _tau_j);
@@ -2286,7 +2279,7 @@ void Model::block_reactions( void )
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int j = 0; j < _nj-1; j++)
   {
-    /*** 1.1) Reaction is irreversible and positive ***/
+    /*** 1.1) Reaction is irreversible ***/
     if (_type[j+1] != RMM && gsl_vector_get(_f_trunc, j) <= _tol)
     {
       gsl_vector_set(_f_trunc, j, _tol);
@@ -2295,32 +2288,18 @@ void Model::block_reactions( void )
         gsl_vector_set(_GCC_f, j+1, 0.0);
       }
     }
-    /*** 1.2) Reaction is irreversible and negative ***/
-    /*
-    if (_type[j+1] != RMM && gsl_vector_get(_f_trunc, j) >= -_tol)
-    {
-      gsl_vector_set(_f_trunc, j, -_tol);
-      if (gsl_vector_get(_GCC_f, j+1) > 0.0)
-      {
-        gsl_vector_set(_GCC_f, j+1, 0.0);
-      }
-    }
-     */
-    /*** 1.3) Reaction is reversible and tends to zero ***/
-    /*
+    /*** 1.2) Reaction is reversible ***/
     else if (_type[j+1] == RMM && fabs(gsl_vector_get(_f_trunc, j)) <= _tol)
     {
-      gsl_vector_set(_GCC_f, j+1, 0.0);
-      if (gsl_vector_get(_f_trunc, j) >= 0.0)
+      if (gsl_vector_get(_GCC_f, j+1) > 0.0)
       {
         gsl_vector_set(_f_trunc, j, _tol);
       }
-      else if (gsl_vector_get(_f_trunc, j) < 0.0)
+      if (gsl_vector_get(_GCC_f, j+1) < 0.0)
       {
         gsl_vector_set(_f_trunc, j, -_tol);
       }
     }
-     */
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Manage constant reactions           */

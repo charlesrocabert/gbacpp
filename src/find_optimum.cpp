@@ -36,8 +36,8 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-#include "Config.h"
-//#include "../cmake/Config.h"
+//#include "Config.h"
+#include "../cmake/Config.h"
 #include "./lib/Macros.hpp"
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
@@ -297,7 +297,7 @@ void printUsage( void )
   std::cout << "        specify the path of output files\n";
   std::cout << "  -tol, --tolerance\n";
   std::cout << "        specify the tolerance value\n";
-  std::cout << "  -stable-count, --stable-count\n";
+  std::cout << "  -stable, --stable-count\n";
   std::cout << "        specify the maximal number of iterations with unchanged mu\n";
   std::cout << "  -maxt, --max-time\n";
   std::cout << "        specify the maximal trajectory time\n";
