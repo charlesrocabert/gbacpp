@@ -19,12 +19,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***********************************************************************
 
-../build/bin/find_cgm_optimum -path ./models -name A -condition all -output ./output -verbose
-../build/bin/find_cgm_optimum -path ./models -name B -condition all -output ./output -verbose
-../build/bin/find_cgm_optimum -path ./models -name C -condition all -output ./output -verbose
-../build/bin/find_cgm_optimum -path ./models -name D -condition all -output ./output -verbose
-../build/bin/find_cgm_optimum -path ./models -name EC12b -condition all -output ./output -verbose
-../build/bin/find_cgm_optimum -path ./models -name BaseModel -condition all -output ./output -verbose
-../build/bin/find_cgm_optimum -path ./models -name ExtendedModel -condition all -output ./output -verbose
-../build/bin/find_cgm_optimum -path ./models -name EC3rev -condition all -output ./output -verbose
+find_cgm_optimum -path ./models -name A -condition all -output ./output -verbose
+find_cgm_optimum -path ./models -name B -condition all -output ./output -verbose
+find_cgm_optimum -path ./models -name C -condition all -output ./output -verbose
+find_cgm_optimum -path ./models -name D -condition all -output ./output -verbose
+find_cgm_optimum -path ./models -name EC12b -condition all -output ./output -verbose
+find_cgm_optimum -path ./models -name BaseModel -condition all -output ./output -verbose
+find_cgm_optimum -path ./models -name ExtendedModel -condition all -output ./output -verbose
+find_cgm_optimum -path ./models -name EC3rev -condition all -output ./output -verbose
 
