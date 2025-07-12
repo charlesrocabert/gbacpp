@@ -38,19 +38,21 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 
 # Table of contents
 - [1) Roadmap](#roadmap)
-- [2) Installation instructions](#installation_instructions)
-  - [2.1) Supported platforms](#supported_platforms)
-  - [2.2) Dependencies](#dependencies)
-  - [2.3) Software compilation](#software_compilation)
-- [3) First usage](#first_usage)
-  - [3.1) Find an optimum](#find_optimum)
-  - [3.2) Optimization parameters](#optimization_parameters)
-  - [3.3) Usage example](#usage_example)
-  - [3.4) Ready-to-use examples](#examples)
-- [4) CGM format tutorial](#cgm_format_tutorial)
-- [5) Units conversion tutorial](#units_conversion_tutorial)
-- [6) Copyright](#copyright)
-- [7) License](#license)
+- [2) Contributing](#contributing)
+- [3) Installation instructions](#installation_instructions)
+  - [3.1) Supported platforms](#supported_platforms)
+  - [3.2) Dependencies](#dependencies)
+  - [3.3) Installation](#installation)
+  - [3.4) Manual software compilation](#manual_software_compilation)
+- [4) First usage](#first_usage)
+  - [4.1) Find an optimum](#find_optimum)
+  - [4.2) Optimization parameters](#optimization_parameters)
+  - [4.3) Usage example](#usage_example)
+  - [4.4) Ready-to-use examples](#examples)
+- [5) CGM format tutorial](#cgm_format_tutorial)
+- [6) Units conversion tutorial](#units_conversion_tutorial)
+- [7) Copyright](#copyright)
+- [8) License](#license)
 
 # 1) Roadmap <a name="roadmap"></a>
 
@@ -61,21 +63,48 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 | Forward-in-time population level simulations | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
 | Lineage tracking | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
 
-# 2) Installation instructions <a name="installation_instructions"></a>
+# 2) Contributing <a name="contributing"></a>
+
+If you wish to contribute, do not hesitate to reach <a href="mailto:charles DOT rocabert AT hhu DOT de">the developer</href>.
+
+# 3) Installation instructions <a name="installation_instructions"></a>
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
 
-### 2.1) Supported platforms <a name="supported_platforms"></a>
+### 3.1) Supported platforms <a name="supported_platforms"></a>
 <strong>gbacpp</strong> software has been primilary developed for Unix/Linux and macOS systems.
 
-### 2.2) Dependencies <a name="dependencies"></a>
+### 3.2) Dependencies <a name="dependencies"></a>
 * A C++ compiler (GCC, LLVM, ...; C++17 required),
 * CMake $\geq$ 3.5 (command line version),
 * GSL $\geq$ 2.8 (https://www.gnu.org/software/gsl/).
 
-### 2.3) Software compilation <a name="software_compilation"></a>
+### 3.3) Installation <a name="installation"></a>
+
+<p align="justify">
+Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it into a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. To install <strong>gbacpp</strong>, simply call the script <code>install.sh</code> on the command line:
+</p>
+
+```
+sh install.sh
+```
+
+<p align="justify">
+The script will compile and install the software in the appropriate folder (usually in a <code>bin</code> directory, such as <code>/usr/local/bin</code>).
+The binary executables should be available in the terminal. If not, you may need to export the binary path:
+</p>
+
+```
+export PATH="/usr/bin:$PATH"
+```
+
+<p align="justify">
+:warning: If you want to simply compile the software without installing it into your system, follow the next instructions.
+</p>
+
+### 3.4) Manual software compilation <a name="manual_software_compilation"></a>
 
 #### • User mode
-To compile <strong>gbacpp</strong>, run the following instructions on the command line:
+To manually compile <strong>gbacpp</strong>, run the following instructions on the command line:
 
     cd cmake/
 
@@ -98,19 +127,19 @@ To clean compiled files and binary executables, run:
 
     bash make_clean.sh
 
-# 3) First usage <a name="first_usage"></a>
-Once <strong>gbacpp</strong> has been compiled, follow the next steps for a first usage of the software.
+# 4) First usage <a name="first_usage"></a>
+Once <strong>gbacpp</strong> has been compiled and installed, follow the next steps for a first usage of the software.
 
-### 3.1) Find an optimum <a name="find_optimum"></a>
+### 4.1) Find an optimum <a name="find_optimum"></a>
 To run a gradient ascent optimization on a CGM, execute the following command line:
 
-    ./build/bin/gba_find_optimum <parameters>
+    gba_find_optimum <parameters>
 
 The command line parameters are described below. The description is also available by executing the following command line in a terminal:
 
-    ./build/bin/gba_find_optimum -h
+    gba_find_optimum -h
 
-### 3.2) Optimization parameters <a name="optimization_parameters"></a>
+### 4.2) Optimization parameters <a name="optimization_parameters"></a>
 
 - <code>-h</code>, <code>--help</code>: Print the help, then exit,
 - <code>-v</code>, <code>--version</code>: Print the current version, then exit,
@@ -129,7 +158,7 @@ The command line parameters are described below. The description is also availab
 - <code>-maxt</code>, <code>--max-time</code>: Specify the maximal trajectory time as a stop criterium ($100,000$ by default),
 - <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 
-### 3.3) Usage example <a name="usage_example"></a>
+### 4.3) Usage example <a name="usage_example"></a>
 
 In this example, growth rate optimums are calculated for all the external conditions of the <em>Escherichia coli</em> toy model EC12b (see folder <code>./examples/toy_models</code>).
 
@@ -139,11 +168,11 @@ First, navigate to the folder <code>./examples</code> using the <code>cd</code> 
 
 Then, call the optimization algorithm:
 
-    ../build/bin/gba_find_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
+    gba_find_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
 
 Here, optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
-### 3.4) Ready-to-use examples <a name="examples"></a>
+### 4.4) Ready-to-use examples <a name="examples"></a>
 Ready-to-use examples are available in the folder <code>./examples</code> (navigate to the folder <code>examples</code> using the <code>cd</code> command):
 
 • <code>model_A_condition_1.sh</code>: This script will run a single gradient ascent on model A in external condition 1 (2 reactions, 2 metabolites). You can execute it using the following command line:
@@ -158,7 +187,7 @@ At the end of the optimization, CSV files are written in the folder <code>./exam
 
 All the optimums are written in the folder <code>./examples/output</code>.
 
-## 4) CGM format tutorial <a name="cgm_format_tutorial"></a>
+## 5) CGM format tutorial <a name="cgm_format_tutorial"></a>
 
 A tutorial is available to better understand the content of cell growth model:
 
@@ -166,7 +195,7 @@ A tutorial is available to better understand the content of cell growth model:
 <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/cgm_format_tutorial.md" target="_blank">:link: CGM format tutorial</a>
 </p>
 
-## 5) Units conversion tutorial <a name="units_conversion_tutorial"></a>
+## 6) Units conversion tutorial <a name="units_conversion_tutorial"></a>
 
 A tutorial is available for users starting from standard metabolic models stoichiometric coefficients and kinetic parameters, and wanting to convert them into GBA formalism:
 
@@ -174,10 +203,10 @@ A tutorial is available for users starting from standard metabolic models stoich
 <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">:link: Units conversion tutorial</a>
 </p>
 
-## 5) Copyright <a name="copyright"></a>
+## 7) Copyright <a name="copyright"></a>
 Copyright © 2024-2025 Charles Rocabert. All rights reserved.
 
-## 6) License <a name="license"></a>
+## 8) License <a name="license"></a>
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
