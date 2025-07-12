@@ -323,7 +323,7 @@ void printHeader( void )
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " ( release )\n";
 #endif
   std::cout << "*                                                                     \n";
-  std::cout << "* gbacpp (growth balance analysis for C++)                           \n";
+  std::cout << "* gbacpp (growth balance analysis for C++)                            \n";
   std::cout << "* Copyright © 2024-2025 Charles Rocabert                              \n";
   std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                      \n";
   std::cout << "*                                                                     \n";
