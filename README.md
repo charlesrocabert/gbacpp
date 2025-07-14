@@ -89,7 +89,7 @@ sh install.sh
 
 <p align="justify">
 The script will compile and install the software in the appropriate folder (usually in a <code>bin</code> directory, such as <code>/usr/local/bin</code>).
-The binary executables should be available in the terminal. If not, you may need to export the binary path:
+The binary executable <code>find_cgm_optimum</code> should be available in the terminal. If not, you may need to export the binary path:
 </p>
 
 ```
@@ -132,11 +132,11 @@ Once <strong>gbacpp</strong> has been compiled and installed, follow the next st
 ### 4.1) Find an optimum <a name="find_optimum"></a>
 To run a gradient ascent optimization on a CGM, execute the following command line:
 
-    gba_find_optimum <parameters>
+    find_cgm_optimum <parameters>
 
 The command line parameters are described below. The description is also available by executing the following command line in a terminal:
 
-    gba_find_optimum -h
+    find_cgm_optimum -h
 
 ### 4.2) Optimization parameters <a name="optimization_parameters"></a>
 
@@ -150,10 +150,10 @@ The command line parameters are described below. The description is also availab
 
 #### • Optional parameters
 - <code>-print</code>, <code>--print-optimum</code>: Indicates if the optimum should be printed in the standard output. This option is useful to pass the result to another program (<code>-verbose</code> option should not be used),
-- <code>-write</code>, <code>--write-trajectory</code>: Indicates if the trajectory should be written as output files. Tracking the optimization trajectory can be useful during tests,
+- <code>-trajectory</code>, <code>--write-trajectory</code>: Indicates if the trajectory should be written as output files. Tracking the optimization trajectory can be useful during tests,
 - <code>-output</code>, <code>--output-path</code>: Specify the path of output files,
 - <code>-tol</code>, <code>--tolerance</code>: Specify the tolerance value ($10^{-10}$ by default),
-- <code>-stable-count</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged growth rate as a stop criterium ($10,000$ by default),
+- <code>-stable</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged growth rate as a stop criterium ($10,000$ by default),
 - <code>-maxt</code>, <code>--max-time</code>: Specify the maximal trajectory time as a stop criterium ($100,000$ by default),
 - <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 
@@ -167,7 +167,7 @@ First, navigate to the folder <code>./examples</code> using the <code>cd</code> 
 
 Then, call the optimization algorithm:
 
-    gba_find_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
+    find_cgm_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
 
 Here, optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
