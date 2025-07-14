@@ -112,7 +112,7 @@ protected:
   bool is_path_exist( std::string path );
   bool is_file_exist( std::string filename );
   
-  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t );
+  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
   
   void open_trajectory_output_files( std::string output_path, std::string condition );
   void write_trajectory_output_files( std::string condition, int iter, double t, double dt );

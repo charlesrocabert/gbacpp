@@ -345,7 +345,7 @@ void Model::read_random_solutions( void )
 void Model::compute_optimum( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
 {
   std::clock_t begin = clock();
-  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t);
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
   std::clock_t end   = clock();
   double runtime     = double(end-begin)/CLOCKS_PER_SEC;
   open_optimum_output_files(output_path, condition);
@@ -383,7 +383,7 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_traject
   {
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     write_optimum_output_files(condition, converged, runtime);
@@ -424,7 +424,7 @@ void Model::compute_optimum_by_random_solution( std::string condition, bool prin
     
     std::clock_t begin = clock();
     gsl_vector_memcpy(_f0, _random_solutions[i]);
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     write_optimum_output_files(condition, converged, runtime);
@@ -479,9 +479,10 @@ bool Model::is_file_exist( std::string filename )
  * \param    std::string output_path
  * \param    int stable_count
  * \param    double max_t
+ * \param    bool verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t )
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
 {
   auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
   if (it==_condition_ids.end())
@@ -546,9 +547,9 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         write_trajectory_output_files(condition, nb_iterations, t, dt);
-        // std::cout << " > " << nb_iterations << " iterations (mu=" << _mu << ", constant mu iters=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+        std::cout << " > Growth rate = " << _mu << " (iters=" << nb_iterations << ", stable=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
       }
-      if (fabs(_mu-previous_mu) < stable_count)
+      if (fabs(_mu-previous_mu) < _tol)
       {
         constant_mu_counter++;
       }
