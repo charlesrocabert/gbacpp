@@ -5,7 +5,7 @@
 clean_folders.sh
 xcode/**
 scripts/**
-hpc_download/**
+hpc/**
 output/**
 examples/output/**
 

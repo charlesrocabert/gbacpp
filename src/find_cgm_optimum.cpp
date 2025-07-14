@@ -191,7 +191,7 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
     {
       print_optimum = true;
     }
-    else if (strcmp(argv[i], "-write") == 0 || strcmp(argv[i], "--write-trajectory") == 0)
+    else if (strcmp(argv[i], "-trajectory") == 0 || strcmp(argv[i], "--write-trajectory") == 0)
     {
       write_trajectory = true;
     }
@@ -291,7 +291,7 @@ void printUsage( void )
   std::cout << "        specify the condition (condition identifier / all)\n";
   std::cout << "  -print, --print-optimum\n";
   std::cout << "        indicates if the optimum should be printed in the standard output\n";
-  std::cout << "  -write, --write-trajectory\n";
+  std::cout << "  -trajectory, --write-trajectory\n";
   std::cout << "        indicates if the trajectory should be written in output files\n";
   std::cout << "  -output, --output-path\n";
   std::cout << "        specify the path of output files\n";
