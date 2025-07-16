@@ -207,6 +207,10 @@ Copyright © 2024-2025 Charles Rocabert. All rights reserved.
 
 ## 8) License <a name="license"></a>
 
+MIT License
+
+Copyright (c) 2024-2025 Charles Rocabert
+
 <p align="justify">
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
