@@ -103,9 +103,9 @@ public:
   void read_from_csv( void );
   void read_random_solutions( void );
   
-  void compute_optimum( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
-  void compute_optimum_by_condition( bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
-  //void compute_optimum_by_random_solution( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
+  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
+  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
+  //void compute_optimum_by_random_solution( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -120,7 +120,7 @@ protected:
   bool is_path_exist( std::string path );
   bool is_file_exist( std::string filename );
   
-  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose );
+  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
   
   void open_trajectory_output_files( std::string output_path, std::string condition );
   void write_trajectory_output_files( std::string condition, int iter, double t, double dt );

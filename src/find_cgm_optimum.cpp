@@ -50,7 +50,7 @@
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_trajectory, std::string &output_path, double &tol, int &stable_count, double &max_time, bool &verbose );
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, int &stable_count, int &max_iter, bool &verbose );
 void printUsage( void );
 void printHeader( void );
 
@@ -71,13 +71,14 @@ int main(int argc, char const** argv)
   std::string model_name       = "";
   std::string condition        = "";
   bool        print_optimum    = false;
+  bool        write_optimum    = false;
   bool        write_trajectory = false;
-  std::string output_path      = "";
+  std::string output_path      = ".";
   double      tol              = 1e-10;
   int         stable_count     = 10000;
-  double      max_time         = 100000.0;
+  int         max_iter         = 1000000;
   bool        verbose          = false;
-  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_trajectory, output_path, tol, stable_count, max_time, verbose);
+  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, stable_count, max_iter, verbose);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Print the header in verbose mode               */
@@ -98,17 +99,17 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   if (condition != "all")// && condition != "random")
   {
-    model->compute_optimum(condition, print_optimum, write_trajectory, output_path, stable_count, max_time, verbose);
+    model->compute_optimum(condition, print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, verbose);
   }
   else
   {
-    model->compute_optimum_by_condition(print_optimum, write_trajectory, output_path, stable_count, max_time, verbose);
+    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, verbose);
   }
   /*
   else if (condition == "random")
   {
     model->read_random_solutions();
-    model->compute_optimum_by_random_solution(condition, print_optimum, write_trajectory, output_path, stable_count, max_time, verbose);
+    model->compute_optimum_by_random_solution(condition, print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, verbose);
   }
   */
   
@@ -129,15 +130,16 @@ int main(int argc, char const** argv)
  * \param    std::string &model_name
  * \param    std::string &condition
  * \param    bool &print_optimum
+ * \param    bool &write_optimum
  * \param    bool &write_trajectory
  * \param    std::string &output_path
  * \param    double &tol
  * \param    double &stable_count
- * \param    double &max_time
+ * \param    int &max_iter
  * \param    bool &verbose
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_trajectory, std::string &output_path, double &tol, int &stable_count, double &max_time, bool &verbose )
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, int &stable_count, int &max_iter, bool &verbose )
 {
   if (argc == 1)
   {
@@ -199,6 +201,10 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
     {
       print_optimum = true;
     }
+    else if (strcmp(argv[i], "-optimum") == 0 || strcmp(argv[i], "--write-optimum") == 0)
+    {
+      write_optimum = true;
+    }
     else if (strcmp(argv[i], "-trajectory") == 0 || strcmp(argv[i], "--write-trajectory") == 0)
     {
       write_trajectory = true;
@@ -236,15 +242,15 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
         stable_count = atof(argv[i+1]);
       }
     }
-    else if (strcmp(argv[i], "-max") == 0 || strcmp(argv[i], "--max-time") == 0)
+    else if (strcmp(argv[i], "-max") == 0 || strcmp(argv[i], "--max-iter") == 0)
     {
       if (i+1 == argc)
       {
-        throw std::invalid_argument("> Error: Trajectory max time is missing");
+        throw std::invalid_argument("> Error: maximum number of iterations is missing");
       }
       else
       {
-        max_time = atof(argv[i+1]);
+        max_iter = atoi(argv[i+1]);
       }
     }
     else if (strcmp(argv[i], "-verbose") == 0 || strcmp(argv[i], "--verbose") == 0)
@@ -314,6 +320,8 @@ void printUsage( void )
   std::cout << "        specify the condition (condition identifier / all)\n";
   std::cout << "  -print, --print-optimum\n";
   std::cout << "        indicates if the optimum should be printed in the standard output\n";
+  std::cout << "  -optimum, --write-optimum\n";
+  std::cout << "        indicates if the optimum should be written in output files\n";
   std::cout << "  -trajectory, --write-trajectory\n";
   std::cout << "        indicates if the trajectory should be written in output files\n";
   std::cout << "  -output, --output-path\n";
@@ -322,8 +330,8 @@ void printUsage( void )
   std::cout << "        specify the tolerance value\n";
   std::cout << "  -stable, --stable-count\n";
   std::cout << "        specify the maximal number of iterations with unchanged mu\n";
-  std::cout << "  -maxt, --max-time\n";
-  std::cout << "        specify the maximal trajectory time\n";
+  std::cout << "  -max, --max-iter\n";
+  std::cout << "        specify the maximal number of iterations\n";
   std::cout << "  -verbose, --verbose\n";
   std::cout << "        indicates if the program should run in verbose mode\n";
   std::cout << "\n";

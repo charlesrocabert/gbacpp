@@ -343,22 +343,26 @@ void Model::read_random_solutions( void )
  * \details  --
  * \param    std::string condition
  * \param    bool print_optimum
+ * \param    bool write_optimum
  * \param    bool write_trajectory
  * \param    std::string output_path
  * \param    int stable_count
- * \param    double max_t
+ * \param    int max_iter
  * \param    bool verbose
  * \return   \e bool
  */
-void Model::compute_optimum( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
+void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose )
 {
   std::clock_t begin = clock();
-  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, verbose);
   std::clock_t end   = clock();
   double runtime     = double(end-begin)/CLOCKS_PER_SEC;
-  open_optimum_output_files(output_path, condition);
-  write_optimum_output_files(condition, converged, runtime);
-  close_optimum_ouput_files();
+  if (write_optimum)
+  {
+    open_optimum_output_files(output_path, condition);
+    write_optimum_output_files(condition, converged, runtime);
+    close_optimum_ouput_files();
+  }
   if (print_optimum)
   {
     print_to_standard_ouput(condition, converged, runtime);
@@ -369,7 +373,7 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
   }
   else if (verbose && !converged)
   {
-    std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
+    std::cout << "> Condition " << condition << ": convergence not reached after " << max_iter << " iterations (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
   }
 }
 
@@ -377,24 +381,31 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
  * \brief    Compute the optimum for all the conditions
  * \details  --
  * \param    bool print_optimum
+ * \param    bool write_optimum
  * \param    bool write_trajectory
  * \param    std::string output_path
  * \param    int stable_count
- * \param    double max_t
+ * \param    int max_iter
  * \param    bool verbose
  * \return   \e bool
  */
-void Model::compute_optimum_by_condition( bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
+void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose )
 {
-  open_optimum_output_files(output_path, "all");
+  if (write_optimum)
+  {
+    open_optimum_output_files(output_path, "all");
+  }
   for (int i = 0; i < (int)_condition_ids.size(); i++)
   {
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
-    write_optimum_output_files(condition, converged, runtime);
+    if (write_optimum)
+    {
+      write_optimum_output_files(condition, converged, runtime);
+    }
     if (print_optimum)
     {
       print_to_standard_ouput(condition, converged, runtime);
@@ -405,10 +416,13 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_traject
     }
     else if (verbose && !converged)
     {
-      std::cout << "> Condition " << condition << ": convergence not reached after T=" << max_t << " (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
+      std::cout << "> Condition " << condition << ": convergence not reached after " << max_iter << " iterations (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
     }
   }
-  close_optimum_ouput_files();
+  if (write_optimum)
+  {
+    close_optimum_ouput_files();
+  }
 }
 
 /**
@@ -416,26 +430,33 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_traject
  * \details  --
  * \param    std::string condition
  * \param    bool print_optimum
+ * \param    bool write_optimum
  * \param    bool write_trajectory
  * \param    std::string output_path
  * \param    int stable_count
- * \param    double max_t
+ * \param    int max_iter
  * \param    bool verbose
  * \return   \e bool
  */
 /*
-void Model::compute_optimum_by_random_solution( std::string condition, bool print_optimum, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
+void Model::compute_optimum_by_random_solution( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose )
 {
-  open_optimum_output_files(output_path, "random");
+  if (write_optimum)
+  {
+    open_optimum_output_files(output_path, "random");
+  }
   for (int i = 0; i < _nb_random_solutions; i++)
   {
     
     std::clock_t begin = clock();
     gsl_vector_memcpy(_f0, _random_solutions[i]);
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_t, verbose);
+    bool         converged = compute_gradient_ascent(condition, write_optimum, write_trajectory, output_path, stable_count, max_iter, verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
-    write_optimum_output_files(condition, converged, runtime);
+    if (write_optimum)
+    {
+      write_optimum_output_files(condition, converged, runtime);
+    }
     if (print_optimum)
     {
       print_to_standard_ouput(condition, converged, runtime);
@@ -445,7 +466,10 @@ void Model::compute_optimum_by_random_solution( std::string condition, bool prin
       std::cout << "> Elapsed time for random solution " << i << ": " << runtime << " seconds" << std::endl;
     }
   }
-  close_optimum_ouput_files();
+  if (write_optimum)
+  {
+    close_optimum_ouput_files();
+  }
 }
 */
 
@@ -486,11 +510,11 @@ bool Model::is_file_exist( std::string filename )
  * \param    bool write_trajectory
  * \param    std::string output_path
  * \param    int stable_count
- * \param    double max_t
+ * \param    int max_iter
  * \param    bool verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, double max_t, bool verbose )
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose )
 {
   auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
   if (it==_condition_ids.end())
@@ -505,9 +529,9 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   {
     throw std::invalid_argument("> Error: The stable count parameter must be positive or null");
   }
-  if (max_t <= 0.0)
+  if (max_iter <= 0)
   {
-    throw std::invalid_argument("> Error: The maximum time must be positive");
+    throw std::invalid_argument("> Error: The maximum number of iterations must be positive");
   }
   if (write_trajectory)
   {
@@ -531,8 +555,11 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   int    dt_counter          = 0;
   int    constant_mu_counter = 0;
   int    nb_iterations       = 0;
-  write_trajectory_output_files(condition, nb_iterations, t, dt);
-  while (t < max_t)
+  if (write_trajectory)
+  {
+    write_trajectory_output_files(condition, nb_iterations, t, dt);
+  }
+  while (nb_iterations < max_iter)
   {
     nb_iterations++;
     if (constant_mu_counter >= stable_count)
@@ -555,7 +582,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         write_trajectory_output_files(condition, nb_iterations, t, dt);
-        std::cout << " > Growth rate = " << _mu << " (iters=" << nb_iterations << ", stable=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+        std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", stable=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
       }
       if (fabs(_mu-previous_mu) < _tol)
       {
@@ -933,7 +960,6 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   {
     std::cout << "\t" << gsl_vector_get(_c, j);
   }
-  std::cout << std::endl;
   std::cout << std::endl;
 }
 
