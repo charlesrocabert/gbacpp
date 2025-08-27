@@ -21,16 +21,16 @@
 
 <p align="justify">
 <strong>gbacpp</strong> is a C++ implementation of the growth balance analysis mathematical formalism (GBA; <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
-The software has been optimized to solve large-scale cell growth models (CGMs), for which available solvers for non-linear constraint-based problems usually struggle.
+The software has been optimized to solve large-scale self-replicating cell (SRC) models, for which available solvers for non-linear constraint-based problems usually struggle.
 The optimization process relies on a gradient ascent approach, and is preferred for models offering a convex solution space (typically, when all reactions in the metabolic network are linearly independent).
 </p>
 
 <p align="justify">
-:ballot_box_with_check: Note that CGMs must comply to a standardized format. A tutorial is available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/cgm_format_tutorial.md" target="_blank">CGM format tutorial</a>.
+:ballot_box_with_check: Note that SRC models must comply to a standardized format. A tutorial is available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/cgm_format_tutorial.md" target="_blank">SRC model format tutorial</a>.
 
-:ballot_box_with_check: When building a CGM, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
+:ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
 
-:ballot_box_with_check: <strong>gbacpp</strong> will integrate CGM evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
+:ballot_box_with_check: <strong>gbacpp</strong> will integrate evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
 
 :ballot_box_with_check: A complete tutorial on GBA formalism is also available at https://cellgrowthsim.com/.
 </p>
@@ -48,7 +48,7 @@ The optimization process relies on a gradient ascent approach, and is preferred 
   - [4.2) Optimization parameters](#optimization_parameters)
   - [4.3) Usage example](#usage_example)
   - [4.4) Ready-to-use examples](#examples)
-- [5) CGM format tutorial](#cgm_format_tutorial)
+- [5) SRC model format tutorial](#src_model_format_tutorial)
 - [6) Units conversion tutorial](#units_conversion_tutorial)
 - [7) Copyright](#copyright)
 - [8) License](#license)
@@ -57,7 +57,7 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 
 | Task | Status |
 |---|---|
-| Gradient ascent (best for full column-rank CGMs) | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Done-green.svg"/></a> |
+| Gradient ascent (best for full column-rank SRC models) | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Done-green.svg"/></a> |
 | MCMC algorithm | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
 | Forward-in-time population level simulations | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
 | Lineage tracking | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
@@ -89,7 +89,7 @@ sh install.sh
 
 <p align="justify">
 The script will compile and install the software in the appropriate folder (usually in a <code>bin</code> directory, such as <code>/usr/local/bin</code>).
-The binary executable <code>find_cgm_optimum</code> should be available in the terminal. If not, you may need to export the binary path:
+The binary executable <code>find_model_optimum</code> should be available in the terminal. If not, you may need to export the binary path:
 </p>
 
 ```
@@ -130,13 +130,13 @@ To clean compiled files and binary executables, run:
 Once <strong>gbacpp</strong> has been compiled and installed, follow the next steps for a first usage of the software.
 
 ### 4.1) Find an optimum <a name="find_optimum"></a>
-To run a gradient ascent optimization on a CGM, execute the following command line:
+To run a gradient ascent optimization on a SRC model, execute the following command line:
 
-    find_cgm_optimum <parameters>
+    find_model_optimum <parameters>
 
 The command line parameters are described below. The description is also available by executing the following command line in a terminal:
 
-    find_cgm_optimum -h
+    find_model_optimum -h
 
 ### 4.2) Optimization parameters <a name="optimization_parameters"></a>
 
@@ -144,8 +144,8 @@ The command line parameters are described below. The description is also availab
 - <code>-v</code>, <code>--version</code>: Print the current version, then exit,
 
 #### • Mandatory parameters
-- <code>-path</code>, <code>--model-path</code>: Specify the path of the CGM to be loaded,
-- <code>-name</code>, <code>--model-name</code>: Specify the name of the CGM to be loaded,
+- <code>-path</code>, <code>--model-path</code>: Specify the path of the SRC model to be loaded,
+- <code>-name</code>, <code>--model-name</code>: Specify the name of the SRC model to be loaded,
 - <code>-condition</code>, <code>--condition</code>: Specify the external condition. If <code>all</code> is selected, all conditions are applied.
 
 #### • Optional parameters
@@ -167,7 +167,7 @@ First, navigate to the folder <code>./examples</code> using the <code>cd</code> 
 
 Then, call the optimization algorithm:
 
-    find_cgm_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
+    find_model_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
 
 Here, optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
@@ -186,12 +186,12 @@ At the end of the optimization, CSV files are written in the folder <code>./exam
 
 All the optimums are written in the folder <code>./examples/output</code>.
 
-## 5) CGM format tutorial <a name="cgm_format_tutorial"></a>
+## 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
 A tutorial is available to better understand the content of cell growth model:
 
 <p align="center">
-<a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/cgm_format_tutorial.md" target="_blank">:link: CGM format tutorial</a>
+<a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">:link: SRC model format tutorial</a>
 </p>
 
 ## 6) Units conversion tutorial <a name="units_conversion_tutorial"></a>
