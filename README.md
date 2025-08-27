@@ -26,7 +26,7 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 </p>
 
 <p align="justify">
-:ballot_box_with_check: Note that SRC models must comply to a standardized format. A tutorial is available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/cgm_format_tutorial.md" target="_blank">SRC model format tutorial</a>.
+:ballot_box_with_check: Note that SRC models must comply to a standardized format. Guidelines are available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/cgm_format_tutorial.md" target="_blank">SRC model format tutorial</a>.
 
 :ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
 
