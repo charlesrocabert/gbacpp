@@ -1,10 +1,10 @@
 /**
- * \file      find_cgm_optimum.cpp
+ * \file      find_model_optimum.cpp
  * \author    Charles Rocabert
  * \date      22-07-2024
  * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
  * \license   This work is licensed under the terms of the MIT license
- * \brief     find_cgm_optimum executable
+ * \brief     find_model_optimum executable
  */
 
 /********************************************************************************
@@ -305,17 +305,17 @@ void printUsage( void )
   std::cout << "* SOFTWARE.                                                                      \n";
   std::cout << "******************************************************************************** \n";
   std::cout << "\n";
-  std::cout << "Usage: find_cgm_optimum -h or --help\n";
-  std::cout << "   or: find_cgm_optimum [options]\n";
+  std::cout << "Usage: find_model_optimum -h or --help\n";
+  std::cout << "   or: find_model_optimum [options]\n";
   std::cout << "Options are:\n";
   std::cout << "  -h, --help\n";
   std::cout << "        print this help, then exit\n";
   std::cout << "  -v, --version\n";
   std::cout << "        print the current version, then exit\n";
   std::cout << "  -path, --model-path (MANDATORY)\n";
-  std::cout << "        specify the path of the CGM to be loaded\n";
+  std::cout << "        specify the path of the model to be loaded\n";
   std::cout << "  -name, --model-name (MANDATORY)\n";
-  std::cout << "        specify the name of the CGM to be loaded\n";
+  std::cout << "        specify the name of the model to be loaded\n";
   std::cout << "  -condition, --condition (MANDATORY)\n";
   std::cout << "        specify the condition (condition identifier / all)\n";
   std::cout << "  -print, --print-optimum\n";

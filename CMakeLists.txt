@@ -79,8 +79,8 @@ set(EXECUTABLE_OUTPUT_PATH ../build/bin)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define the executables                                                       #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-set(OPTIMUM_EXECUTABLE find_cgm_optimum)
-add_executable(${OPTIMUM_EXECUTABLE} src/find_cgm_optimum.cpp)
+set(OPTIMUM_EXECUTABLE find_model_optimum)
+add_executable(${OPTIMUM_EXECUTABLE} src/find_model_optimum.cpp)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
