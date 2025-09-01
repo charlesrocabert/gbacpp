@@ -38,12 +38,12 @@
 #define __gbacpp__Macros__
 
 
-#define DECREASING_DT_FACTOR 5.0    /*!< Factor dividing dt                                      */
-#define INCREASING_DT_FACTOR 2.0    /*!< Factor multiplying dt                                   */
-#define INCREASING_DT_COUNT  100    /*!< Number of constant dt iterations to increase it         */
-#define MIN_DT               1e-100 /*!< Minimal dt value                                        */
-#define EXPORT_DATA_COUNT    100    /*!< Data is exported at this period in number of iterations */
-#define REGULATION_SIGMA     10.0   /*!< Metabolite Gaussian kernel function width               */
+#define DECREASING_DT_FACTOR 5.0    /*!< Timestep dividing factor                                  */
+#define INCREASING_DT_FACTOR 2.0    /*!< Timestep multiplying factor                               */
+#define INCREASING_DT_COUNT  100    /*!< Iterations with constant timestep required to increase it */
+#define MIN_DT               1e-100 /*!< Minimal timestep value                                    */
+#define EXPORT_DATA_COUNT    100    /*!< Timestep window for data export                           */
+#define REGULATION_SIGMA     10.0   /*!< Metabolite Gaussian kernel function width                 */
 
 
 #endif /* defined(__gbacpp__Macros__) */
