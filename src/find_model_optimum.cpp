@@ -83,9 +83,15 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Print the header in verbose mode               */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  if (verbose)
+  if (verbose && condition != "all")
   {
     printHeader();
+    std::cout << "OPTIMIZING MODEL " << model_name << " FOR CONDITION " << condition << ":" << std::endl;
+  }
+  if (verbose && condition == "all")
+  {
+    printHeader();
+    std::cout << "OPTIMIZING MODEL " << model_name << " FOR ALL CONDITIONS:" << std::endl;
   }
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -273,7 +279,7 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
 void printUsage( void )
 {
   std::cout << "\n";
-  std::cout << "********************************************************************************\n";
+  std::cout << "*********************************************************************************\n";
 #ifdef DEBUG
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Debug)\n";
 #endif
@@ -303,7 +309,7 @@ void printUsage( void )
   std::cout << "* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  \n";
   std::cout << "* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  \n";
   std::cout << "* SOFTWARE.                                                                      \n";
-  std::cout << "******************************************************************************** \n";
+  std::cout << "*********************************************************************************\n";
   std::cout << "\n";
   std::cout << "Usage: find_model_optimum -h or --help\n";
   std::cout << "   or: find_model_optimum [options]\n";
@@ -346,7 +352,20 @@ void printUsage( void )
 void printHeader( void )
 {
   std::cout << "\n";
-  std::cout << "********************************************************************************\n";
+  std::cout << "****************************************************************\n";
+#ifdef DEBUG
+  std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Debug)\n";
+#endif
+#ifdef NDEBUG
+  std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Release)\n";
+#endif
+  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                \n";
+  std::cout << "* MIT License © 2024-2025 Charles Rocabert. All rights reserved.\n";
+  std::cout << "****************************************************************\n";
+  std::cout << "\n";
+  /*
+  std::cout << "\n";
+  std::cout << "*********************************************************************************\n";
 #ifdef DEBUG
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Debug)\n";
 #endif
@@ -376,7 +395,8 @@ void printHeader( void )
   std::cout << "* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  \n";
   std::cout << "* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  \n";
   std::cout << "* SOFTWARE.                                                                      \n";
-  std::cout << "******************************************************************************** \n";
+  std::cout << "*********************************************************************************\n";
   std::cout << "\n";
+   */
 }
 
