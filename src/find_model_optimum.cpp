@@ -86,12 +86,12 @@ int main(int argc, char const** argv)
   if (verbose && condition != "all")
   {
     printHeader();
-    std::cout << "OPTIMIZING MODEL " << model_name << " FOR CONDITION " << condition << ":" << std::endl;
+    std::cout << "OPTIMIZING MODEL \"" << model_name << "\" FOR CONDITION " << condition << ":" << std::endl;
   }
   if (verbose && condition == "all")
   {
     printHeader();
-    std::cout << "OPTIMIZING MODEL " << model_name << " FOR ALL CONDITIONS:" << std::endl;
+    std::cout << "OPTIMIZING MODEL \"" << model_name << "\" FOR ALL CONDITIONS:" << std::endl;
   }
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
