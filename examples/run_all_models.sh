@@ -27,12 +27,12 @@
 # SOFTWARE.
 #*******************************************************************************
 
-find_model_optimum -path ../models -name A -condition all -output ./output -verbose -stable 100
-find_model_optimum -path ../models -name B -condition all -output ./output -verbose -stable 100
-find_model_optimum -path ../models -name C -condition all -output ./output -verbose -stable 100
-find_model_optimum -path ../models -name D -condition all -output ./output -verbose -stable 100
-find_model_optimum -path ../models -name EC12b -condition all -output ./output -verbose -stable 100
-find_model_optimum -path ../models -name BaseModel -condition all -output ./output -verbose -stable 100
-find_model_optimum -path ../models -name ExtendedModel -condition all -output ./output -verbose -stable 100
-find_model_optimum -path ../models -name EC3rev -condition all -output ./output -verbose -stable 100   
+find_model_optimum -path ../../gbamodels/CSV -name A -condition all -output ./output -verbose -optimum
+find_model_optimum -path ../../gbamodels/CSV -name B -condition all -output ./output -verbose -optimum
+find_model_optimum -path ../../gbamodels/CSV -name C -condition all -output ./output -verbose -optimum
+find_model_optimum -path ../../gbamodels/CSV -name D -condition all -output ./output -verbose -optimum
+find_model_optimum -path ../../gbamodels/CSV -name EC12b -condition all -output ./output -verbose -optimum
+find_model_optimum -path ../../gbamodels/CSV -name BaseModel -condition all -output ./output -verbose -optimum
+find_model_optimum -path ../../gbamodels/CSV -name ExtendedModel -condition all -output ./output -verbose -optimum
+find_model_optimum -path ../../gbamodels/CSV -name EC3rev -condition all -output ./output -verbose -optimum 
 

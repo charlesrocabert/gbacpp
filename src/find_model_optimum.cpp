@@ -76,7 +76,7 @@ int main(int argc, char const** argv)
   std::string output_path      = ".";
   double      tol              = 1e-10;
   int         stable_count     = 10000;
-  int         max_iter         = 1000000;
+  int         max_iter         = 100000000;
   bool        verbose          = false;
   readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, stable_count, max_iter, verbose);
   
