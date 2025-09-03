@@ -189,7 +189,7 @@ All the optimums are written in the folder <code>./examples/output</code>.
 
 ## 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
-A tutorial is available to better understand the content of cell growth model:
+A tutorial is available to better understand the content of a self-replicating cell model:
 
 <p align="center">
 <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">:link: SRC model format tutorial</a>
@@ -197,7 +197,7 @@ A tutorial is available to better understand the content of cell growth model:
 
 ## 6) Units conversion tutorial <a name="units_conversion_tutorial"></a>
 
-A tutorial is available for users starting from standard metabolic models stoichiometric coefficients and kinetic parameters, and wanting to convert them into GBA formalism:
+A tutorial is available for users starting from standard stoichiometric coefficients and kinetic parameters, and wanting to convert them into GBA formalism:
 
 <p align="center">
 <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">:link: Units conversion tutorial</a>
