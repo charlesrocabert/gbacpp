@@ -89,7 +89,7 @@ sh install.sh
 
 <p align="justify">
 The script will compile and install the software in the appropriate folder (usually in a <code>bin</code> directory, such as <code>/usr/local/bin</code>).
-The binary executable <code>find_model_optimum</code> should be available in the terminal. If not, you may need to export the binary path:
+The binary executable <code>find_model_optimum</code> should be available in the terminal. If not, you may need to export the binary path. For example:
 </p>
 
 ```
