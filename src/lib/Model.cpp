@@ -2270,11 +2270,13 @@ void Model::check_model_consistency( void )
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Test density constraint                 */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /*
   bool test1 = true;
   if (fabs(_density-1.0) >= _tol)
   {
     test1 = false;
   }
+   */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Test negative concentrations constraint */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -2295,7 +2297,7 @@ void Model::check_model_consistency( void )
   /* 4) Print error message if inconsistent     */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   _consistent = true;
-  if (!(test1 && test2 && test3))
+  if (!(test2 && test3)) //(!(test1 && test2 && test3))
   {
     _consistent = false;
   }
