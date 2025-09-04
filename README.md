@@ -144,7 +144,7 @@ In <strong>gbacpp</strong>, gradient ascent is timestep-adaptive, ensuring solut
 
 The gradient ascent implemented here relies on $\dfrac{\partial \mu}{\partial f}$, the growth rate derivative against the flux fraction vector $f$. As presented in <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. (2023)</a>, analytical expressions are available to explicitely calculate these values, while it requires heavy linear algebra.
 
-<strong>gbacpp</strong> combines to benefits of using C++. Compilers natively optimize calculations (<em>e.g.</em>, using vectorization), and we could strongly optimize calculations and memory management.
+<strong>gbacpp</strong> combines two benefits of using C++. Compilers natively optimize calculations (<em>e.g.</em>, using vectorization), and we could strongly optimize calculations and memory management.
 This approach makes <strong>gbacpp</strong> a fast solution.
 
 ### 4.3) Find an optimum <a name="find_optimum"></a>
