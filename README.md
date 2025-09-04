@@ -44,10 +44,12 @@ The optimization process relies on a gradient ascent approach, and is preferred 
   - [3.3) Installation](#installation)
   - [3.4) Manual software compilation](#manual_software_compilation)
 - [4) First usage](#first_usage)
-  - [4.1) Find an optimum](#find_optimum)
-  - [4.2) Optimization parameters](#optimization_parameters)
-  - [4.3) Usage example](#usage_example)
-  - [4.4) Ready-to-use examples](#examples)
+  - [4.1) Why using a gradient ascent](#gradient_ascent)
+  - [4.2) Code optimization](#optimization)
+  - [4.3) Find an optimum](#find_optimum)
+  - [4.4) Optimization parameters](#optimization_parameters)
+  - [4.5) Usage example](#usage_example)
+  - [4.6) Ready-to-use examples](#examples)
 - [5) SRC model format tutorial](#src_model_format_tutorial)
 - [6) Units conversion tutorial](#units_conversion_tutorial)
 - [7) Copyright](#copyright)
@@ -129,7 +131,23 @@ To clean compiled files and binary executables, run:
 # 4) First usage <a name="first_usage"></a>
 Once <strong>gbacpp</strong> has been compiled and installed, follow the next steps for a first usage of the software.
 
-### 4.1) Find an optimum <a name="find_optimum"></a>
+### 4.1) Why using a gradient ascent <a name="gradient_ascent"></a>
+
+SRC models are non-linear constraint-based problems. Solving such tasks in much more difficult than linear problems (<em>e.g.</em> FBA problems).
+A few solvers are available, and can usually handle small SRC models. However, we noticed that these solvers tend to fail when solving larger GBA problems, and are unable to handle genome-scale models.
+
+As GBA formalism provides analytical solutions to calculate the growth rate gradient, we have implemented <strong>gbacpp</strong> to circumvent this limitation, allowing us to solve large, or even genome-scale SRC models in a reasonable timeframe.
+
+In <strong>gbacpp</strong>, gradient ascent is timestep-adaptive, ensuring solutions stay consistent. In particular, we have implemented controls when concentrations or fluxes converge to zero to avoid algorithmic traps.
+
+### 4.2) Code optimization <a name="optimization"></a>
+
+The gradient ascent implemented here relies on $\dfrac{\partial \mu}{\partial f}$, the growth rate derivative against the flux fraction vector $f$. As presented in <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. (2023)</a>, analytical expressions are available to explicitely calculate these values, while it requires heavy linear algebra.
+
+<strong>gbacpp</strong> combines to benefits of using C++. Compilers natively optimize calculations (<em>e.g.</em>, using vectorization), and we could strongly optimize calculations and memory management.
+This approach makes <strong>gbacpp</strong> a fast solution.
+
+### 4.3) Find an optimum <a name="find_optimum"></a>
 To run a gradient ascent optimization on a SRC model, execute the following command line:
 
     find_model_optimum <parameters>
@@ -138,7 +156,7 @@ The command line parameters are described below. The description is also availab
 
     find_model_optimum -h
 
-### 4.2) Optimization parameters <a name="optimization_parameters"></a>
+### 4.4) Optimization parameters <a name="optimization_parameters"></a>
 
 - <code>-h</code>, <code>--help</code>: Print the help, then exit,
 - <code>-v</code>, <code>--version</code>: Print the current version, then exit,
@@ -158,7 +176,7 @@ The command line parameters are described below. The description is also availab
 - <code>-max</code>, <code>--max-iter</code>: Specify the maximal number of iterations as a stop criterium ($100,000,000$ by default),
 - <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
         
-### 4.3) Usage example <a name="usage_example"></a>
+### 4.5) Usage example <a name="usage_example"></a>
 
 In this example, growth rate optimums are calculated for all the external conditions of the <em>Escherichia coli</em> toy model EC12b (see folder <code>./examples/toy_models</code>).
 
@@ -172,7 +190,7 @@ Then, call the optimization algorithm:
 
 Here, optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
-### 4.4) Ready-to-use examples <a name="examples"></a>
+### 4.6) Ready-to-use examples <a name="examples"></a>
 Ready-to-use examples are available in the folder <code>./examples</code> (navigate to the folder <code>examples</code> using the <code>cd</code> command):
 
 • <code>model_A_condition_1.sh</code>: This script will run a single gradient ascent on model A in external condition 1 (2 reactions, 2 metabolites). You can execute it using the following command line:
@@ -187,7 +205,7 @@ At the end of the optimization, CSV files are written in the folder <code>./exam
 
 All the optimums are written in the folder <code>./examples/output</code>.
 
-## 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
+# 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
 A tutorial is available to better understand the content of a self-replicating cell model:
 
@@ -195,7 +213,7 @@ A tutorial is available to better understand the content of a self-replicating c
 <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">:link: SRC model format tutorial</a>
 </p>
 
-## 6) Units conversion tutorial <a name="units_conversion_tutorial"></a>
+# 6) Units conversion tutorial <a name="units_conversion_tutorial"></a>
 
 A tutorial is available for users starting from standard stoichiometric coefficients and kinetic parameters, and wanting to convert them into GBA formalism:
 
@@ -203,10 +221,10 @@ A tutorial is available for users starting from standard stoichiometric coeffici
 <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">:link: Units conversion tutorial</a>
 </p>
 
-## 7) Copyright <a name="copyright"></a>
+# 7) Copyright <a name="copyright"></a>
 Copyright © 2024-2025 Charles Rocabert. All rights reserved.
 
-## 8) License <a name="license"></a>
+# 8) License <a name="license"></a>
 
 MIT License
 
