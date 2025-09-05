@@ -1871,27 +1871,27 @@ void Model::drMM( int j )
     prodf *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
     prodb *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
   }
+  double tau_j = 1.0/(kcatf/prodf-kcatb/prodb);
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate terms depending on substrate  */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y      = i+_nx;
-    double const1 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_f, y, j), 2);
-    double const2 = gsl_matrix_get(_KM_b, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_b, y, j), 2);
-    double term1  = 1.0;
-    double term2  = 1.0;
+    double term1 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_f, y, j), 2);
+    double term2 = gsl_matrix_get(_KM_b, y, j)/gsl_pow_int(gsl_vector_get(_c, i)+gsl_matrix_get(_KM_b, y, j), 2);
+    double prodf  = 1.0;
+    double prodb  = 1.0;
     for (int index = 0; index < _ni; index++)
     {
       if (index != y)
       {
-        term1 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
-        term2 *= 1.0+gsl_matrix_get(_KM_b, index, j)/gsl_vector_get(_xc, index);
+        prodf *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        prodb *= 1.0+gsl_matrix_get(_KM_b, index, j)/gsl_vector_get(_xc, index);
       }
     }
-    double term5 = kcatf/term1*const1 - kcatb/term2*const2;
-    double tauj  =  1.0/(kcatf/prodf-kcatb/prodb);
-    gsl_matrix_set(_ditau_j, j, i, -term5*gsl_pow_int(tauj, 2));
+    double term3 = kcatf/prodf*term1 - kcatb/prodb*term2;
+    gsl_matrix_set(_ditau_j, j, i, -term3*gsl_pow_int(tau_j, 2));
   }
 }
 
@@ -2071,13 +2071,11 @@ void Model::check_model_consistency( void )
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Test density constraint                 */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /*
   bool test1 = true;
   if (fabs(_density-1.0) >= _tol)
   {
     test1 = false;
   }
-   */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Test negative concentrations constraint */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -2098,7 +2096,7 @@ void Model::check_model_consistency( void )
   /* 4) Print error message if inconsistent     */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   _consistent = true;
-  if (!(test2 && test3)) //(!(test1 && test2 && test3))
+  if (!(test1 && test2 && test3))
   {
     _consistent = false;
   }
