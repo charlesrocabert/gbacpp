@@ -80,7 +80,6 @@ Model::Model( std::string model_path, std::string model_name )
   _KM_b       = NULL;
   _KI         = NULL;
   _KA         = NULL;
-  _KR         = NULL;
   _kcat_f     = NULL;
   _kcat_b     = NULL;
   _type       = NULL;
@@ -180,7 +179,6 @@ Model::~Model( void )
   gsl_matrix_free(_KM_b);
   gsl_matrix_free(_KI);
   gsl_matrix_free(_KA);
-  gsl_matrix_free(_KR);
   gsl_vector_free(_kcat_f);
   gsl_vector_free(_kcat_b);
   delete[] _type;
@@ -192,7 +190,6 @@ Model::~Model( void )
   _KM_b       = NULL;
   _KI         = NULL;
   _KA         = NULL;
-  _KR         = NULL;
   _kcat_f     = NULL;
   _kcat_b     = NULL;
   _type       = NULL;
@@ -280,7 +277,6 @@ void Model::read_from_csv( void )
   load_K();
   load_KI();
   load_KA();
-  load_KR();
   load_kcat();
   load_conditions();
   load_constant_reactions();
@@ -424,54 +420,6 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum
     close_optimum_ouput_files();
   }
 }
-
-/**
- * \brief    Compute the optimum for all random solution and for a given condition
- * \details  --
- * \param    std::string condition
- * \param    bool print_optimum
- * \param    bool write_optimum
- * \param    bool write_trajectory
- * \param    std::string output_path
- * \param    int stable_count
- * \param    int max_iter
- * \param    bool verbose
- * \return   \e bool
- */
-/*
-void Model::compute_optimum_by_random_solution( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose )
-{
-  if (write_optimum)
-  {
-    open_optimum_output_files(output_path, "random");
-  }
-  for (int i = 0; i < _nb_random_solutions; i++)
-  {
-    
-    std::clock_t begin = clock();
-    gsl_vector_memcpy(_f0, _random_solutions[i]);
-    bool         converged = compute_gradient_ascent(condition, write_optimum, write_trajectory, output_path, stable_count, max_iter, verbose);
-    std::clock_t end       = clock();
-    double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
-    if (write_optimum)
-    {
-      write_optimum_output_files(condition, converged, runtime);
-    }
-    if (print_optimum)
-    {
-      print_to_standard_ouput(condition, converged, runtime);
-    }
-    if (verbose)
-    {
-      std::cout << "> Elapsed time for random solution " << i << ": " << runtime << " seconds" << std::endl;
-    }
-  }
-  if (write_optimum)
-  {
-    close_optimum_ouput_files();
-  }
-}
-*/
 
 /*----------------------------
  * PROTECTED METHODS
@@ -1244,48 +1192,6 @@ void Model::load_KA( void )
 }
 
 /**
- * \brief    Load the KR matrix
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::load_KR( void )
-{
-  assert(_KR==NULL);
-  _KR = gsl_matrix_alloc(_ni, _nj);
-  gsl_matrix_set_zero(_KR);
-  if (is_file_exist(_model_path+"/"+_model_name+"/KR.csv"))
-  {
-    int row = 0;
-    int col = 0;
-    assert(is_file_exist(_model_path+"/"+_model_name+"/KR.csv"));
-    std::ifstream file(_model_path+"/"+_model_name+"/KR.csv", std::ios::in);
-    assert(file);
-    std::string line;
-    std::string id;
-    std::string str_value;
-    /*** skip header line ***/
-    getline(file, line);
-    while(getline(file, line))
-    {
-      std::stringstream flux(line.c_str());
-      /*** get metabolite id ***/
-      getline(flux, id, ';');
-      col = 0;
-      /*** fill the matrices for the given line ***/
-      while(getline(flux, str_value, ';'))
-      {
-        double value = stod(str_value);
-        gsl_matrix_set(_KR, row, col, value);
-        col++;
-      }
-      row++;
-    }
-    file.close();
-  }
-}
-
-/**
  * \brief    Load the kcat vectors
  * \details  --
  * \param    void
@@ -1541,38 +1447,30 @@ void Model::initialize_static_variables( void )
   {
     gsl_matrix_get_col(KI_vec, _KI, j);
     gsl_matrix_get_col(KA_vec, _KA, j);
-    gsl_matrix_get_col(KR_vec, _KR, j);
     bool kcat_b_zero = fabs(gsl_vector_get(_kcat_b, j)) < _tol;
     bool KI_sum_zero = fabs(gsl_blas_dasum(KI_vec)) < _tol;
     bool KA_sum_zero = fabs(gsl_blas_dasum(KA_vec)) < _tol;
-    bool KR_sum_zero = fabs(gsl_blas_dasum(KR_vec)) < _tol;
-    if (kcat_b_zero && KI_sum_zero && KA_sum_zero && KR_sum_zero)
+    if (kcat_b_zero && KI_sum_zero && KA_sum_zero)
     {
       _type[j] = IMM;
     }
-    else if (kcat_b_zero && !KI_sum_zero && KA_sum_zero && KR_sum_zero)
+    else if (kcat_b_zero && !KI_sum_zero && KA_sum_zero)
     {
       _type[j] = IMMI;
     }
-    else if (kcat_b_zero && KI_sum_zero && !KA_sum_zero && KR_sum_zero)
+    else if (kcat_b_zero && KI_sum_zero && !KA_sum_zero)
     {
       _type[j] = IMMA;
     }
-    else if (kcat_b_zero && !KI_sum_zero && !KA_sum_zero && KR_sum_zero)
+    else if (kcat_b_zero && !KI_sum_zero && !KA_sum_zero)
     {
       _type[j] = IMMIA;
     }
-    else if (!kcat_b_zero && KR_sum_zero)
+    else if (!kcat_b_zero)
     {
       assert(KI_sum_zero);
       assert(KA_sum_zero);
       _type[j] = RMM;
-    }
-    else if (kcat_b_zero && !KR_sum_zero)
-    {
-      assert(KI_sum_zero);
-      assert(KA_sum_zero);
-      _type[j] = IMMR;
     }
     else
     {
@@ -1581,10 +1479,8 @@ void Model::initialize_static_variables( void )
   }
   gsl_vector_free(KI_vec);
   gsl_vector_free(KA_vec);
-  gsl_vector_free(KR_vec);
   KI_vec = NULL;
   KA_vec = NULL;
-  KR_vec = NULL;
 }
 
 /**
@@ -1649,42 +1545,6 @@ void Model::initialize_dynamic_variables( void )
   /*** Initialize vector views ***/
   _x_view = gsl_vector_subvector(_xc, 0, _nx);
   _c_view = gsl_vector_subvector(_xc, _nx, _nc);
-}
-
-/**
- * \brief    Return a Gaussian kernel term
- * \details  --
- * \param    double x
- * \param    double mu
- * \return   \e double
- */
-double Model::gaussian_term( double x, double mu )
-{
-  double sigma = REGULATION_SIGMA*x;
-  double val = (x-mu)/(sigma*sigma);
-  return(val);
-}
-
-/**
- * \brief    Return a Gaussian kernel value
- * \details  --
- * \param    double x
- * \param    double mu
- * \return   \e double
- */
-double Model::gaussian_kernel( double x, double mu )
-{
-  double sigma = REGULATION_SIGMA*x;
-  double val = (x-mu)/sigma;
-  double res = -0.5*val*val;
-  if (res < -700)
-  {
-    return(0.0);
-  }
-  else
-  {
-    return(gsl_sf_exp(res));
-  }
 }
 
 /**
@@ -1812,27 +1672,6 @@ void Model::iMMia( int j )
 }
 
 /**
- * \brief    Irreversible Michaelis-Menten kinetics + regulation
- * \details  Formula: tau_j = prod((Km_f[,j]+xc)/(xc*f(xc))) * 1/kcat_f[j] with f(xc) = exp( -0.5*((xc-JR[:j])/10.0)^2 )
- * \param    int j
- * \return   \e void
- */
-void Model::iMMr( int j )
-{
-  double term1 = 1.0;
-  for (int i = 0; i < _ni; i++)
-  {
-    double x       = gsl_vector_get(_xc, i);
-    double KM      = gsl_matrix_get(_KM_f, i, j);
-    double KR      = gsl_matrix_get(_KR, i, j) > _tol ? gsl_matrix_get(_KR, i, j) : x;
-    double gkernel = gaussian_kernel(x, KR);
-    term1         *= (KM+x)/(x*gkernel);
-  }
-  double term2 = gsl_vector_get(_kcat_f, j);
-  gsl_vector_set(_tau_j, j, term1/term2);
-}
-
-/**
  * \brief    Reversible Michaelis-Menten kinetics
  * \details  Formula: tau_j = 1/[ kcat_f[j]/prod(1+Km_f[,j]/xc) - kcat_b[j]/prod(1+Km_b[,j]/xc) ]
  * \param    int j
@@ -1874,8 +1713,6 @@ void Model::compute_tau( int j )
     case IMMIA:
       iMMia(j);
       break;
-    case IMMR:
-      iMMr(j);
     case RMM:
       rMM(j);
       break;
@@ -2015,39 +1852,6 @@ void Model::diMMia( int j )
 }
 
 /**
- * \brief    Derivative of iMMr with respect to metabolite concentrations
- * \details  Formula: --
- * \param    int j
- * \return   \e void
- */
-void Model::diMMr( int j )
-{
-  double constant1 = gsl_vector_get(_kcat_f, j);
-  for (int i = 0; i < _nc; i++)
-  {
-    int    y       = i+_nx;
-    double x       = gsl_vector_get(_c, i);
-    double KM      = gsl_matrix_get(_KM_f, y, j);
-    double KR      = gsl_matrix_get(_KR, y, j) > _tol ? gsl_matrix_get(_KR, y, j) : x;
-    double gkernel = gaussian_kernel(x, KR);
-    double gterm   = gaussian_term(x, KR);
-    double term1   = gkernel*(-KM/(x*x)+(KM+x)/x*gterm);
-    double term2   = 1.0;
-    for (int index = 0; index < _ni; index++)
-    {
-      if (index != y)
-      {
-        double x       = gsl_vector_get(_xc, index);
-        double KR      = gsl_matrix_get(_KR, index, j) > _tol ? gsl_matrix_get(_KR, index, j) : x;
-        double gkernel = gaussian_kernel(x, KR);
-        term2         *= (gsl_matrix_get(_KM_f, index, j)+x)/(x*gkernel);
-      }
-    }
-    gsl_matrix_set(_ditau_j, j, i, term1*term2/constant1);
-  }
-}
-
-/**
  * \brief    Derivative of rMM with respect to metabolite concentrations
  * \details  Formula: --
  * \param    int j
@@ -2112,9 +1916,6 @@ void Model::compute_dtau( int j )
       break;
     case IMMIA:
       diMMia(j);
-      break;
-    case IMMR:
-      diMMr(j);
       break;
     case RMM:
       drMM(j);

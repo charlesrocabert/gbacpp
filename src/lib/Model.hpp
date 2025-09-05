@@ -105,7 +105,6 @@ public:
   
   void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
   void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
-  //void compute_optimum_by_random_solution( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -139,7 +138,6 @@ protected:
   void load_K( void );
   void load_KI( void );
   void load_KA( void );
-  void load_KR( void );
   void load_kcat( void );
   void load_conditions( void );
   void load_constant_reactions( void );
@@ -150,8 +148,6 @@ protected:
   void initialize_static_variables( void );
   void initialize_dynamic_variables( void );
   
-  double gaussian_term( double x, double mu );
-  double gaussian_kernel( double x, double mu );
   void calculate( void );
   void compute_c( void );
   void compute_xc( void );
@@ -159,7 +155,6 @@ protected:
   void iMMi( int j );
   void iMMa( int j );
   void iMMia( int j );
-  void iMMr( int j );
   void rMM( int j );
   void compute_tau( int j );
   void diMM( int j );
@@ -167,7 +162,6 @@ protected:
   void diMMa( int j );
   void diMMia( int j );
   void drMM( int j );
-  void diMMr( int j );
   void compute_dtau( int j );
   void compute_mu( void );
   void compute_v( void );
@@ -215,7 +209,6 @@ protected:
   gsl_matrix*                             _KM_b;               /*!< Backward KM matrix                      */
   gsl_matrix*                             _KI;                 /*!< KI matrix                               */
   gsl_matrix*                             _KA;                 /*!< KA matrix                               */
-  gsl_matrix*                             _KR;                 /*!< KR matrix                               */
   gsl_vector*                             _kcat_f;             /*!< Forward kcat vector                     */
   gsl_vector*                             _kcat_b;             /*!< Backward kcat vector                    */
   rtype*                                  _type;               /*!< Reaction type                           */

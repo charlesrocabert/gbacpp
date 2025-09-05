@@ -48,8 +48,7 @@ enum rtype
   IMMI  = 1, /*!< Irreversible Michaelis-Menten with inhibition                */
   IMMA  = 2, /*!< Irreversible Michaelis-Menten with activation                */
   IMMIA = 3, /*!< Irreversible Michaelis-Menten with inhibition and activation */
-  IMMR  = 4, /*!< Irreversible Michaelis-Menten with regulation                */
-  RMM   = 5  /*!< Reversible Michaelis-Menten                                  */
+  RMM   = 4  /*!< Reversible Michaelis-Menten                                  */
 };
 
 

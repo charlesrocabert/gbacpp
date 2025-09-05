@@ -111,13 +111,6 @@ int main(int argc, char const** argv)
   {
     model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, verbose);
   }
-  /*
-  else if (condition == "random")
-  {
-    model->read_random_solutions();
-    model->compute_optimum_by_random_solution(condition, print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, verbose);
-  }
-  */
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 5) Free memory and exit                           */
