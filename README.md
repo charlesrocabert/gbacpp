@@ -30,6 +30,8 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 
 :ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
 
+:ballot_box_with_check: The gradient ascent algorithm will be detailed in the documentation soon.
+
 :ballot_box_with_check: <strong>gbacpp</strong> will integrate evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
 
 :ballot_box_with_check: A complete tutorial on GBA formalism is also available at https://cellgrowthsim.com/.
