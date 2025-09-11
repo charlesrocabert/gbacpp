@@ -1,58 +1,42 @@
 #!/bin/bash
 
-#*******************************************************************************
+#***********************************************************************
 # gbacpp (growth balance analysis for C++)
 # Web: https://github.com/charlesrocabert/gbacpp
+# Copyright © 2024-2025 Charles Rocabert.
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# MIT License
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# Copyright © 2024-2025 Charles Rocabert
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-#*******************************************************************************
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#***********************************************************************
 
-echo "\n********************************************************************************"
+echo "\n************************************************************************"
 echo "* gbacpp (growth balance analysis for C++)"
 echo "* Web: https://github.com/charlesrocabert/gbacpp"
+echo "* Copyright © 2024-2025 Charles Rocabert."
 echo "*"
-echo "* MIT License"
+echo "* This program is free software: you can redistribute it and/or modify"
+echo "* it under the terms of the GNU General Public License as published by"
+echo "* the Free Software Foundation, either version 3 of the License, or"
+echo "* (at your option) any later version."
 echo "*"
-echo "* Copyright © 2024-2025 Charles Rocabert. All rights reserved."
+echo "* This program is distributed in the hope that it will be useful,"
+echo "* but WITHOUT ANY WARRANTY; without even the implied warranty of"
+echo "* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the"
+echo "* GNU General Public License for more details."
 echo "*"
-echo "* Permission is hereby granted, free of charge, to any person obtaining a copy"
-echo "* of this software and associated documentation files (the \"Software\"), to deal"
-echo "* in the Software without restriction, including without limitation the rights"
-echo "* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell"
-echo "* copies of the Software, and to permit persons to whom the Software is"
-echo "* furnished to do so, subject to the following conditions:"
-echo "*"
-echo "* The above copyright notice and this permission notice shall be included in all"
-echo "* copies or substantial portions of the Software."
-echo "*"
-echo "* THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR"
-echo "* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,"
-echo "* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE"
-echo "* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER"
-echo "* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,"
-echo "* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE"
-echo "* SOFTWARE."
-echo "********************************************************************************\n"
+echo "* You should have received a copy of the GNU General Public License"
+echo "* along with this program.  If not, see <https://www.gnu.org/licenses/>."
+echo "************************************************************************\n"
 
 cd cmake
 bash make_clean.sh

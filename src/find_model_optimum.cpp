@@ -2,37 +2,29 @@
  * \file      find_model_optimum.cpp
  * \author    Charles Rocabert
  * \date      22-07-2024
- * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert. All rights reserved
- * \license   This work is licensed under the terms of the MIT license
+ * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert.
+ * \license   GNU General Public License v3 (GPLv3)
  * \brief     find_model_optimum executable
  */
 
-/********************************************************************************
+/************************************************************************
  * gbacpp (growth balance analysis for C++)
  * Web: https://github.com/charlesrocabert/gbacpp
+ * Copyright © 2024-2025 Charles Rocabert.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * MIT License
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Copyright © 2024-2025 Charles Rocabert. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- ********************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ ************************************************************************/
 
 #include <iostream>
 #include <fstream>
@@ -272,37 +264,29 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
 void printUsage( void )
 {
   std::cout << "\n";
-  std::cout << "*********************************************************************************\n";
+  std::cout << "************************************************************************\n";
 #ifdef DEBUG
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Debug)\n";
 #endif
 #ifdef NDEBUG
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Release)\n";
 #endif
-  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                                 \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* MIT License                                                                    \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* Copyright © 2024-2025 Charles Rocabert. All rights reserved.                   \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* Permission is hereby granted, free of charge, to any person obtaining a copy   \n";
-  std::cout << "* of this software and associated documentation files (the \"Software\"), to deal\n";
-  std::cout << "* in the Software without restriction, including without limitation the rights   \n";
-  std::cout << "* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell      \n";
-  std::cout << "* copies of the Software, and to permit persons to whom the Software is          \n";
-  std::cout << "* furnished to do so, subject to the following conditions:                       \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* The above copyright notice and this permission notice shall be included in all \n";
-  std::cout << "* copies or substantial portions of the Software.                                \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR   \n";
-  std::cout << "* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,       \n";
-  std::cout << "* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE    \n";
-  std::cout << "* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER         \n";
-  std::cout << "* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  \n";
-  std::cout << "* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  \n";
-  std::cout << "* SOFTWARE.                                                                      \n";
-  std::cout << "*********************************************************************************\n";
+  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp\n";
+  std::cout << "* Copyright © 2024-2025 Charles Rocabert.\n";
+  std::cout << "*\n";
+  std::cout << "* This program is free software: you can redistribute it and/or modify\n";
+  std::cout << "* it under the terms of the GNU General Public License as published by\n";
+  std::cout << "* the Free Software Foundation, either version 3 of the License, or\n";
+  std::cout << "* (at your option) any later version.\n";
+  std::cout << "*\n";
+  std::cout << "* This program is distributed in the hope that it will be useful,\n";
+  std::cout << "* but WITHOUT ANY WARRANTY; without even the implied warranty of\n";
+  std::cout << "* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n";
+  std::cout << "* GNU General Public License for more details.\n";
+  std::cout << "*\n";
+  std::cout << "* You should have received a copy of the GNU General Public License\n";
+  std::cout << "* along with this program.  If not, see <https://www.gnu.org/licenses/>.\n";
+  std::cout << "************************************************************************\n";
   std::cout << "\n";
   std::cout << "Usage: find_model_optimum -h or --help\n";
   std::cout << "   or: find_model_optimum [options]\n";
@@ -345,51 +329,16 @@ void printUsage( void )
 void printHeader( void )
 {
   std::cout << "\n";
-  std::cout << "****************************************************************\n";
+  std::cout << "************************************************************************\n";
 #ifdef DEBUG
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Debug)\n";
 #endif
 #ifdef NDEBUG
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Release)\n";
 #endif
-  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                \n";
-  std::cout << "* MIT License © 2024-2025 Charles Rocabert. All rights reserved.\n";
-  std::cout << "****************************************************************\n";
+  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                        \n";
+  std::cout << "* GPLv3 License © 2024-2025 Charles Rocabert.                           \n";
+  std::cout << "************************************************************************\n";
   std::cout << "\n";
-  /*
-  std::cout << "\n";
-  std::cout << "*********************************************************************************\n";
-#ifdef DEBUG
-  std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Debug)\n";
-#endif
-#ifdef NDEBUG
-  std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Release)\n";
-#endif
-  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                                 \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* MIT License                                                                    \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* Copyright © 2024-2025 Charles Rocabert. All rights reserved.                   \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* Permission is hereby granted, free of charge, to any person obtaining a copy   \n";
-  std::cout << "* of this software and associated documentation files (the \"Software\"), to deal\n";
-  std::cout << "* in the Software without restriction, including without limitation the rights   \n";
-  std::cout << "* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell      \n";
-  std::cout << "* copies of the Software, and to permit persons to whom the Software is          \n";
-  std::cout << "* furnished to do so, subject to the following conditions:                       \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* The above copyright notice and this permission notice shall be included in all \n";
-  std::cout << "* copies or substantial portions of the Software.                                \n";
-  std::cout << "*                                                                                \n";
-  std::cout << "* THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR   \n";
-  std::cout << "* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,       \n";
-  std::cout << "* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE    \n";
-  std::cout << "* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER         \n";
-  std::cout << "* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  \n";
-  std::cout << "* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  \n";
-  std::cout << "* SOFTWARE.                                                                      \n";
-  std::cout << "*********************************************************************************\n";
-  std::cout << "\n";
-   */
 }
 
