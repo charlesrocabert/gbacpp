@@ -40,7 +40,7 @@ set(PACKAGE "\"gbacpp (growth balance analysis for C++)\"")
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 3)
-set(VERSION_PATCH 4)
+set(VERSION_PATCH 5)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
