@@ -99,9 +99,9 @@ Model::Model( std::string model_path, std::string model_name )
   
   /*----------------------------------------------- GBA first order variables */
   
-  _f0                    = NULL;
-  _f                     = NULL;
-  _f_trunc               = NULL;
+  _q0                    = NULL;
+  _q                     = NULL;
+  _q_trunc               = NULL;
   _c                     = NULL;
   _xc                    = NULL;
   _tau_j                 = NULL;
@@ -117,16 +117,16 @@ Model::Model( std::string model_path, std::string model_name )
   /*----------------------------------------------- GBA second order variables */
   
   _ditau_j = NULL;
-  _dmu_f   = NULL;
-  _GCC_f   = NULL;
+  _dmu_q   = NULL;
+  _GCC_q   = NULL;
   
   /*----------------------------------------------- Variables for calculation optimization */
   
-  _dmu_f_term1 = 0.0;
-  _dmu_f_term2 = NULL;
-  _dmu_f_term3 = NULL;
-  _dmu_f_term4 = NULL;
-  _dmu_f_term5 = NULL;
+  _dmu_q_term1 = 0.0;
+  _dmu_q_term2 = NULL;
+  _dmu_q_term3 = NULL;
+  _dmu_q_term4 = NULL;
+  _dmu_q_term5 = NULL;
   
   /*----------------------------------------------- Solutions */
   
@@ -200,18 +200,18 @@ Model::~Model( void )
   
   /*----------------------------------------------- GBA first order variables */
   
-  gsl_vector_free(_f0);
-  gsl_vector_free(_f);
-  gsl_vector_free(_f_trunc);
+  gsl_vector_free(_q0);
+  gsl_vector_free(_q);
+  gsl_vector_free(_q_trunc);
   gsl_vector_free(_c);
   gsl_vector_free(_xc);
   gsl_vector_free(_tau_j);
   gsl_vector_free(_v);
   gsl_vector_free(_p);
   gsl_vector_free(_b);
-  _f0         = NULL;
-  _f          = NULL;
-  _f_trunc    = NULL;
+  _q0         = NULL;
+  _q          = NULL;
+  _q_trunc    = NULL;
   _c          = NULL;
   _xc         = NULL;
   _tau_j      = NULL;
@@ -222,22 +222,22 @@ Model::~Model( void )
   /*----------------------------------------------- GBA second order variables */
   
   gsl_matrix_free(_ditau_j);
-  gsl_vector_free(_dmu_f);
-  gsl_vector_free(_GCC_f);
+  gsl_vector_free(_dmu_q);
+  gsl_vector_free(_GCC_q);
   _ditau_j = NULL;
-  _dmu_f   = NULL;
-  _GCC_f   = NULL;
+  _dmu_q   = NULL;
+  _GCC_q   = NULL;
   
   /*----------------------------------------------- Variables for calculation optimization */
   
-  gsl_vector_free(_dmu_f_term2);
-  gsl_matrix_free(_dmu_f_term3);
-  gsl_vector_free(_dmu_f_term4);
-  gsl_vector_free(_dmu_f_term5);
-  _dmu_f_term2 = NULL;
-  _dmu_f_term3 = NULL;
-  _dmu_f_term4 = NULL;
-  _dmu_f_term5 = NULL;
+  gsl_vector_free(_dmu_q_term2);
+  gsl_matrix_free(_dmu_q_term3);
+  gsl_vector_free(_dmu_q_term4);
+  gsl_vector_free(_dmu_q_term5);
+  _dmu_q_term2 = NULL;
+  _dmu_q_term3 = NULL;
+  _dmu_q_term4 = NULL;
+  _dmu_q_term5 = NULL;
   
   /*----------------------------------------------- Solutions */
   
@@ -272,7 +272,7 @@ void Model::read_from_csv( void )
   load_kcat();
   load_conditions();
   load_constant_reactions();
-  load_f0();
+  load_q0();
 }
 
 /**
@@ -479,16 +479,16 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   }
   _adjust_concentrations = false;
   set_condition(condition);
-  initialize_f();
+  initialize_q();
   calculate();
   // std::cout << "> Initial growth rate = " << _mu << "\n";
   if (!_consistent)
   {
-    throw std::runtime_error("> Error: The initial solution f0 is not consistent");
+    throw std::runtime_error("> Error: The initial solution q0 is not consistent");
   }
-  gsl_vector* previous_f_trunc = gsl_vector_alloc(_nj-1);
+  gsl_vector* previous_q_trunc = gsl_vector_alloc(_nj-1);
   gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
-  gsl_vector_memcpy(previous_f_trunc, _f_trunc);
+  gsl_vector_memcpy(previous_q_trunc, _q_trunc);
   double previous_mu         = 0.0;
   double t                   = 0.0;
   double dt                  = 0.01;
@@ -508,15 +508,15 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     }
     previous_mu = _mu;
     block_reactions();
-    gsl_vector_view dmudt = gsl_vector_subvector(_GCC_f, 1, _nj-1);
+    gsl_vector_view dmudt = gsl_vector_subvector(_GCC_q, 1, _nj-1);
     gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
     gsl_vector_scale(scaled_dmudt, dt);
-    gsl_vector_add(_f_trunc, scaled_dmudt);
-    calculate_f_from_f_trunc();
+    gsl_vector_add(_q_trunc, scaled_dmudt);
+    calculate_q_from_q_trunc();
     calculate();
     if (_consistent && _mu >= previous_mu)
     {
-      gsl_vector_memcpy(previous_f_trunc, _f_trunc);
+      gsl_vector_memcpy(previous_q_trunc, _q_trunc);
       dt_counter++;
       t = t+dt;
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
@@ -544,8 +544,8 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     }
     else
     {
-      gsl_vector_memcpy(_f_trunc, previous_f_trunc);
-      calculate_f_from_f_trunc();
+      gsl_vector_memcpy(_q_trunc, previous_q_trunc);
+      calculate_q_from_q_trunc();
       calculate();
       assert(_consistent);
       dt         /= DECREASING_DT_FACTOR;
@@ -556,9 +556,9 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       }
     }
   }
-  gsl_vector_free(previous_f_trunc);
+  gsl_vector_free(previous_q_trunc);
   gsl_vector_free(scaled_dmudt);
-  previous_f_trunc = NULL;
+  previous_q_trunc = NULL;
   scaled_dmudt     = NULL;
   if (write_trajectory)
   {
@@ -588,19 +588,19 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
   /* 1) Open files    */
   /*~~~~~~~~~~~~~~~~~~*/
   std::stringstream state_trajectory_filename;
-  std::stringstream f_trajectory_filename;
+  std::stringstream q_trajectory_filename;
   std::stringstream c_trajectory_filename;
   std::stringstream v_trajectory_filename;
   std::stringstream p_trajectory_filename;
   std::stringstream b_trajectory_filename;
   state_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_state_trajectory.csv";
-  f_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_f_trajectory.csv";
+  q_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_q_trajectory.csv";
   c_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_c_trajectory.csv";
   v_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_v_trajectory.csv";
   p_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_p_trajectory.csv";
   b_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_b_trajectory.csv";
   _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _f_trajectory_file.open(f_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+  _q_trajectory_file.open(q_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::trunc);
   _p_trajectory_file.open(p_trajectory_filename.str(), std::ios::out | std::ios::trunc);
@@ -609,7 +609,7 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
   /* 2) Write headers */
   /*~~~~~~~~~~~~~~~~~~*/
   _state_trajectory_file << "condition;iter;t;dt;mu;doubling_time;density;consistent;mu_diff\n";
-  _f_trajectory_file << "condition;iter;t;dt";
+  _q_trajectory_file << "condition;iter;t;dt";
   _c_trajectory_file << "condition;iter;t;dt";
   _v_trajectory_file << "condition;iter;t;dt";
   _p_trajectory_file << "condition;iter;t;dt";
@@ -621,11 +621,11 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
   }
   for (int j = 0; j < _nj; j++)
   {
-    _f_trajectory_file << ";" << _reaction_ids[j];
+    _q_trajectory_file << ";" << _reaction_ids[j];
     _v_trajectory_file << ";" << _reaction_ids[j];
     _p_trajectory_file << ";" << _reaction_ids[j];
   }
-  _f_trajectory_file << "\n";
+  _q_trajectory_file << "\n";
   _c_trajectory_file << "\n";
   _v_trajectory_file << "\n";
   _p_trajectory_file << "\n";
@@ -643,14 +643,14 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
  */
 void Model::write_trajectory_output_files( std::string condition, int iter, double t, double dt )
 {
-  /*------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Update state file               */
-  /*------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   _state_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt << ";" << _mu << ";" << _doubling_time << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
   _state_trajectory_file.flush();
-  /*------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Update metabolites related file */
-  /*------------------------------------*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   _c_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
   _b_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
   for (int i = 0; i < _nc; i++)
@@ -662,22 +662,22 @@ void Model::write_trajectory_output_files( std::string condition, int iter, doub
   _b_trajectory_file << "\n";
   _c_trajectory_file.flush();
   _b_trajectory_file.flush();
-  /*------------------------------------*/
-  /* 2) Update reactions related file   */
-  /*------------------------------------*/
-  _f_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Update reactions related file   */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  _q_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
   _v_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
   _p_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt;
   for (int j = 0; j < _nj; j++)
   {
-    _f_trajectory_file << ";" << gsl_vector_get(_f, j);
+    _q_trajectory_file << ";" << gsl_vector_get(_q, j);
     _v_trajectory_file << ";" << gsl_vector_get(_v, j);
     _p_trajectory_file << ";" << gsl_vector_get(_p, j);
   }
-  _f_trajectory_file << "\n";
+  _q_trajectory_file << "\n";
   _v_trajectory_file << "\n";
   _p_trajectory_file << "\n";
-  _f_trajectory_file.flush();
+  _q_trajectory_file.flush();
   _v_trajectory_file.flush();
   _p_trajectory_file.flush();
   //system("/usr/local/bin/Rscript plot_trajectory.R > /dev/null &");
@@ -692,7 +692,7 @@ void Model::write_trajectory_output_files( std::string condition, int iter, doub
 void Model::close_trajectory_ouput_files( void )
 {
   _state_trajectory_file.close();
-  _f_trajectory_file.close();
+  _q_trajectory_file.close();
   _c_trajectory_file.close();
   _v_trajectory_file.close();
   _p_trajectory_file.close();
@@ -711,13 +711,13 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   /* 1) Create filenames */
   /*~~~~~~~~~~~~~~~~~~~~~*/
   std::stringstream state_optimum_filename;
-  std::stringstream f_optimum_filename;
+  std::stringstream q_optimum_filename;
   std::stringstream c_optimum_filename;
   std::stringstream v_optimum_filename;
   std::stringstream p_optimum_filename;
   std::stringstream b_optimum_filename;
   state_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_state_optimum.csv";
-  f_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_f_optimum.csv";
+  q_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_q_optimum.csv";
   c_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_c_optimum.csv";
   v_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_v_optimum.csv";
   p_optimum_filename << output_path << "/" << _model_name << "_" << condition << "_p_optimum.csv";
@@ -727,14 +727,14 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   /*~~~~~~~~~~~~~~~~~~~~~*/
   /*** Open files ***/
   _state_optimum_file.open(state_optimum_filename.str(), std::ios::out | std::ios::trunc);
-  _f_optimum_file.open(f_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  _q_optimum_file.open(q_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _c_optimum_file.open(c_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _v_optimum_file.open(v_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
   /*** Write headers ***/
   _state_optimum_file << "condition;mu;doubling_time;density;consistent;converged;run_time\n";
-  _f_optimum_file << "condition";
+  _q_optimum_file << "condition";
   _c_optimum_file << "condition";
   _v_optimum_file << "condition";
   _p_optimum_file << "condition";
@@ -746,11 +746,11 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   }
   for (int j = 0; j < _nj; j++)
   {
-    _f_optimum_file << ";" << _reaction_ids[j];
+    _q_optimum_file << ";" << _reaction_ids[j];
     _v_optimum_file << ";" << _reaction_ids[j];
     _p_optimum_file << ";" << _reaction_ids[j];
   }
-  _f_optimum_file << "\n";
+  _q_optimum_file << "\n";
   _c_optimum_file << "\n";
   _v_optimum_file << "\n";
   _p_optimum_file << "\n";
@@ -768,7 +768,7 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
 void Model::write_optimum_output_files( std::string condition, bool converged, double runtime )
 {
   _state_optimum_file << condition << ";" << _mu << ";" << _doubling_time << ";" << _density << ";" << _consistent << ";" << converged << ";" << runtime << "\n";
-  _f_optimum_file << condition;
+  _q_optimum_file << condition;
   _c_optimum_file << condition;
   _v_optimum_file << condition;
   _p_optimum_file << condition;
@@ -780,16 +780,16 @@ void Model::write_optimum_output_files( std::string condition, bool converged, d
   }
   for (int j = 0; j < _nj; j++)
   {
-    _f_optimum_file << ";" << gsl_vector_get(_f, j);
+    _q_optimum_file << ";" << gsl_vector_get(_q, j);
     _v_optimum_file << ";" << gsl_vector_get(_v, j);
     _p_optimum_file << ";" << gsl_vector_get(_p, j);
   }
-  _f_optimum_file << "\n";
+  _q_optimum_file << "\n";
   _c_optimum_file << "\n";
   _v_optimum_file << "\n";
   _p_optimum_file << "\n";
   _b_optimum_file << "\n";
-  _f_optimum_file.flush();
+  _q_optimum_file.flush();
   _c_optimum_file.flush();
   _v_optimum_file.flush();
   _p_optimum_file.flush();
@@ -805,7 +805,7 @@ void Model::write_optimum_output_files( std::string condition, bool converged, d
 void Model::close_optimum_ouput_files( void )
 {
   _state_optimum_file.close();
-  _f_optimum_file.close();
+  _q_optimum_file.close();
   _c_optimum_file.close();
   _v_optimum_file.close();
   _p_optimum_file.close();
@@ -842,7 +842,7 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   std::cout << std::endl << "f";
   for (int j = 0; j < _nj; j++)
   {
-    std::cout << "\t" << gsl_vector_get(_f, j);
+    std::cout << "\t" << gsl_vector_get(_q, j);
   }
   std::cout << std::endl;
   /*~~~~~~~~~~~~~~~~~~~~*/
@@ -1331,18 +1331,18 @@ void Model::load_constant_reactions( void )
 }
 
 /**
- * \brief    Load f0
+ * \brief    Load q0
  * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::load_f0( void )
+void Model::load_q0( void )
 {
-  assert(_f0==NULL);
-  _f0 = gsl_vector_alloc(_nj);
-  gsl_vector_set_zero(_f0);
-  assert(is_file_exist(_model_path+"/"+_model_name+"/f0.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/f0.csv", std::ios::in);
+  assert(_q0==NULL);
+  _q0 = gsl_vector_alloc(_nj);
+  gsl_vector_set_zero(_q0);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/q0.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/q0.csv", std::ios::in);
   assert(file);
   std::string line;
   std::string reaction_id;
@@ -1356,24 +1356,24 @@ void Model::load_f0( void )
     reaction_id.erase(std::remove(reaction_id.begin(), reaction_id.end(), '\r'), reaction_id.end());
     assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
     double value = stod(str_value);
-    gsl_vector_set(_f0, _reaction_indices[reaction_id], value);
+    gsl_vector_set(_q0, _reaction_indices[reaction_id], value);
   }
   file.close();
 }
 
 /**
- * \brief    Re-load f0
+ * \brief    Re-load q0
  * \details  Re-load the vector from the last trajectory point
  * \param    void
  * \return   \e void
  */
-void Model::reload_f0( void )
+void Model::reload_q0( void )
 {
-  assert(_f0==NULL);
-  _f0 = gsl_vector_alloc(_nj);
-  gsl_vector_set_zero(_f0);
-  assert(is_file_exist(_model_path+"/"+_model_name+"/f0.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/f0.csv", std::ios::in);
+  assert(_q0==NULL);
+  _q0 = gsl_vector_alloc(_nj);
+  gsl_vector_set_zero(_q0);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/q0.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/q0.csv", std::ios::in);
   assert(file);
   std::string line;
   std::string reaction_id;
@@ -1387,7 +1387,7 @@ void Model::reload_f0( void )
     reaction_id.erase(std::remove(reaction_id.begin(), reaction_id.end(), '\r'), reaction_id.end());
     assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
     double value = stod(str_value);
-    gsl_vector_set(_f0, _reaction_indices[reaction_id], value);
+    gsl_vector_set(_q0, _reaction_indices[reaction_id], value);
   }
   file.close();
 }
@@ -1485,8 +1485,8 @@ void Model::initialize_dynamic_variables( void )
 {
   /*** Assertions ***/
   assert(_x==NULL);
-  assert(_f==NULL);
-  assert(_f_trunc==NULL);
+  assert(_q==NULL);
+  assert(_q_trunc==NULL);
   assert(_c==NULL);
   assert(_xc==NULL);
   assert(_tau_j==NULL);
@@ -1494,16 +1494,16 @@ void Model::initialize_dynamic_variables( void )
   assert(_p==NULL);
   assert(_b==NULL);
   assert(_ditau_j==NULL);
-  assert(_dmu_f==NULL);
-  assert(_GCC_f==NULL);
-  assert(_dmu_f_term2==NULL);
-  assert(_dmu_f_term3==NULL);
-  assert(_dmu_f_term4==NULL);
-  assert(_dmu_f_term5==NULL);
+  assert(_dmu_q==NULL);
+  assert(_GCC_q==NULL);
+  assert(_dmu_q_term2==NULL);
+  assert(_dmu_q_term3==NULL);
+  assert(_dmu_q_term4==NULL);
+  assert(_dmu_q_term5==NULL);
   /*** Allocate memory ***/
   _x           = gsl_vector_alloc(_nx);
-  _f           = gsl_vector_alloc(_nj);
-  _f_trunc     = gsl_vector_alloc(_nj-1);
+  _q           = gsl_vector_alloc(_nj);
+  _q_trunc     = gsl_vector_alloc(_nj-1);
   _c           = gsl_vector_alloc(_nc);
   _xc          = gsl_vector_alloc(_ni);
   _tau_j       = gsl_vector_alloc(_nj);
@@ -1511,16 +1511,16 @@ void Model::initialize_dynamic_variables( void )
   _p           = gsl_vector_alloc(_nj);
   _b           = gsl_vector_alloc(_nc);
   _ditau_j     = gsl_matrix_alloc(_nj, _nc);
-  _dmu_f       = gsl_vector_alloc(_nj);
-  _GCC_f       = gsl_vector_alloc(_nj);
-  _dmu_f_term2 = gsl_vector_alloc(_nj);
-  _dmu_f_term3 = gsl_matrix_alloc(_nj, _nj);
-  _dmu_f_term4 = gsl_vector_alloc(_nj);
-  _dmu_f_term5 = gsl_vector_alloc(_nj);
+  _dmu_q       = gsl_vector_alloc(_nj);
+  _GCC_q       = gsl_vector_alloc(_nj);
+  _dmu_q_term2 = gsl_vector_alloc(_nj);
+  _dmu_q_term3 = gsl_matrix_alloc(_nj, _nj);
+  _dmu_q_term4 = gsl_vector_alloc(_nj);
+  _dmu_q_term5 = gsl_vector_alloc(_nj);
   /*** Initialize all variables to zero ***/
   gsl_vector_set_zero(_x);
-  gsl_vector_set_zero(_f);
-  gsl_vector_set_zero(_f_trunc);
+  gsl_vector_set_zero(_q);
+  gsl_vector_set_zero(_q_trunc);
   gsl_vector_set_zero(_c);
   gsl_vector_set_zero(_xc);
   gsl_vector_set_zero(_tau_j);
@@ -1528,12 +1528,12 @@ void Model::initialize_dynamic_variables( void )
   gsl_vector_set_zero(_p);
   gsl_vector_set_zero(_b);
   gsl_matrix_set_zero(_ditau_j);
-  gsl_vector_set_zero(_dmu_f);
-  gsl_vector_set_zero(_GCC_f);
-  gsl_vector_set_zero(_dmu_f_term2);
-  gsl_matrix_set_zero(_dmu_f_term3);
-  gsl_vector_set_zero(_dmu_f_term4);
-  gsl_vector_set_zero(_dmu_f_term5);
+  gsl_vector_set_zero(_dmu_q);
+  gsl_vector_set_zero(_GCC_q);
+  gsl_vector_set_zero(_dmu_q_term2);
+  gsl_matrix_set_zero(_dmu_q_term3);
+  gsl_vector_set_zero(_dmu_q_term4);
+  gsl_vector_set_zero(_dmu_q_term5);
   /*** Initialize vector views ***/
   _x_view = gsl_vector_subvector(_xc, 0, _nx);
   _c_view = gsl_vector_subvector(_xc, _nx, _nc);
@@ -1560,7 +1560,7 @@ void Model::calculate( void )
  */
 void Model::compute_c( void )
 {
-  gsl_blas_dgemv(CblasNoTrans, _rho, _M, _f, 0.0, _c);
+  gsl_blas_dgemv(CblasNoTrans, _rho, _M, _q, 0.0, _c);
   if (_adjust_concentrations)
   {
     for (int i = 0; i < _nc; i++)
@@ -1924,20 +1924,20 @@ void Model::compute_dtau( int j )
 void Model::compute_mu( void )
 {
   double term1 = 0.0;
-  gsl_blas_ddot(_tau_j, _f, &term1);
-  _mu            = gsl_matrix_get(_M, _a, _r)*gsl_vector_get(_f, _r)/term1;
+  gsl_blas_ddot(_tau_j, _q, &term1);
+  _mu            = gsl_matrix_get(_M, _a, _r)*gsl_vector_get(_q, _r)/term1;
   _doubling_time = std::log(2)/std::log(1.0 + _mu);
 }
 
 /**
  * \brief    Compute the mass flux vector v
- * \details  v = mu*rho*f
+ * \details  v = mu*rho*q
  * \param    void
  * \return   \e void
  */
 void Model::compute_v( void )
 {
-  gsl_vector_memcpy(_v, _f);
+  gsl_vector_memcpy(_v, _q);
   gsl_vector_scale(_v, _mu*_rho);
 }
 
@@ -1955,64 +1955,64 @@ void Model::compute_p( void )
 
 /**
  * \brief    Compute mass fractions b
- * \details  b = M*f
+ * \details  b = M*q
  * \param    void
  * \return   \e void
  */
 void Model::compute_b( void )
 {
-  gsl_blas_dgemv(CblasNoTrans, 1.0, _M, _f, 0.0, _b);
+  gsl_blas_dgemv(CblasNoTrans, 1.0, _M, _q, 0.0, _b);
 }
 
 /**
  * \brief    Compute cell density (should be always 1)
- * \details  density = sM*f
+ * \details  density = sM*q
  * \param    void
  * \return   \e void
  */
 void Model::compute_density( void )
 {
-  gsl_blas_ddot(_sM, _f, &_density);
+  gsl_blas_ddot(_sM, _q, &_density);
 }
 
 /**
- * \brief    Compute local mu gradient with respect to f
+ * \brief    Compute local mu gradient with respect to q
  * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::compute_dmu_f( void )
+void Model::compute_dmu_q( void )
 {
   /*--------*/
-  _dmu_f_term1 = gsl_pow_int(_mu, 2)/gsl_vector_get(_b, _a);
+  _dmu_q_term1 = gsl_pow_int(_mu, 2)/gsl_vector_get(_b, _a);
   /*--------*/
-  gsl_matrix_get_row(_dmu_f_term2, _M, _a);
-  gsl_vector_scale(_dmu_f_term2, 1.0/_mu);
+  gsl_matrix_get_row(_dmu_q_term2, _M, _a);
+  gsl_vector_scale(_dmu_q_term2, 1.0/_mu);
   /*--------*/
-  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, _rho, _ditau_j, _M, 0.0, _dmu_f_term3);
-  gsl_blas_dgemv(CblasTrans, 1.0, _dmu_f_term3, _f, 0.0, _dmu_f_term4);
+  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, _rho, _ditau_j, _M, 0.0, _dmu_q_term3);
+  gsl_blas_dgemv(CblasTrans, 1.0, _dmu_q_term3, _q, 0.0, _dmu_q_term4);
   /*--------*/
-  gsl_vector_memcpy(_dmu_f_term5, _tau_j);
+  gsl_vector_memcpy(_dmu_q_term5, _tau_j);
   /*--------*/
-  gsl_vector_memcpy(_dmu_f, _dmu_f_term2);
-  gsl_vector_sub(_dmu_f, _dmu_f_term4);
-  gsl_vector_sub(_dmu_f, _dmu_f_term5);
-  gsl_vector_scale(_dmu_f, _dmu_f_term1);
+  gsl_vector_memcpy(_dmu_q, _dmu_q_term2);
+  gsl_vector_sub(_dmu_q, _dmu_q_term4);
+  gsl_vector_sub(_dmu_q, _dmu_q_term5);
+  gsl_vector_scale(_dmu_q, _dmu_q_term1);
 }
 
 /**
- * \brief    Compute local growth control coefficients with respect to f
+ * \brief    Compute local growth control coefficients with respect to q
  * \details  --
  * \param    void
  * \return   \e void
  */
-void Model::compute_GCC_f( void )
+void Model::compute_GCC_q( void )
 {
-  // self.dmu_f-self.dmu_f[0]*(self.sM/self.sM[0])
-  gsl_vector_memcpy(_GCC_f, _sM);
-  gsl_vector_scale(_GCC_f, gsl_vector_get(_dmu_f, 0)/gsl_vector_get(_sM, 0));
-  gsl_vector_scale(_GCC_f, -1.0);
-  gsl_vector_add(_GCC_f, _dmu_f);
+  // self.dmu_q-self.dmu_q[0]*(self.sM/self.sM[0])
+  gsl_vector_memcpy(_GCC_q, _sM);
+  gsl_vector_scale(_GCC_q, gsl_vector_get(_dmu_q, 0)/gsl_vector_get(_sM, 0));
+  gsl_vector_scale(_GCC_q, -1.0);
+  gsl_vector_add(_GCC_q, _dmu_q);
 }
 
 /**
@@ -2048,8 +2048,8 @@ void Model::calculate_second_order_terms( void )
   {
     compute_dtau(j);
   }
-  compute_dmu_f();
-  compute_GCC_f();
+  compute_dmu_q();
+  compute_GCC_q();
 }
 
 /**
@@ -2108,24 +2108,24 @@ void Model::block_reactions( void )
   for (int j = 0; j < _nj-1; j++)
   {
     /*** 1.1) Reaction is irreversible ***/
-    if (_type[j+1] != RMM && gsl_vector_get(_f_trunc, j) <= _tol)
+    if (_type[j+1] != RMM && gsl_vector_get(_q_trunc, j) <= _tol)
     {
-      gsl_vector_set(_f_trunc, j, _tol);
-      if (gsl_vector_get(_GCC_f, j+1) < 0.0)
+      gsl_vector_set(_q_trunc, j, _tol);
+      if (gsl_vector_get(_GCC_q, j+1) < 0.0)
       {
-        gsl_vector_set(_GCC_f, j+1, 0.0);
+        gsl_vector_set(_GCC_q, j+1, 0.0);
       }
     }
     /*** 1.2) Reaction is reversible ***/
-    else if (_type[j+1] == RMM && fabs(gsl_vector_get(_f_trunc, j)) <= _tol)
+    else if (_type[j+1] == RMM && fabs(gsl_vector_get(_q_trunc, j)) <= _tol)
     {
-      if (gsl_vector_get(_GCC_f, j+1) > 0.0)
+      if (gsl_vector_get(_GCC_q, j+1) > 0.0)
       {
-        gsl_vector_set(_f_trunc, j, _tol);
+        gsl_vector_set(_q_trunc, j, _tol);
       }
-      if (gsl_vector_get(_GCC_f, j+1) < 0.0)
+      if (gsl_vector_get(_GCC_q, j+1) < 0.0)
       {
-        gsl_vector_set(_f_trunc, j, -_tol);
+        gsl_vector_set(_q_trunc, j, -_tol);
       }
     }
   }
@@ -2137,8 +2137,8 @@ void Model::block_reactions( void )
     int    j   = _reaction_indices[item.first];
     double val = item.second;
     assert(j > 0);
-    gsl_vector_set(_f_trunc, j-1, val);
-    gsl_vector_set(_GCC_f, j, 0.0);
+    gsl_vector_set(_q_trunc, j-1, val);
+    gsl_vector_set(_GCC_q, j, 0.0);
   }
 }
 

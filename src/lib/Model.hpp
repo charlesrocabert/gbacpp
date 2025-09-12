@@ -85,8 +85,8 @@ public:
   
   inline void set_tol( double tol );
   inline void set_condition( std::string condition );
-  inline void initialize_f( void );
-  inline void calculate_f_from_f_trunc( void );
+  inline void initialize_q( void );
+  inline void calculate_q_from_q_trunc( void );
   
   /*----------------------------
    * PUBLIC METHODS
@@ -133,8 +133,8 @@ protected:
   void load_kcat( void );
   void load_conditions( void );
   void load_constant_reactions( void );
-  void load_f0( void );
-  void reload_f0( void );
+  void load_q0( void );
+  void reload_q0( void );
   
   void initialize_variables( void );
   void initialize_static_variables( void );
@@ -160,8 +160,8 @@ protected:
   void compute_p( void );
   void compute_b( void );
   void compute_density( void );
-  void compute_dmu_f( void );
-  void compute_GCC_f( void );
+  void compute_dmu_q( void );
+  void compute_GCC_q( void );
   void calculate_first_order_terms( void );
   void calculate_second_order_terms( void );
   void check_model_consistency( void );
@@ -228,9 +228,9 @@ protected:
   
   /*----------------------------------------------- GBA first order variables */
   
-  gsl_vector* _f0;                    /*!< Initial state                      */
-  gsl_vector* _f;                     /*!< Flux fractions vector              */
-  gsl_vector* _f_trunc;               /*!< Truncated flux fractions vector    */
+  gsl_vector* _q0;                    /*!< Initial state                      */
+  gsl_vector* _q;                     /*!< Flux fractions vector              */
+  gsl_vector* _q_trunc;               /*!< Truncated flux fractions vector    */
   gsl_vector* _c;                     /*!< Internal metabolite concentrations */
   gsl_vector* _xc;                    /*!< Metabolite concentrations          */
   gsl_vector* _tau_j;                 /*!< Tau values (turnover times)        */
@@ -246,36 +246,36 @@ protected:
   /*----------------------------------------------- GBA second order variables */
   
   gsl_matrix* _ditau_j; /*!< Tau derivative values                               */
-  gsl_vector* _dmu_f;   /*!< Local mu derivatives with respect to f              */
-  gsl_vector* _GCC_f;   /*!< Local growth control coefficients with respect to f */
+  gsl_vector* _dmu_q;   /*!< Local mu derivatives with respect to q              */
+  gsl_vector* _GCC_q;   /*!< Local growth control coefficients with respect to q */
   
   /*----------------------------------------------- Variables for calculation optimization */
   
   gsl_vector_view _x_view;      /*!< x segment view of vector xc           */
   gsl_vector_view _c_view;      /*!< c segment view of vector xc           */
-  double          _dmu_f_term1; /*!< Variable for the calculation of dmu_f */
-  gsl_vector*     _dmu_f_term2; /*!< Variable for the calculation of dmu_f */
-  gsl_matrix*     _dmu_f_term3; /*!< Variable for the calculation of dmu_f */
-  gsl_vector*     _dmu_f_term4; /*!< Variable for the calculation of dmu_f */
-  gsl_vector*     _dmu_f_term5; /*!< Variable for the calculation of dmu_f */
+  double          _dmu_q_term1; /*!< Variable for the calculation of dmu_q */
+  gsl_vector*     _dmu_q_term2; /*!< Variable for the calculation of dmu_q */
+  gsl_matrix*     _dmu_q_term3; /*!< Variable for the calculation of dmu_q */
+  gsl_vector*     _dmu_q_term4; /*!< Variable for the calculation of dmu_q */
+  gsl_vector*     _dmu_q_term5; /*!< Variable for the calculation of dmu_q */
   double          _mu_diff;     /*!< Next mu to current mu differential    */
   
   /*----------------------------------------------- Solutions */
   
-  int                                  _nb_random_solutions; /*!< Number of random solutions                    */
-  std::unordered_map<int, gsl_vector*> _random_solutions;    /*!< List of random f vectors                      */
+  int                                  _nb_random_solutions; /*!< Number of random solutions */
+  std::unordered_map<int, gsl_vector*> _random_solutions;    /*!< List of random q vectors   */
   
   /*----------------------------------------------- Output files */
   
   std::ofstream _state_trajectory_file; /*!< Model trajectory output file    */
-  std::ofstream _f_trajectory_file;     /*!< f vector trajectory output file */
+  std::ofstream _q_trajectory_file;     /*!< q vector trajectory output file */
   std::ofstream _c_trajectory_file;     /*!< c vector trajectory output file */
   std::ofstream _v_trajectory_file;     /*!< v vector trajectory output file */
   std::ofstream _p_trajectory_file;     /*!< p vector trajectory output file */
   std::ofstream _b_trajectory_file;     /*!< b vector trajectory output file */
   
   std::ofstream _state_optimum_file; /*!< Model optimum output file    */
-  std::ofstream _f_optimum_file;     /*!< f vector optimum output file */
+  std::ofstream _q_optimum_file;     /*!< q vector optimum output file */
   std::ofstream _c_optimum_file;     /*!< c vector optimum output file */
   std::ofstream _v_optimum_file;     /*!< v vector optimum output file */
   std::ofstream _p_optimum_file;     /*!< p vector optimum output file */
@@ -339,8 +339,8 @@ inline void Model::set_condition( std::string condition )
   {
     throw std::invalid_argument("> Error: Unknown condition "+condition);
   }
-  _condition = condition;
-  int cond_index     = _condition_indices[condition];
+  _condition     = condition;
+  int cond_index = _condition_indices[condition];
   for(int i = 0; i < (int)_condition_params.size(); i++)
   {
     std::string param = _condition_params[i];
@@ -358,33 +358,33 @@ inline void Model::set_condition( std::string condition )
 }
 
 /**
- * \brief    Initialize the vectors f and f_trunc from f0
+ * \brief    Initialize the vectors q and q_trunc from q0
  * \details  --
  * \param    void
  * \return   \e void
  */
-inline void Model::initialize_f( void )
+inline void Model::initialize_q( void )
 {
-  gsl_vector_memcpy(_f, _f0);
-  gsl_vector_view f_view = gsl_vector_subvector(_f, 1, _nj-1);
-  gsl_vector_memcpy(_f_trunc, &f_view.vector);
+  gsl_vector_memcpy(_q, _q0);
+  gsl_vector_view q_view = gsl_vector_subvector(_q, 1, _nj-1);
+  gsl_vector_memcpy(_q_trunc, &q_view.vector);
 }
 
 /**
- * \brief    Calculate f from f_trunc
+ * \brief    Calculate q from q_trunc
  * \details  --
  * \param    void
  * \return   \e void
  */
-inline void Model::calculate_f_from_f_trunc( void )
+inline void Model::calculate_q_from_q_trunc( void )
 {
   gsl_vector_view sM_view = gsl_vector_subvector(_sM, 1, _nj-1);
   double term = 0.0;
-  gsl_blas_ddot(&sM_view.vector, _f_trunc, &term);
+  gsl_blas_ddot(&sM_view.vector, _q_trunc, &term);
   term = (1.0-term)/gsl_vector_get(_sM, 0);
-  gsl_vector_view f_view = gsl_vector_subvector(_f, 1, _nj-1);
-  gsl_vector_memcpy(&f_view.vector, _f_trunc);
-  gsl_vector_set(_f, 0, term);
+  gsl_vector_view q_view = gsl_vector_subvector(_q, 1, _nj-1);
+  gsl_vector_memcpy(&q_view.vector, _q_trunc);
+  gsl_vector_set(_q, 0, term);
 }
 
 
