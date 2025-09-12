@@ -522,7 +522,10 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         write_trajectory_output_files(condition, nb_iterations, t, dt);
-        std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", stable=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+        if (verbose)
+        {
+          std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", stable=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+        }
       }
       if (fabs(_mu-previous_mu) < _tol)
       {
@@ -1434,7 +1437,6 @@ void Model::initialize_static_variables( void )
   _type              = new rtype[_nj];
   gsl_vector* KI_vec = gsl_vector_alloc(_ni);
   gsl_vector* KA_vec = gsl_vector_alloc(_ni);
-  gsl_vector* KR_vec = gsl_vector_alloc(_ni);
   for(int j = 0; j < _nj; j++)
   {
     gsl_matrix_get_col(KI_vec, _KI, j);
