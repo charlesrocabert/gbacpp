@@ -323,66 +323,6 @@ void Model::read_random_solutions( void )
 }
 
 /**
- * \brief    Re-load q0
- * \details  Re-load the vector from the last trajectory point
- * \param    std::string output_path
- * \param    std::string condition
- * \return   \e void
- */
-void Model::reload_q0( std::string output_path, std::string condition )
-{
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Check that q0 is empty   */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  gsl_vector_free(_q0);
-  _q0 = gsl_vector_alloc(_nj);
-  gsl_vector_set_zero(_q0);
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Open the trajectory file */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  std::stringstream filename;
-  filename << output_path << "/" << _model_name << "_" <<  condition << "_q_trajectory.csv";
-  assert(is_file_exist(filename.str()));
-  std::ifstream file(filename.str(), std::ios::in);
-  assert(file);
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Load the header          */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  std::string line;
-  std::getline(file, line);
-  std::vector<std::string> header;
-  std::stringstream ss1(line);
-  std::string column;
-  while (std::getline(ss1, column, ';'))
-  {
-    header.push_back(column);
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Load the last line       */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  std::string last_line;
-  while (std::getline(file, line))
-  {
-    last_line = line;
-  }
-  std::stringstream ss2(last_line);
-  std::string       id;
-  std::string       str_value;
-  int               pos = 0;
-  while (std::getline(ss2, str_value, ';'))
-  {
-    if (header[pos] != "condition" && header[pos] != "iter" && header[pos] != "dt" && header[pos] != "t")
-    {
-      int    col   = _reaction_indices[header[pos]];
-      double value = stod(str_value);
-      gsl_vector_set(_q0, col, value);
-    }
-    pos++;
-  }
-  file.close();
-}
-
-/**
  * \brief    Compute the optimum for one condition
  * \details  --
  * \param    std::string condition
@@ -536,19 +476,20 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   {
     open_trajectory_output_files(output_path, condition, reload);
   }
+  double previous_mu         = 0.0;
+  double t                   = 0.0;
+  double dt                  = 0.01;
+  int    dt_counter          = 0;
+  int    constant_mu_counter = 0;
+  int    nb_iterations       = 0;
+  if (reload)
+  {
+    reload_q0(nb_iterations, t, dt, output_path, condition);
+  }
   _adjust_concentrations = false;
   set_condition(condition);
   initialize_q();
-  /*
-  for(int j=0; j < _nj; j++)
-  {
-    std::cout << gsl_vector_get(_q, j) << " ";
-  }
-  std::cout << std::endl;
-   */
   calculate();
-  
-  // std::cout << "> Initial growth rate = " << _mu << "\n";
   if (!_consistent)
   {
     throw std::runtime_error("> Error: The initial solution q0 is not consistent");
@@ -556,12 +497,6 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   gsl_vector* previous_q_trunc = gsl_vector_alloc(_nj-1);
   gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
   gsl_vector_memcpy(previous_q_trunc, _q_trunc);
-  double previous_mu         = 0.0;
-  double t                   = 0.0;
-  double dt                  = 0.01;
-  int    dt_counter          = 0;
-  int    constant_mu_counter = 0;
-  int    nb_iterations       = 0;
   if (write_trajectory)
   {
     write_trajectory_output_files(condition, nb_iterations, t, dt);
@@ -583,6 +518,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     calculate();
     if (_consistent && _mu >= previous_mu)
     {
+      save_q(nb_iterations, t, dt, output_path, condition);
       gsl_vector_memcpy(previous_q_trunc, _q_trunc);
       dt_counter++;
       t = t+dt;
@@ -626,6 +562,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       }
     }
   }
+  save_q(nb_iterations, t, dt, output_path, condition);
   gsl_vector_free(previous_q_trunc);
   gsl_vector_free(scaled_dmudt);
   previous_q_trunc = NULL;
@@ -893,6 +830,56 @@ void Model::close_optimum_ouput_files( void )
   _v_optimum_file.close();
   _p_optimum_file.close();
   _b_optimum_file.close();
+}
+
+/**
+ * \brief    Save q vector into binary f
+ * \details  --
+ * \param    int nb_iterations
+ * \param    double t
+ * \param    double dt
+ * \param    std::string output_path
+ * \param    std::string condition
+ * \return   \e void
+ */
+void Model::save_q( int nb_iterations, double t, double dt, std::string output_path, std::string condition )
+{
+  std::stringstream filename;
+  filename << output_path << "/" << _model_name << "_" << condition << "_q.bin";
+  FILE *f    = fopen(filename.str().c_str(), "wb");
+  fwrite(&nb_iterations, sizeof(int), 1, f);
+  fwrite(&t, sizeof(double), 1, f);
+  fwrite(&dt, sizeof(double), 1, f);
+  gsl_vector_fwrite(f, _q);
+  fclose(f);
+}
+
+/**
+ * \brief    Re-load q0
+ * \details  Re-load the vector from the last trajectory point
+ * \param    std::string output_path
+ * \param    std::string condition
+ * \return   \e void
+ */
+void Model::reload_q0( int &nb_iterations, double &t, double &dt, std::string output_path, std::string condition )
+{
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Check that q0 is empty */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  gsl_vector_free(_q0);
+  _q0 = gsl_vector_alloc(_nj);
+  gsl_vector_set_zero(_q0);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Load the binary file   */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  std::stringstream filename;
+  filename << output_path << "/" << _model_name << "_" << condition << "_q.bin";
+  FILE *f    = fopen(filename.str().c_str(), "rb");
+  fread(&nb_iterations, sizeof(int), 1, f);
+  fread(&t, sizeof(double), 1, f);
+  fread(&dt, sizeof(double), 1, f);
+  gsl_vector_fread(f, _q0);
+  fclose(f);
 }
 
 /**

@@ -94,7 +94,6 @@ public:
   
   void read_from_csv( void );
   void read_random_solutions( void );
-  void reload_q0( std::string output_path, std::string condition );
   
   void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose );
   void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose );
@@ -121,6 +120,9 @@ protected:
   void open_optimum_output_files( std::string output_path, std::string condition );
   void write_optimum_output_files( std::string condition, bool converged, double runtime );
   void close_optimum_ouput_files( void );
+  
+  void save_q( int nb_iterations, double t, double dt, std::string output_path, std::string condition );
+  void reload_q0( int &nb_iterations, double &t, double &dt, std::string output_path, std::string condition );
   
   void print_to_standard_ouput( std::string condition, bool converged, double runtime );
   

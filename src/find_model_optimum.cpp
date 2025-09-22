@@ -92,10 +92,6 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   Model* model = new Model(model_path, model_name);
   model->read_from_csv();
-  if (reload)
-  {
-    model->reload_q0(output_path, condition);
-  }
   model->set_tol(tol);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
