@@ -132,11 +132,6 @@ Model::Model( std::string model_path, std::string model_name )
   
   _nb_random_solutions = 0;
   _random_solutions.clear();
-  
-  /*----------------------------------------------- Load the model */
-  
-  read_from_csv();
-  initialize_variables();
 }
 
 /*----------------------------
@@ -273,6 +268,7 @@ void Model::read_from_csv( void )
   load_conditions();
   load_constant_reactions();
   load_q0();
+  initialize_variables();
 }
 
 /**
@@ -327,6 +323,66 @@ void Model::read_random_solutions( void )
 }
 
 /**
+ * \brief    Re-load q0
+ * \details  Re-load the vector from the last trajectory point
+ * \param    std::string output_path
+ * \param    std::string condition
+ * \return   \e void
+ */
+void Model::reload_q0( std::string output_path, std::string condition )
+{
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Check that q0 is empty   */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  gsl_vector_free(_q0);
+  _q0 = gsl_vector_alloc(_nj);
+  gsl_vector_set_zero(_q0);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Open the trajectory file */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  std::stringstream filename;
+  filename << output_path << "/" << _model_name << "_" <<  condition << "_q_trajectory.csv";
+  assert(is_file_exist(filename.str()));
+  std::ifstream file(filename.str(), std::ios::in);
+  assert(file);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Load the header          */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  std::string line;
+  std::getline(file, line);
+  std::vector<std::string> header;
+  std::stringstream ss1(line);
+  std::string column;
+  while (std::getline(ss1, column, ';'))
+  {
+    header.push_back(column);
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 4) Load the last line       */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  std::string last_line;
+  while (std::getline(file, line))
+  {
+    last_line = line;
+  }
+  std::stringstream ss2(last_line);
+  std::string       id;
+  std::string       str_value;
+  int               pos = 0;
+  while (std::getline(ss2, str_value, ';'))
+  {
+    if (header[pos] != "condition" && header[pos] != "iter" && header[pos] != "dt" && header[pos] != "t")
+    {
+      int    col   = _reaction_indices[header[pos]];
+      double value = stod(str_value);
+      gsl_vector_set(_q0, col, value);
+    }
+    pos++;
+  }
+  file.close();
+}
+
+/**
  * \brief    Compute the optimum for one condition
  * \details  --
  * \param    std::string condition
@@ -336,13 +392,14 @@ void Model::read_random_solutions( void )
  * \param    std::string output_path
  * \param    int stable_count
  * \param    int max_iter
+ * \param    bool reload
  * \param    bool verbose
  * \return   \e bool
  */
-void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose )
+void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose )
 {
   std::clock_t begin = clock();
-  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, verbose);
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, reload, verbose);
   std::clock_t end   = clock();
   double runtime     = double(end-begin)/CLOCKS_PER_SEC;
   if (write_optimum)
@@ -374,10 +431,11 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
  * \param    std::string output_path
  * \param    int stable_count
  * \param    int max_iter
+ * \param    bool reload
  * \param    bool verbose
  * \return   \e bool
  */
-void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose )
+void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose )
 {
   if (write_optimum)
   {
@@ -387,7 +445,7 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum
   {
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, reload, verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     if (write_optimum)
@@ -451,10 +509,11 @@ bool Model::is_file_exist( std::string filename )
  * \param    std::string output_path
  * \param    int stable_count
  * \param    int max_iter
+ * \param    bool reload
  * \param    bool verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose )
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose )
 {
   auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
   if (it==_condition_ids.end())
@@ -475,12 +534,20 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   }
   if (write_trajectory)
   {
-    open_trajectory_output_files(output_path, condition);
+    open_trajectory_output_files(output_path, condition, reload);
   }
   _adjust_concentrations = false;
   set_condition(condition);
   initialize_q();
+  /*
+  for(int j=0; j < _nj; j++)
+  {
+    std::cout << gsl_vector_get(_q, j) << " ";
+  }
+  std::cout << std::endl;
+   */
   calculate();
+  
   // std::cout << "> Initial growth rate = " << _mu << "\n";
   if (!_consistent)
   {
@@ -510,7 +577,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     block_reactions();
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_q, 1, _nj-1);
     gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
-    gsl_vector_scale(scaled_dmudt, dt);
+    gsl_vector_scale(scaled_dmudt, dt/_mu);
     gsl_vector_add(_q_trunc, scaled_dmudt);
     calculate_q_from_q_trunc();
     calculate();
@@ -583,9 +650,10 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
  * \details  Also writes headers
  * \param    std::string output_path
  * \param    std::string condition
+ * \param    bool reload
  * \return   \e void
  */
-void Model::open_trajectory_output_files( std::string output_path, std::string condition )
+void Model::open_trajectory_output_files( std::string output_path, std::string condition, bool reload )
 {
   /*~~~~~~~~~~~~~~~~~~*/
   /* 1) Open files    */
@@ -602,37 +670,49 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
   v_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_v_trajectory.csv";
   p_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_p_trajectory.csv";
   b_trajectory_filename << output_path << "/" << _model_name << "_" <<  condition << "_b_trajectory.csv";
-  _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _q_trajectory_file.open(q_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _p_trajectory_file.open(p_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  _b_trajectory_file.open(b_trajectory_filename.str(), std::ios::out | std::ios::trunc);
-  /*~~~~~~~~~~~~~~~~~~*/
-  /* 2) Write headers */
-  /*~~~~~~~~~~~~~~~~~~*/
-  _state_trajectory_file << "condition;iter;t;dt;mu;doubling_time;density;consistent;mu_diff\n";
-  _q_trajectory_file << "condition;iter;t;dt";
-  _c_trajectory_file << "condition;iter;t;dt";
-  _v_trajectory_file << "condition;iter;t;dt";
-  _p_trajectory_file << "condition;iter;t;dt";
-  _b_trajectory_file << "condition;iter;t;dt";
-  for (int i = 0; i < _nc; i++)
+  if (reload)
   {
-    _c_trajectory_file << ";" << _c_ids[i];
-    _b_trajectory_file << ";" << _c_ids[i];
+    _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::app);
+    _q_trajectory_file.open(q_trajectory_filename.str(), std::ios::out | std::ios::app);
+    _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::app);
+    _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::app);
+    _p_trajectory_file.open(p_trajectory_filename.str(), std::ios::out | std::ios::app);
+    _b_trajectory_file.open(b_trajectory_filename.str(), std::ios::out | std::ios::app);
   }
-  for (int j = 0; j < _nj; j++)
+  else
   {
-    _q_trajectory_file << ";" << _reaction_ids[j];
-    _v_trajectory_file << ";" << _reaction_ids[j];
-    _p_trajectory_file << ";" << _reaction_ids[j];
+    _state_trajectory_file.open(state_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+    _q_trajectory_file.open(q_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+    _c_trajectory_file.open(c_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+    _v_trajectory_file.open(v_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+    _p_trajectory_file.open(p_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+    _b_trajectory_file.open(b_trajectory_filename.str(), std::ios::out | std::ios::trunc);
+    /*~~~~~~~~~~~~~~~~~~*/
+    /* 2) Write headers */
+    /*~~~~~~~~~~~~~~~~~~*/
+    _state_trajectory_file << "condition;iter;t;dt;mu;doubling_time;density;consistent;mu_diff\n";
+    _q_trajectory_file << "condition;iter;t;dt";
+    _c_trajectory_file << "condition;iter;t;dt";
+    _v_trajectory_file << "condition;iter;t;dt";
+    _p_trajectory_file << "condition;iter;t;dt";
+    _b_trajectory_file << "condition;iter;t;dt";
+    for (int i = 0; i < _nc; i++)
+    {
+      _c_trajectory_file << ";" << _c_ids[i];
+      _b_trajectory_file << ";" << _c_ids[i];
+    }
+    for (int j = 0; j < _nj; j++)
+    {
+      _q_trajectory_file << ";" << _reaction_ids[j];
+      _v_trajectory_file << ";" << _reaction_ids[j];
+      _p_trajectory_file << ";" << _reaction_ids[j];
+    }
+    _q_trajectory_file << "\n";
+    _c_trajectory_file << "\n";
+    _v_trajectory_file << "\n";
+    _p_trajectory_file << "\n";
+    _b_trajectory_file << "\n";
   }
-  _q_trajectory_file << "\n";
-  _c_trajectory_file << "\n";
-  _v_trajectory_file << "\n";
-  _p_trajectory_file << "\n";
-  _b_trajectory_file << "\n";
 }
 
 /**
@@ -1340,37 +1420,6 @@ void Model::load_constant_reactions( void )
  * \return   \e void
  */
 void Model::load_q0( void )
-{
-  assert(_q0==NULL);
-  _q0 = gsl_vector_alloc(_nj);
-  gsl_vector_set_zero(_q0);
-  assert(is_file_exist(_model_path+"/"+_model_name+"/q0.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/q0.csv", std::ios::in);
-  assert(file);
-  std::string line;
-  std::string reaction_id;
-  std::string str_value;
-  getline(file, line);
-  while(getline(file, line))
-  {
-    std::stringstream flux(line.c_str());
-    getline(flux, reaction_id, ';');
-    getline(flux, str_value, ';');
-    reaction_id.erase(std::remove(reaction_id.begin(), reaction_id.end(), '\r'), reaction_id.end());
-    assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
-    double value = stod(str_value);
-    gsl_vector_set(_q0, _reaction_indices[reaction_id], value);
-  }
-  file.close();
-}
-
-/**
- * \brief    Re-load q0
- * \details  Re-load the vector from the last trajectory point
- * \param    void
- * \return   \e void
- */
-void Model::reload_q0( void )
 {
   assert(_q0==NULL);
   _q0 = gsl_vector_alloc(_nj);
@@ -2119,7 +2168,8 @@ void Model::block_reactions( void )
       }
     }
     /*** 1.2) Reaction is reversible ***/
-    else if (_type[j+1] == RMM && fabs(gsl_vector_get(_q_trunc, j)) <= _tol)
+    /*
+    else if (_type[j+1] == RMM && fabs(gsl_vector_get(_q_trunc, j)) < _tol)
     {
       if (gsl_vector_get(_GCC_q, j+1) > 0.0)
       {
@@ -2130,6 +2180,7 @@ void Model::block_reactions( void )
         gsl_vector_set(_q_trunc, j, -_tol);
       }
     }
+     */
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Manage constant reactions           */

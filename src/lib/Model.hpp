@@ -94,9 +94,10 @@ public:
   
   void read_from_csv( void );
   void read_random_solutions( void );
+  void reload_q0( std::string output_path, std::string condition );
   
-  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
-  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
+  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose );
+  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -111,9 +112,9 @@ protected:
   bool is_path_exist( std::string path );
   bool is_file_exist( std::string filename );
   
-  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool verbose );
+  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose );
   
-  void open_trajectory_output_files( std::string output_path, std::string condition );
+  void open_trajectory_output_files( std::string output_path, std::string condition, bool reload );
   void write_trajectory_output_files( std::string condition, int iter, double t, double dt );
   void close_trajectory_ouput_files( void );
   
@@ -134,7 +135,6 @@ protected:
   void load_conditions( void );
   void load_constant_reactions( void );
   void load_q0( void );
-  void reload_q0( void );
   
   void initialize_variables( void );
   void initialize_static_variables( void );
