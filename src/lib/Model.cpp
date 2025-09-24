@@ -333,13 +333,14 @@ void Model::read_random_solutions( void )
  * \param    int stable_count
  * \param    int max_iter
  * \param    bool reload
+ * \param    bool restart
  * \param    bool verbose
  * \return   \e bool
  */
-void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose )
+void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose )
 {
   std::clock_t begin = clock();
-  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, reload, verbose);
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, reload, restart, verbose);
   std::clock_t end   = clock();
   double runtime     = double(end-begin)/CLOCKS_PER_SEC;
   if (write_optimum)
@@ -372,10 +373,11 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
  * \param    int stable_count
  * \param    int max_iter
  * \param    bool reload
+ * \param    bool restart
  * \param    bool verbose
  * \return   \e bool
  */
-void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose )
+void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose )
 {
   if (write_optimum)
   {
@@ -385,7 +387,7 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum
   {
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, reload, verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, reload, restart, verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     if (write_optimum)
@@ -450,10 +452,11 @@ bool Model::is_file_exist( std::string filename )
  * \param    int stable_count
  * \param    int max_iter
  * \param    bool reload
+ * \param    bool restart
  * \param    bool verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool verbose )
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose )
 {
   auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
   if (it==_condition_ids.end())
@@ -474,7 +477,8 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   }
   if (write_trajectory)
   {
-    open_trajectory_output_files(output_path, condition, reload);
+    bool append = reload && !restart;
+    open_trajectory_output_files(output_path, condition, append);
   }
   double previous_mu         = 0.0;
   double t                   = 0.0;
@@ -484,7 +488,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   int    nb_iterations       = 0;
   if (reload)
   {
-    reload_q0(nb_iterations, t, dt, output_path, condition);
+    reload_q0(nb_iterations, t, dt, output_path, condition, restart);
   }
   _adjust_concentrations = false;
   set_condition(condition);
@@ -512,25 +516,26 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     block_reactions();
     gsl_vector_view dmudt = gsl_vector_subvector(_GCC_q, 1, _nj-1);
     gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
-    gsl_vector_scale(scaled_dmudt, dt/_mu);
+    gsl_vector_scale(scaled_dmudt, dt);
     gsl_vector_add(_q_trunc, scaled_dmudt);
     calculate_q_from_q_trunc();
     calculate();
     if (_consistent && _mu >= previous_mu)
     {
-      save_q(nb_iterations, t, dt, output_path, condition);
       gsl_vector_memcpy(previous_q_trunc, _q_trunc);
       dt_counter++;
-      t = t+dt;
+      t        = t+dt;
+      _mu_diff = fabs(_mu-previous_mu);
+      save_q(nb_iterations, t, dt, output_path, condition);
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         write_trajectory_output_files(condition, nb_iterations, t, dt);
         if (verbose)
         {
-          std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", stable=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+          std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", mu_diff=" << _mu_diff << ", stable=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
         }
       }
-      if (fabs(_mu-previous_mu) < _tol)
+      if (_mu_diff < _tol)
       {
         constant_mu_counter++;
       }
@@ -859,19 +864,20 @@ void Model::save_q( int nb_iterations, double t, double dt, std::string output_p
  * \details  Re-load the vector from the last trajectory point
  * \param    std::string output_path
  * \param    std::string condition
+ * \param    bool restart
  * \return   \e void
  */
-void Model::reload_q0( int &nb_iterations, double &t, double &dt, std::string output_path, std::string condition )
+void Model::reload_q0( int &nb_iterations, double &t, double &dt, std::string output_path, std::string condition, bool restart )
 {
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Check that q0 is empty */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Check that q0 is empty           */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   gsl_vector_free(_q0);
   _q0 = gsl_vector_alloc(_nj);
   gsl_vector_set_zero(_q0);
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Load the binary file   */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Load the binary file             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   std::stringstream filename;
   filename << output_path << "/" << _model_name << "_" << condition << "_q.bin";
   FILE *f    = fopen(filename.str().c_str(), "rb");
@@ -880,6 +886,12 @@ void Model::reload_q0( int &nb_iterations, double &t, double &dt, std::string ou
   fread(&dt, sizeof(double), 1, f);
   gsl_vector_fread(f, _q0);
   fclose(f);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Reset time variables if required */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  nb_iterations = 0;
+  t             = 0.0;
+  dt            = 0.01;
 }
 
 /**
