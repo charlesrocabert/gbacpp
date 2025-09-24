@@ -51,7 +51,6 @@ The optimization process relies on a gradient ascent approach, and is preferred 
   - [4.3) Find an optimum](#find_optimum)
   - [4.4) Optimization parameters](#optimization_parameters)
   - [4.5) Usage example](#usage_example)
-  - [4.6) Ready-to-use examples](#examples)
 - [5) SRC model format tutorial](#src_model_format_tutorial)
 - [6) Units conversion tutorial](#units_conversion_tutorial)
 - [7) Copyright](#copyright)
@@ -192,21 +191,6 @@ Then, call the optimization algorithm:
 
 Here, optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
-### 4.6) Ready-to-use examples <a name="examples"></a>
-Ready-to-use examples are available in the folder <code>./examples</code> (navigate to the folder <code>examples</code> using the <code>cd</code> command):
-
-• <code>model_A_condition_1.sh</code>: This script will run a single gradient ascent on model A in external condition 1 (2 reactions, 2 metabolites). You can execute it using the following command line:
-
-    bash model_A_condition_1.sh
-
-At the end of the optimization, CSV files are written in the folder <code>./examples/output</code>. You can edit the parameter values at will to test the behaviour of the gradient ascent. See below for a full description of the parameters.
-
-• <code>model_B_all_conditions.sh</code>: This script will calculate the optimal growth rate on model B for all external conditions. You can execute it using the following command line:
-
-    bash model_B_all_conditions.sh
-
-All the optimums are written in the folder <code>./examples/output</code>.
-
 # 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
 A tutorial is available to better understand the content of a self-replicating cell model:
@@ -227,7 +211,6 @@ A tutorial is available for users starting from standard stoichiometric coeffici
 Copyright © 2024-2025 Charles Rocabert. All rights reserved.
 
 # 8) License <a name="license"></a>
-
 
 <p align="justify">
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
