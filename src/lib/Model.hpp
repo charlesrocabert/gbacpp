@@ -76,7 +76,6 @@ public:
    *----------------------------*/
   
   inline double get_mu( void );
-  inline double get_doubling_time( void );
   
   /*----------------------------
    * SETTERS
@@ -84,6 +83,7 @@ public:
   Model& operator=(const Model&) = delete;
   
   inline void set_tol( double tol );
+  inline void set_mu_tol( double mu_tol );
   inline void set_condition( std::string condition );
   inline void initialize_q( void );
   inline void calculate_q_from_q_trunc( void );
@@ -163,7 +163,7 @@ protected:
   void compute_b( void );
   void compute_density( void );
   void compute_dmu_q( void );
-  void compute_GCC_q( void );
+  void compute_Gamma_q( void );
   void calculate_first_order_terms( void );
   void calculate_second_order_terms( void );
   void check_model_consistency( void );
@@ -178,9 +178,10 @@ protected:
   std::string _model_path; /*!< Model path */
   std::string _model_name; /*!< Model name */
   
-  /*----------------------------------------------- Tolerance value */
+  /*----------------------------------------------- Tolerance values */
   
-  double _tol; /*!< Tolerance value */
+  double _tol;    /*!< Tolerance value    */
+  double _mu_tol; /*!< Mu tolerance value */
   
   /*----------------------------------------------- Identifier lists */
   
@@ -241,7 +242,6 @@ protected:
   gsl_vector* _b;                     /*!< Biomass fractions vector           */
   double      _density;               /*!< Cell's relative density            */
   double      _mu;                    /*!< Growth rate                        */
-  double      _doubling_time;         /*!< Doubling time                      */
   bool        _consistent;            /*!< Is the model consistent?           */
   bool        _adjust_concentrations; /*!< Adjust concentration vector c      */
   
@@ -249,18 +249,20 @@ protected:
   
   gsl_matrix* _ditau_j; /*!< Tau derivative values                               */
   gsl_vector* _dmu_q;   /*!< Local mu derivatives with respect to q              */
-  gsl_vector* _GCC_q;   /*!< Local growth control coefficients with respect to q */
+  gsl_vector* _Gamma_q; /*!< Local growth control coefficients with respect to q */
   
   /*----------------------------------------------- Variables for calculation optimization */
   
-  gsl_vector_view _x_view;      /*!< x segment view of vector xc           */
-  gsl_vector_view _c_view;      /*!< c segment view of vector xc           */
-  double          _dmu_q_term1; /*!< Variable for the calculation of dmu_q */
-  gsl_vector*     _dmu_q_term2; /*!< Variable for the calculation of dmu_q */
-  gsl_matrix*     _dmu_q_term3; /*!< Variable for the calculation of dmu_q */
-  gsl_vector*     _dmu_q_term4; /*!< Variable for the calculation of dmu_q */
-  gsl_vector*     _dmu_q_term5; /*!< Variable for the calculation of dmu_q */
-  double          _mu_diff;     /*!< Next mu to current mu differential    */
+  gsl_vector_view _x_view;       /*!< x segment view of vector xc                 */
+  gsl_vector_view _c_view;       /*!< c segment view of vector xc                 */
+  double          _dmu_q_term1;  /*!< Variable for the calculation of dmu_q       */
+  gsl_vector*     _dmu_q_term2;  /*!< Variable for the calculation of dmu_q       */
+  gsl_matrix*     _dmu_q_term3;  /*!< Variable for the calculation of dmu_q       */
+  gsl_vector*     _dmu_q_term4;  /*!< Variable for the calculation of dmu_q       */
+  gsl_vector*     _dmu_q_term5;  /*!< Variable for the calculation of dmu_q       */
+  int             _stable_count; /*!< Stable mu count (convergence metric)        */
+  double          _mu_diff;      /*!< Next mu to current mu differential          */
+  double          _mu_rel_diff;  /*!< Next mu to current mu relative differential */
   
   /*----------------------------------------------- Solutions */
   
@@ -299,17 +301,6 @@ inline double Model::get_mu( void )
   return _mu;
 }
 
-/**
- * \brief    Get doubling time
- * \details  --
- * \param    void
- * \return   \e double
- */
-inline double Model::get_doubling_time( void )
-{
-  return _doubling_time;
-}
-
 /*----------------------------
  * SETTERS
  *----------------------------*/
@@ -327,6 +318,21 @@ inline void Model::set_tol( double tol )
     throw std::invalid_argument("> Error: tolerance value is too low ("+std::to_string(tol)+")");
   }
   _tol = tol;
+}
+
+/**
+ * \brief    Set the mu tolerance value
+ * \details  --
+ * \param    double mu_tol
+ * \return   \e void
+ */
+inline void Model::set_mu_tol( double mu_tol )
+{
+  if (mu_tol <= 0.0)
+  {
+    throw std::invalid_argument("> Error: mu tolerance value is too low ("+std::to_string(mu_tol)+")");
+  }
+  _mu_tol = mu_tol;
 }
 
 /**

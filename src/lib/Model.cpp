@@ -50,7 +50,8 @@ Model::Model( std::string model_path, std::string model_name )
   
   /*----------------------------------------------- Tolerance value */
   
-  _tol = 1e-10;
+  _tol    = 1e-10;
+  _mu_tol = 1e-10;
   
   /*----------------------------------------------- Identifier lists */
   
@@ -110,7 +111,6 @@ Model::Model( std::string model_path, std::string model_name )
   _b                     = NULL;
   _density               = 0.0;
   _mu                    = 0.0;
-  _doubling_time         = 0.0;
   _consistent            = false;
   _adjust_concentrations = false;
   
@@ -118,15 +118,18 @@ Model::Model( std::string model_path, std::string model_name )
   
   _ditau_j = NULL;
   _dmu_q   = NULL;
-  _GCC_q   = NULL;
+  _Gamma_q = NULL;
   
-  /*----------------------------------------------- Variables for calculation optimization */
+  /*----------------------------------------------- Variables for calculation and optimization */
   
-  _dmu_q_term1 = 0.0;
-  _dmu_q_term2 = NULL;
-  _dmu_q_term3 = NULL;
-  _dmu_q_term4 = NULL;
-  _dmu_q_term5 = NULL;
+  _dmu_q_term1  = 0.0;
+  _dmu_q_term2  = NULL;
+  _dmu_q_term3  = NULL;
+  _dmu_q_term4  = NULL;
+  _dmu_q_term5  = NULL;
+  _stable_count = 0;
+  _mu_diff      = 0.0;
+  _mu_rel_diff  = 0.0;
   
   /*----------------------------------------------- Solutions */
   
@@ -218,10 +221,10 @@ Model::~Model( void )
   
   gsl_matrix_free(_ditau_j);
   gsl_vector_free(_dmu_q);
-  gsl_vector_free(_GCC_q);
+  gsl_vector_free(_Gamma_q);
   _ditau_j = NULL;
   _dmu_q   = NULL;
-  _GCC_q   = NULL;
+  _Gamma_q = NULL;
   
   /*----------------------------------------------- Variables for calculation optimization */
   
@@ -480,12 +483,16 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     bool append = reload && !restart;
     open_trajectory_output_files(output_path, condition, append);
   }
-  double previous_mu         = 0.0;
-  double t                   = 0.0;
-  double dt                  = 0.01;
-  int    dt_counter          = 0;
-  int    constant_mu_counter = 0;
-  int    nb_iterations       = 0;
+  double previous_mu   = 0.0;
+  double t             = 0.0;
+  double dt            = 0.01;
+  int    dt_counter    = 0;
+  int    nb_iterations = 0;
+  double nb_failures   = 0.0;
+  double nb_successes  = 0.0;
+  _stable_count        = 0;
+  _mu_diff             = 0.0;
+  _mu_rel_diff         = 0.0;
   if (reload)
   {
     reload_q0(nb_iterations, t, dt, output_path, condition, restart);
@@ -508,13 +515,13 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   while (nb_iterations < max_iter)
   {
     nb_iterations++;
-    if (constant_mu_counter >= stable_count)
+    if (_stable_count >= stable_count)
     {
       break;
     }
     previous_mu = _mu;
     block_reactions();
-    gsl_vector_view dmudt = gsl_vector_subvector(_GCC_q, 1, _nj-1);
+    gsl_vector_view dmudt = gsl_vector_subvector(_Gamma_q, 1, _nj-1);
     gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
     gsl_vector_scale(scaled_dmudt, dt);
     gsl_vector_add(_q_trunc, scaled_dmudt);
@@ -524,27 +531,28 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     {
       gsl_vector_memcpy(previous_q_trunc, _q_trunc);
       dt_counter++;
-      t        = t+dt;
-      _mu_diff = fabs(_mu-previous_mu);
+      t            = t+dt;
+      _mu_diff     = fabs(_mu-previous_mu);
+      _mu_rel_diff = fabs(_mu-previous_mu)/previous_mu;
       save_q(nb_iterations, t, dt, output_path, condition);
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         write_trajectory_output_files(condition, nb_iterations, t, dt);
         if (verbose)
         {
-          std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", mu_diff=" << _mu_diff << ", stable=" << constant_mu_counter << ", dt=" << dt << ")" << std::endl;
+          std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", mu_diff=" << _mu_diff << ", rel_diff=" << _mu_rel_diff << ", stable=" << _stable_count << ", dt=" << dt << ")" << std::endl;
         }
       }
-      if (_mu_diff < _tol)
+      if (_mu_rel_diff < _mu_tol)
       {
-        constant_mu_counter++;
+        _stable_count++;
       }
       else
       {
-        constant_mu_counter--;
-        if (constant_mu_counter < 0)
+        _stable_count--;
+        if (_stable_count < 0)
         {
-          constant_mu_counter = 0;
+          _stable_count = 0;
         }
       }
       if (dt_counter == INCREASING_DT_COUNT)
@@ -577,7 +585,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     write_trajectory_output_files(condition, nb_iterations, t, dt);
     close_trajectory_ouput_files();
   }
-  if (constant_mu_counter >= stable_count)
+  if (_stable_count >= stable_count)
   {
     return(true);
   }
@@ -632,7 +640,7 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
     /*~~~~~~~~~~~~~~~~~~*/
     /* 2) Write headers */
     /*~~~~~~~~~~~~~~~~~~*/
-    _state_trajectory_file << "condition;iter;t;dt;mu;doubling_time;density;consistent;mu_diff\n";
+    _state_trajectory_file << "condition;iter;t;dt;mu;density;consistent;mu_diff;mu_rel_diff;stable_count\n";
     _q_trajectory_file << "condition;iter;t;dt";
     _c_trajectory_file << "condition;iter;t;dt";
     _v_trajectory_file << "condition;iter;t;dt";
@@ -671,7 +679,7 @@ void Model::write_trajectory_output_files( std::string condition, int iter, doub
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Update state file               */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  _state_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt << ";" << _mu << ";" << _doubling_time << ";" << _density << ";" << _consistent << ";" << _mu_diff << "\n";
+  _state_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << ";" << _mu_rel_diff << ";" << _stable_count << "\n";
   _state_trajectory_file.flush();
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Update metabolites related file */
@@ -758,7 +766,7 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
   /*** Write headers ***/
-  _state_optimum_file << "condition;mu;doubling_time;density;consistent;converged;run_time\n";
+  _state_optimum_file << "condition;mu;density;consistent;converged;run_time\n";
   _q_optimum_file << "condition";
   _c_optimum_file << "condition";
   _v_optimum_file << "condition";
@@ -792,7 +800,7 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
  */
 void Model::write_optimum_output_files( std::string condition, bool converged, double runtime )
 {
-  _state_optimum_file << condition << ";" << _mu << ";" << _doubling_time << ";" << _density << ";" << _consistent << ";" << converged << ";" << runtime << "\n";
+  _state_optimum_file << condition << ";" << _mu << ";" << _density << ";" << _consistent << ";" << converged << ";" << runtime << "\n";
   _q_optimum_file << condition;
   _c_optimum_file << condition;
   _v_optimum_file << condition;
@@ -889,9 +897,12 @@ void Model::reload_q0( int &nb_iterations, double &t, double &dt, std::string ou
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Reset time variables if required */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  nb_iterations = 0;
-  t             = 0.0;
-  dt            = 0.01;
+  if (restart)
+  {
+    nb_iterations = 0;
+    t             = 0.0;
+    dt            = 0.01;
+  }
 }
 
 /**
@@ -911,8 +922,8 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   /*~~~~~~~~~~~~~~~~~~~~*/
   /* 2) State output    */
   /*~~~~~~~~~~~~~~~~~~~~*/
-  std::cout << "mu\tdoubling_time\tdensity\tconsistent\tconverged\trun_time" << std::endl;
-  std::cout << _mu << "\t" << _doubling_time << "\t" << _density << "\t" << _consistent << "\t" << converged << "\t" << runtime << "\n";
+  std::cout << "mu\tdensity\tconsistent\tconverged\trun_time" << std::endl;
+  std::cout << _mu << "\t" << _density << "\t" << _consistent << "\t" << converged << "\t" << runtime << "\n";
   /*~~~~~~~~~~~~~~~~~~~~*/
   /* 3) f vector output */
   /*~~~~~~~~~~~~~~~~~~~~*/
@@ -1545,7 +1556,7 @@ void Model::initialize_dynamic_variables( void )
   assert(_b==NULL);
   assert(_ditau_j==NULL);
   assert(_dmu_q==NULL);
-  assert(_GCC_q==NULL);
+  assert(_Gamma_q==NULL);
   assert(_dmu_q_term2==NULL);
   assert(_dmu_q_term3==NULL);
   assert(_dmu_q_term4==NULL);
@@ -1562,7 +1573,7 @@ void Model::initialize_dynamic_variables( void )
   _b           = gsl_vector_alloc(_nc);
   _ditau_j     = gsl_matrix_alloc(_nj, _nc);
   _dmu_q       = gsl_vector_alloc(_nj);
-  _GCC_q       = gsl_vector_alloc(_nj);
+  _Gamma_q     = gsl_vector_alloc(_nj);
   _dmu_q_term2 = gsl_vector_alloc(_nj);
   _dmu_q_term3 = gsl_matrix_alloc(_nj, _nj);
   _dmu_q_term4 = gsl_vector_alloc(_nj);
@@ -1579,7 +1590,7 @@ void Model::initialize_dynamic_variables( void )
   gsl_vector_set_zero(_b);
   gsl_matrix_set_zero(_ditau_j);
   gsl_vector_set_zero(_dmu_q);
-  gsl_vector_set_zero(_GCC_q);
+  gsl_vector_set_zero(_Gamma_q);
   gsl_vector_set_zero(_dmu_q_term2);
   gsl_matrix_set_zero(_dmu_q_term3);
   gsl_vector_set_zero(_dmu_q_term4);
@@ -1781,8 +1792,8 @@ void Model::diMM( int j )
       {
         term2 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
-      gsl_matrix_set(_ditau_j, j, i, -term1*term2/constant1);
     }
+    gsl_matrix_set(_ditau_j, j, i, -term1*term2/constant1);
   }
 }
 
@@ -1975,8 +1986,7 @@ void Model::compute_mu( void )
 {
   double term1 = 0.0;
   gsl_blas_ddot(_tau_j, _q, &term1);
-  _mu            = gsl_matrix_get(_M, _a, _r)*gsl_vector_get(_q, _r)/term1;
-  _doubling_time = std::log(2)/std::log(1.0 + _mu);
+  _mu = gsl_matrix_get(_M, _a, _r)*gsl_vector_get(_q, _r)/term1;
 }
 
 /**
@@ -2056,13 +2066,13 @@ void Model::compute_dmu_q( void )
  * \param    void
  * \return   \e void
  */
-void Model::compute_GCC_q( void )
+void Model::compute_Gamma_q( void )
 {
   // self.dmu_q-self.dmu_q[0]*(self.sM/self.sM[0])
-  gsl_vector_memcpy(_GCC_q, _sM);
-  gsl_vector_scale(_GCC_q, gsl_vector_get(_dmu_q, 0)/gsl_vector_get(_sM, 0));
-  gsl_vector_scale(_GCC_q, -1.0);
-  gsl_vector_add(_GCC_q, _dmu_q);
+  gsl_vector_memcpy(_Gamma_q, _sM);
+  gsl_vector_scale(_Gamma_q, gsl_vector_get(_dmu_q, 0)/gsl_vector_get(_sM, 0));
+  gsl_vector_scale(_Gamma_q, -1.0);
+  gsl_vector_add(_Gamma_q, _dmu_q);
 }
 
 /**
@@ -2099,7 +2109,7 @@ void Model::calculate_second_order_terms( void )
     compute_dtau(j);
   }
   compute_dmu_q();
-  compute_GCC_q();
+  compute_Gamma_q();
 }
 
 /**
@@ -2122,7 +2132,7 @@ void Model::check_model_consistency( void )
   /* 2) Test negative concentrations constraint */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test2 = true;
-  if (gsl_vector_min(_c) < -_tol)
+  if (gsl_vector_min(_c) < 0.0)//-_tol)
   {
     test2 = false;
   }
@@ -2130,7 +2140,7 @@ void Model::check_model_consistency( void )
   /* 3) Test negative proteins constraint       */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test3 = true;
-  if (gsl_vector_min(_p) < -_tol)
+  if (gsl_vector_min(_p) < 0.0)//-_tol)
   {
     test3 = false;
   }
@@ -2161,20 +2171,20 @@ void Model::block_reactions( void )
     if (_type[j+1] != RMM && gsl_vector_get(_q_trunc, j) <= _tol)
     {
       gsl_vector_set(_q_trunc, j, _tol);
-      if (gsl_vector_get(_GCC_q, j+1) < 0.0)
+      if (gsl_vector_get(_Gamma_q, j+1) < 0.0)
       {
-        gsl_vector_set(_GCC_q, j+1, 0.0);
+        gsl_vector_set(_Gamma_q, j+1, 0.0);
       }
     }
     /*** 1.2) Reaction is reversible ***/
     /*
     else if (_type[j+1] == RMM && fabs(gsl_vector_get(_q_trunc, j)) < _tol)
     {
-      if (gsl_vector_get(_GCC_q, j+1) > 0.0)
+      if (gsl_vector_get(_Gamma_q, j+1) > 0.0)
       {
         gsl_vector_set(_q_trunc, j, _tol);
       }
-      if (gsl_vector_get(_GCC_q, j+1) < 0.0)
+      if (gsl_vector_get(_Gamma_q, j+1) < 0.0)
       {
         gsl_vector_set(_q_trunc, j, -_tol);
       }
@@ -2190,7 +2200,7 @@ void Model::block_reactions( void )
     double val = item.second;
     assert(j > 0);
     gsl_vector_set(_q_trunc, j-1, val);
-    gsl_vector_set(_GCC_q, j, 0.0);
+    gsl_vector_set(_Gamma_q, j, 0.0);
   }
 }
 

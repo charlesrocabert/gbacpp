@@ -42,7 +42,7 @@
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, int &stable_count, int &max_iter, bool &reload, bool &restart, bool &verbose );
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &reload, bool &restart, bool &verbose );
 void printUsage( void );
 void printHeader( void );
 
@@ -67,12 +67,13 @@ int main(int argc, char const** argv)
   bool        write_trajectory = false;
   std::string output_path      = ".";
   double      tol              = 1e-10;
+  double      mu_tol           = 1e-10;
   int         stable_count     = 10000;
   int         max_iter         = 100000000;
   bool        reload           = false;
   bool        restart          = false;
   bool        verbose          = false;
-  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, stable_count, max_iter, reload, restart, verbose);
+  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, stable_count, max_iter, reload, restart, verbose);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Print the header in verbose mode               */
@@ -94,6 +95,7 @@ int main(int argc, char const** argv)
   Model* model = new Model(model_path, model_name);
   model->read_from_csv();
   model->set_tol(tol);
+  model->set_mu_tol(mu_tol);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 4) Run the calculation depending on the condition */
@@ -128,6 +130,7 @@ int main(int argc, char const** argv)
  * \param    bool &write_trajectory
  * \param    std::string &output_path
  * \param    double &tol
+ * \param    double &mu_tol
  * \param    double &stable_count
  * \param    int &max_iter
  * \param    bool &reload
@@ -135,7 +138,7 @@ int main(int argc, char const** argv)
  * \param    bool &verbose
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, int &stable_count, int &max_iter, bool &reload, bool &restart, bool &verbose )
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &reload, bool &restart, bool &verbose )
 {
   if (argc == 1)
   {
@@ -225,6 +228,17 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
       else
       {
         tol = atof(argv[i+1]);
+      }
+    }
+    else if (strcmp(argv[i], "-mutol") == 0 || strcmp(argv[i], "--mu-tolerance") == 0)
+    {
+      if (i+1 == argc)
+      {
+        throw std::invalid_argument("> Error: Mu tolerance value is missing");
+      }
+      else
+      {
+        mu_tol = atof(argv[i+1]);
       }
     }
     else if (strcmp(argv[i], "-stable") == 0 || strcmp(argv[i], "--stable-count") == 0)
@@ -324,6 +338,8 @@ void printUsage( void )
   std::cout << "        specify the path of output files\n";
   std::cout << "  -tol, --tolerance\n";
   std::cout << "        specify the tolerance value\n";
+  std::cout << "  -mutol, --mu-tolerance\n";
+  std::cout << "        specify the mu tolerance value\n";
   std::cout << "  -stable, --stable-count\n";
   std::cout << "        specify the maximal number of iterations with unchanged mu\n";
   std::cout << "  -max, --max-iter\n";

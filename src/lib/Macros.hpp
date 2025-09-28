@@ -35,7 +35,6 @@
 #define INCREASING_DT_COUNT  100    /*!< Iterations with constant timestep required to increase it */
 #define MIN_DT               1e-100 /*!< Minimal timestep value                                    */
 #define EXPORT_DATA_COUNT    100    /*!< Timestep window for data export                           */
-#define REGULATION_SIGMA     10.0   /*!< Metabolite Gaussian kernel function width                 */
 
 
 #endif /* defined(__gbacpp__Macros__) */
