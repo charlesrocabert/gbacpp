@@ -22,7 +22,7 @@
 <p align="justify">
 <strong>gbacpp</strong> is a C++ implementation of the growth balance analysis mathematical formalism (GBA; <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
 The software has been optimized to solve large-scale self-replicating cell (SRC) models, for which available solvers for non-linear constraint-based problems usually struggle.
-The optimization process relies on a gradient ascent approach, and is preferred for models offering a convex solution space (typically, when the problem is minimal support).
+The optimization process relies on a gradient ascent approach, and is preferred for models offering a convex solution space.
 </p>
 
 <p align="justify">
