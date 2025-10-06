@@ -180,7 +180,7 @@ The command line parameters are described below. The description is also availab
 - <code>-stable</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged growth rate as a stop criterium ($10,000$ by default),
 - <code>-max</code>, <code>--max-iter</code>: Specify the maximal number of iterations as a stop criterium ($100,000,000$ by default),
 - <code>-reload</code>, <code>--reload</code>: Indicates if the last trajectory point should be used as q0
-- <code>-restart, <code>--restart</code>: Indicates if the last trajectory point should be used as a fresh start
+- <code>-restart</code>, <code>--restart</code>: Indicates if the last trajectory point should be used as a fresh start
 - <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
         
 ### 4.5) Usage example <a name="usage_example"></a>
@@ -214,7 +214,8 @@ A tutorial is available for users starting from standard stoichiometric coeffici
 </p>
 
 # 7) Copyright <a name="copyright"></a>
-Copyright © 2024-2025 Charles Rocabert. All rights reserved.
+
+Copyright © 2024-2025 Charles Rocabert.
 
 # 8) License <a name="license"></a>
 
