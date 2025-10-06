@@ -163,7 +163,7 @@ The command line parameters are described below. The description is also availab
 ### 4.4) Optimization parameters <a name="optimization_parameters"></a>
 
 - <code>-h</code>, <code>--help</code>: Print the help, then exit,
-- <code>-v</code>, <code>--version</code>: Print the current version, then exit,
+- <code>-version</code>, <code>--version</code>: Print the current version, then exit,
 
 #### • Mandatory parameters
 - <code>-path</code>, <code>--model-path</code>: Specify the path of the SRC model to be loaded,
@@ -181,7 +181,8 @@ The command line parameters are described below. The description is also availab
 - <code>-max</code>, <code>--max-iter</code>: Specify the maximal number of iterations as a stop criterium ($100,000,000$ by default),
 - <code>-reload</code>, <code>--reload</code>: Indicates if the last trajectory point should be used as q0
 - <code>-restart</code>, <code>--restart</code>: Indicates if the last trajectory point should be used as a fresh start
-- <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
+- <code>-v</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
+- - <code>-vv</code>, <code>--extra-verbose</code>: Indicates if the program should run in extra-verbose mode (can conflict with the option <code>-print</code>).
 
 # 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
