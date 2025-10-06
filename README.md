@@ -22,7 +22,7 @@
 <p align="justify">
 <strong>gbacpp</strong> is a C++ implementation of the growth balance analysis mathematical formalism (GBA; <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
 The software has been optimized to solve large-scale self-replicating cell (SRC) models, for which available solvers for non-linear constraint-based problems usually struggle.
-The optimization process relies on a gradient ascent approach, and is preferred for models offering a convex solution space (typically, when all reactions in the metabolic network are linearly independent).
+The optimization process relies on a gradient ascent approach, and is preferred for models offering a convex solution space (typically, when the problem is minimal support).
 </p>
 
 <p align="justify">
@@ -60,7 +60,7 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 
 | Task | Status |
 |---|---|
-| Gradient ascent (best for full column-rank SRC models) | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Done-green.svg"/></a> |
+| Gradient ascent (best for full column-rank SRC models with minimal support) | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Done-green.svg"/></a> |
 | Reload/restart a gradient ascent | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Done-green.svg"/></a> |
 | Handling ODS models | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
 | MCMC algorithm | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
@@ -141,7 +141,9 @@ A few solvers are available, and can usually handle small SRC models. However, w
 
 As GBA formalism provides analytical solutions to calculate the growth rate gradient, we have implemented <strong>gbacpp</strong> to circumvent this limitation, allowing us to solve large, or even genome-scale SRC models in a reasonable timeframe.
 
+<!--
 In <strong>gbacpp</strong>, gradient ascent is timestep-adaptive, ensuring solutions stay consistent. In particular, we have implemented controls when concentrations or fluxes converge to zero to avoid algorithmic traps.
+-->
 
 ### 4.2) Code optimization <a name="optimization"></a>
 
