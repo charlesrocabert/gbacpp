@@ -182,7 +182,7 @@ The command line parameters are described below. The description is also availab
 - <code>-reload</code>, <code>--reload</code>: Indicates if the last trajectory point should be used as q0
 - <code>-restart</code>, <code>--restart</code>: Indicates if the last trajectory point should be used as a fresh start
 - <code>-v</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
-- - <code>-vv</code>, <code>--extra-verbose</code>: Indicates if the program should run in extra-verbose mode (can conflict with the option <code>-print</code>).
+- <code>-vv</code>, <code>--extra-verbose</code>: Indicates if the program should run in extra-verbose mode (can conflict with the option <code>-print</code>).
 
 # 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
