@@ -36,13 +36,13 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-#include "Config.h"
-//#include "../cmake/Config.h"
+//#include "Config.h"
+#include "../cmake/Config.h"
 #include "./lib/Macros.hpp"
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &reload, bool &restart, bool &verbose );
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &verbose, bool &extra_verbose );
 void printUsage( void );
 void printHeader( void );
 
@@ -70,20 +70,22 @@ int main(int argc, char const** argv)
   double      mu_tol           = 1e-10;
   int         stable_count     = 10000;
   int         max_iter         = 100000000;
+  bool        hessian          = false;
   bool        reload           = false;
   bool        restart          = false;
   bool        verbose          = false;
-  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, stable_count, max_iter, reload, restart, verbose);
+  bool        extra_verbose    = false;
+  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Print the header in verbose mode               */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  if (verbose && condition != "all")
+  if ((verbose || extra_verbose) && condition != "all")
   {
     printHeader();
     std::cout << "OPTIMIZING MODEL \"" << model_name << "\" FOR CONDITION " << condition << ":" << std::endl;
   }
-  if (verbose && condition == "all")
+  if ((verbose || extra_verbose) && condition == "all")
   {
     printHeader();
     std::cout << "OPTIMIZING MODEL \"" << model_name << "\" FOR ALL CONDITIONS:" << std::endl;
@@ -102,11 +104,11 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   if (condition != "all")// && condition != "random")
   {
-    model->compute_optimum(condition, print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, reload, restart, verbose);
+    model->compute_optimum(condition, print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
   }
   else
   {
-    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, reload, restart, verbose);
+    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
   }
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -133,12 +135,14 @@ int main(int argc, char const** argv)
  * \param    double &mu_tol
  * \param    double &stable_count
  * \param    int &max_iter
+ * \param    bool &hessian
  * \param    bool &reload
  * \param    bool &restart
  * \param    bool &verbose
+ * \param    bool &extra_verbose
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &reload, bool &restart, bool &verbose )
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &verbose, bool &extra_verbose )
 {
   if (argc == 1)
   {
@@ -155,7 +159,7 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
       printUsage();
       exit(EXIT_SUCCESS);
     }
-    else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
+    else if (strcmp(argv[i], "-version") == 0 || strcmp(argv[i], "--version") == 0)
     {
       std::cout << PACKAGE << " (" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << ")\n";
       exit(EXIT_SUCCESS);
@@ -263,6 +267,10 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
         max_iter = atoi(argv[i+1]);
       }
     }
+    else if (strcmp(argv[i], "-hessian") == 0 || strcmp(argv[i], "--hessian") == 0)
+    {
+      hessian = true;
+    }
     else if (strcmp(argv[i], "-reload") == 0 || strcmp(argv[i], "--reload") == 0)
     {
       reload = true;
@@ -271,9 +279,13 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
     {
       restart = true;
     }
-    else if (strcmp(argv[i], "-verbose") == 0 || strcmp(argv[i], "--verbose") == 0)
+    else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0)
     {
       verbose = true;
+    }
+    else if (strcmp(argv[i], "-vv") == 0 || strcmp(argv[i], "--extra-verbose") == 0)
+    {
+      extra_verbose = true;
     }
   }
   if (counter < 3)
@@ -320,7 +332,7 @@ void printUsage( void )
   std::cout << "Options are:\n";
   std::cout << "  -h, --help\n";
   std::cout << "        print this help, then exit\n";
-  std::cout << "  -v, --version\n";
+  std::cout << "  -version, --version\n";
   std::cout << "        print the current version, then exit\n";
   std::cout << "  -path, --model-path (MANDATORY)\n";
   std::cout << "        specify the path of the model to be loaded\n";
@@ -339,17 +351,21 @@ void printUsage( void )
   std::cout << "  -tol, --tolerance\n";
   std::cout << "        specify the tolerance value\n";
   std::cout << "  -mutol, --mu-tolerance\n";
-  std::cout << "        specify the mu tolerance value\n";
+  std::cout << "        specify the relative growth rate difference tolerance value\n";
   std::cout << "  -stable, --stable-count\n";
   std::cout << "        specify the maximal number of iterations with unchanged mu\n";
   std::cout << "  -max, --max-iter\n";
   std::cout << "        specify the maximal number of iterations\n";
+  //std::cout << "  -hessian, --hessian\n";
+  //std::cout << "        indicates if the diagonal Hessian should be estimated\n";
   std::cout << "  -reload, --reload\n";
   std::cout << "        indicates if the last trajectory point should be used as q0\n";
   std::cout << "  -restart, --restart\n";
   std::cout << "        indicates if the last trajectory point should be used as a fresh start\n";
-  std::cout << "  -verbose, --verbose\n";
+  std::cout << "  -v, --verbose\n";
   std::cout << "        indicates if the program should run in verbose mode\n";
+  std::cout << "  -vv, --extra-verbose\n";
+  std::cout << "        indicates if the program should run in extra-verbose mode\n";
   std::cout << "\n";
 }
 

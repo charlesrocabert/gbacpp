@@ -34,6 +34,8 @@
 #define INCREASING_DT_FACTOR 2.0    /*!< Timestep multiplying factor                               */
 #define INCREASING_DT_COUNT  100    /*!< Iterations with constant timestep required to increase it */
 #define MIN_DT               1e-100 /*!< Minimal timestep value                                    */
+#define H_MIN                1e-8   /*!< Minimal absolute Hessian value                            */
+#define KAPPA_MAX            1e+4   /*!< Maximal absolute inverse Hessian value                    */
 #define EXPORT_DATA_COUNT    100    /*!< Timestep window for data export                           */
 
 

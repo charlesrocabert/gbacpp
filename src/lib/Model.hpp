@@ -95,8 +95,8 @@ public:
   void read_from_csv( void );
   void read_random_solutions( void );
   
-  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose );
-  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose );
+  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
+  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -111,7 +111,7 @@ protected:
   bool is_path_exist( std::string path );
   bool is_file_exist( std::string filename );
   
-  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose );
+  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
   
   void open_trajectory_output_files( std::string output_path, std::string condition, bool append );
   void write_trajectory_output_files( std::string condition, int iter, double t, double dt );
@@ -150,20 +150,22 @@ protected:
   void iMMa( int j );
   void iMMia( int j );
   void rMM( int j );
+  void gMM( int j );
   void compute_tau( int j );
   void diMM( int j );
   void diMMi( int j );
   void diMMa( int j );
   void diMMia( int j );
   void drMM( int j );
+  void dgMM( int j );
   void compute_dtau( int j );
   void compute_mu( void );
   void compute_v( void );
   void compute_p( void );
   void compute_b( void );
   void compute_density( void );
-  void compute_dmu_q( void );
-  void compute_Gamma_q( void );
+  void compute_dmu_dq( void );
+  void compute_Gamma( void );
   void calculate_first_order_terms( void );
   void calculate_second_order_terms( void );
   void check_model_consistency( void );
@@ -248,18 +250,18 @@ protected:
   /*----------------------------------------------- GBA second order variables */
   
   gsl_matrix* _ditau_j; /*!< Tau derivative values                               */
-  gsl_vector* _dmu_q;   /*!< Local mu derivatives with respect to q              */
-  gsl_vector* _Gamma_q; /*!< Local growth control coefficients with respect to q */
+  gsl_vector* _dmu_dq;  /*!< Local mu derivatives with respect to q              */
+  gsl_vector* _Gamma;   /*!< Local growth control coefficients with respect to q */
   
   /*----------------------------------------------- Variables for calculation optimization */
   
   gsl_vector_view _x_view;       /*!< x segment view of vector xc                 */
   gsl_vector_view _c_view;       /*!< c segment view of vector xc                 */
-  double          _dmu_q_term1;  /*!< Variable for the calculation of dmu_q       */
-  gsl_vector*     _dmu_q_term2;  /*!< Variable for the calculation of dmu_q       */
-  gsl_matrix*     _dmu_q_term3;  /*!< Variable for the calculation of dmu_q       */
-  gsl_vector*     _dmu_q_term4;  /*!< Variable for the calculation of dmu_q       */
-  gsl_vector*     _dmu_q_term5;  /*!< Variable for the calculation of dmu_q       */
+  double          _dmu_dq_term1; /*!< Variable for the calculation of dmu_dq      */
+  gsl_vector*     _dmu_dq_term2; /*!< Variable for the calculation of dmu_dq      */
+  gsl_matrix*     _dmu_dq_term3; /*!< Variable for the calculation of dmu_dq      */
+  gsl_vector*     _dmu_dq_term4; /*!< Variable for the calculation of dmu_dq      */
+  gsl_vector*     _dmu_dq_term5; /*!< Variable for the calculation of dmu_dq      */
   int             _stable_count; /*!< Stable mu count (convergence metric)        */
   double          _mu_diff;      /*!< Next mu to current mu differential          */
   double          _mu_rel_diff;  /*!< Next mu to current mu relative differential */
@@ -387,7 +389,7 @@ inline void Model::initialize_q( void )
 inline void Model::calculate_q_from_q_trunc( void )
 {
   gsl_vector_view sM_view = gsl_vector_subvector(_sM, 1, _nj-1);
-  double term = 0.0;
+  double term             = 0.0;
   gsl_blas_ddot(&sM_view.vector, _q_trunc, &term);
   term = (1.0-term)/gsl_vector_get(_sM, 0);
   gsl_vector_view q_view = gsl_vector_subvector(_q, 1, _nj-1);

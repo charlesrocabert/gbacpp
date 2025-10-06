@@ -117,19 +117,19 @@ Model::Model( std::string model_path, std::string model_name )
   /*----------------------------------------------- GBA second order variables */
   
   _ditau_j = NULL;
-  _dmu_q   = NULL;
-  _Gamma_q = NULL;
+  _dmu_dq  = NULL;
+  _Gamma   = NULL;
   
   /*----------------------------------------------- Variables for calculation and optimization */
   
-  _dmu_q_term1  = 0.0;
-  _dmu_q_term2  = NULL;
-  _dmu_q_term3  = NULL;
-  _dmu_q_term4  = NULL;
-  _dmu_q_term5  = NULL;
-  _stable_count = 0;
-  _mu_diff      = 0.0;
-  _mu_rel_diff  = 0.0;
+  _dmu_dq_term1  = 0.0;
+  _dmu_dq_term2  = NULL;
+  _dmu_dq_term3  = NULL;
+  _dmu_dq_term4  = NULL;
+  _dmu_dq_term5  = NULL;
+  _stable_count  = 0;
+  _mu_diff       = 0.0;
+  _mu_rel_diff   = 0.0;
   
   /*----------------------------------------------- Solutions */
   
@@ -220,22 +220,22 @@ Model::~Model( void )
   /*----------------------------------------------- GBA second order variables */
   
   gsl_matrix_free(_ditau_j);
-  gsl_vector_free(_dmu_q);
-  gsl_vector_free(_Gamma_q);
+  gsl_vector_free(_dmu_dq);
+  gsl_vector_free(_Gamma);
   _ditau_j = NULL;
-  _dmu_q   = NULL;
-  _Gamma_q = NULL;
+  _dmu_dq  = NULL;
+  _Gamma   = NULL;
   
   /*----------------------------------------------- Variables for calculation optimization */
   
-  gsl_vector_free(_dmu_q_term2);
-  gsl_matrix_free(_dmu_q_term3);
-  gsl_vector_free(_dmu_q_term4);
-  gsl_vector_free(_dmu_q_term5);
-  _dmu_q_term2 = NULL;
-  _dmu_q_term3 = NULL;
-  _dmu_q_term4 = NULL;
-  _dmu_q_term5 = NULL;
+  gsl_vector_free(_dmu_dq_term2);
+  gsl_matrix_free(_dmu_dq_term3);
+  gsl_vector_free(_dmu_dq_term4);
+  gsl_vector_free(_dmu_dq_term5);
+  _dmu_dq_term2 = NULL;
+  _dmu_dq_term3 = NULL;
+  _dmu_dq_term4 = NULL;
+  _dmu_dq_term5 = NULL;
   
   /*----------------------------------------------- Solutions */
   
@@ -335,15 +335,17 @@ void Model::read_random_solutions( void )
  * \param    std::string output_path
  * \param    int stable_count
  * \param    int max_iter
+ * \param    bool hessian
  * \param    bool reload
  * \param    bool restart
  * \param    bool verbose
+ * \param    bool extra_verbose
  * \return   \e bool
  */
-void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose )
+void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
 {
   std::clock_t begin = clock();
-  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, reload, restart, verbose);
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
   std::clock_t end   = clock();
   double runtime     = double(end-begin)/CLOCKS_PER_SEC;
   if (write_optimum)
@@ -356,13 +358,13 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
   {
     print_to_standard_ouput(condition, converged, runtime);
   }
-  if (verbose && converged)
+  if ((verbose || extra_verbose) && converged)
   {
-    std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
+    std::cout << " > Condition " << condition << ": convergence reached (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
   }
-  else if (verbose && !converged)
+  else if ((verbose || extra_verbose) && !converged)
   {
-    std::cout << "> Condition " << condition << ": convergence not reached after " << max_iter << " iterations (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
+    std::cout << " > Condition " << condition << ": convergence not reached after " << max_iter << " iterations (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
   }
 }
 
@@ -375,12 +377,14 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
  * \param    std::string output_path
  * \param    int stable_count
  * \param    int max_iter
+ * \param    bool hessian
  * \param    bool reload
  * \param    bool restart
  * \param    bool verbose
+ * \param    bool extra_verbose
  * \return   \e bool
  */
-void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose )
+void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
 {
   if (write_optimum)
   {
@@ -390,7 +394,7 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum
   {
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, reload, restart, verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     if (write_optimum)
@@ -401,13 +405,13 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum
     {
       print_to_standard_ouput(condition, converged, runtime);
     }
-    if (verbose && converged)
+    if ((verbose || extra_verbose) && converged)
     {
-      std::cout << "> Condition " << condition << ": convergence reached (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
+      std::cout << " > Condition " << condition << ": convergence reached (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
     }
-    else if (verbose && !converged)
+    else if ((verbose || extra_verbose) && !converged)
     {
-      std::cout << "> Condition " << condition << ": convergence not reached after " << max_iter << " iterations (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
+      std::cout << " > Condition " << condition << ": convergence not reached after " << max_iter << " iterations (mu=" << _mu << ", runtime=" << runtime << ")" << std::endl;
     }
   }
   if (write_optimum)
@@ -454,12 +458,14 @@ bool Model::is_file_exist( std::string filename )
  * \param    std::string output_path
  * \param    int stable_count
  * \param    int max_iter
+ * \param    bool hessian
  * \param    bool reload
  * \param    bool restart
  * \param    bool verbose
+ * \param    bool extra_verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool reload, bool restart, bool verbose )
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
 {
   auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
   if (it==_condition_ids.end())
@@ -488,8 +494,6 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   double dt            = 0.01;
   int    dt_counter    = 0;
   int    nb_iterations = 0;
-  double nb_failures   = 0.0;
-  double nb_successes  = 0.0;
   _stable_count        = 0;
   _mu_diff             = 0.0;
   _mu_rel_diff         = 0.0;
@@ -505,9 +509,18 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   {
     throw std::runtime_error("> Error: The initial solution q0 is not consistent");
   }
-  gsl_vector* previous_q_trunc = gsl_vector_alloc(_nj-1);
-  gsl_vector* scaled_dmudt     = gsl_vector_alloc(_nj-1);
+  if (extra_verbose)
+  {
+    std::cout << " > Initial growth rate = " << _mu << std::endl;
+  }
+  gsl_vector* previous_q_trunc         = gsl_vector_alloc(_nj-1);
+  gsl_vector* hessian_previous_q_trunc = gsl_vector_alloc(_nj-1);
+  gsl_vector* previous_Gamma_trunc     = gsl_vector_alloc(_nj-1);
+  gsl_vector* scaled_Gammadt_trunc     = gsl_vector_alloc(_nj-1);
+  gsl_vector_view Gamma_trunc          = gsl_vector_subvector(_Gamma, 1, _nj-1);
   gsl_vector_memcpy(previous_q_trunc, _q_trunc);
+  gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
+  gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
   if (write_trajectory)
   {
     write_trajectory_output_files(condition, nb_iterations, t, dt);
@@ -521,15 +534,55 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     }
     previous_mu = _mu;
     block_reactions();
-    gsl_vector_view dmudt = gsl_vector_subvector(_Gamma_q, 1, _nj-1);
-    gsl_vector_memcpy(scaled_dmudt, &dmudt.vector);
-    gsl_vector_scale(scaled_dmudt, dt);
-    gsl_vector_add(_q_trunc, scaled_dmudt);
+    gsl_vector_view Gamma_trunc = gsl_vector_subvector(_Gamma, 1, _nj-1);
+    /*
+    if (hessian)
+    {
+      double alpha = 1.0;
+      for (int j = 0; j < _nj-1; j++)
+      {
+        double gamma_j          = gsl_vector_get(&Gamma_trunc.vector, j);
+        double previous_gamma_j = gsl_vector_get(previous_Gamma_trunc, j);
+        double f_j              = gsl_vector_get(_q_trunc, j);
+        double previous_f_j     = gsl_vector_get(hessian_previous_q_trunc, j);
+        double gamma_diff       = fabs(gamma_j-previous_gamma_j);
+        double f_diff           = fabs(f_j-previous_f_j);
+        double h_j              = gamma_diff/f_diff;
+        if (h_j < H_MIN)
+        {
+          h_j = H_MIN;
+        }
+        double h_j_inv = 1.0/h_j;
+        if (h_j_inv > 1e+2)
+        {
+          h_j_inv = 1e+2;
+        }
+        double rescaled_gamma_j = gamma_j*h_j_inv;
+        if (f_diff > H_MIN)
+        {
+          gsl_vector_set(scaled_Gammadt_trunc, j, alpha*rescaled_gamma_j+(1-alpha)*gamma_j);
+        }
+        else
+        {
+          gsl_vector_set(scaled_Gammadt_trunc, j, gamma_j);
+        }
+      }
+    }
+    else
+    {
+      gsl_vector_memcpy(scaled_Gammadt_trunc, &Gamma_trunc.vector);
+    }
+     */
+    gsl_vector_memcpy(scaled_Gammadt_trunc, &Gamma_trunc.vector);
+    gsl_vector_scale(scaled_Gammadt_trunc, dt);
+    gsl_vector_add(_q_trunc, scaled_Gammadt_trunc);
     calculate_q_from_q_trunc();
     calculate();
     if (_consistent && _mu >= previous_mu)
     {
+      gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
       gsl_vector_memcpy(previous_q_trunc, _q_trunc);
+      gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
       dt_counter++;
       t            = t+dt;
       _mu_diff     = fabs(_mu-previous_mu);
@@ -538,7 +591,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         write_trajectory_output_files(condition, nb_iterations, t, dt);
-        if (verbose)
+        if (extra_verbose)
         {
           std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", mu_diff=" << _mu_diff << ", rel_diff=" << _mu_rel_diff << ", stable=" << _stable_count << ", dt=" << dt << ")" << std::endl;
         }
@@ -577,9 +630,11 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   }
   save_q(nb_iterations, t, dt, output_path, condition);
   gsl_vector_free(previous_q_trunc);
-  gsl_vector_free(scaled_dmudt);
-  previous_q_trunc = NULL;
-  scaled_dmudt     = NULL;
+  gsl_vector_free(previous_Gamma_trunc);
+  gsl_vector_free(scaled_Gammadt_trunc);
+  previous_q_trunc     = NULL;
+  previous_Gamma_trunc = NULL;
+  scaled_Gammadt_trunc = NULL;
   if (write_trajectory)
   {
     write_trajectory_output_files(condition, nb_iterations, t, dt);
@@ -1555,29 +1610,29 @@ void Model::initialize_dynamic_variables( void )
   assert(_p==NULL);
   assert(_b==NULL);
   assert(_ditau_j==NULL);
-  assert(_dmu_q==NULL);
-  assert(_Gamma_q==NULL);
-  assert(_dmu_q_term2==NULL);
-  assert(_dmu_q_term3==NULL);
-  assert(_dmu_q_term4==NULL);
-  assert(_dmu_q_term5==NULL);
+  assert(_dmu_dq==NULL);
+  assert(_Gamma==NULL);
+  assert(_dmu_dq_term2==NULL);
+  assert(_dmu_dq_term3==NULL);
+  assert(_dmu_dq_term4==NULL);
+  assert(_dmu_dq_term5==NULL);
   /*** Allocate memory ***/
-  _x           = gsl_vector_alloc(_nx);
-  _q           = gsl_vector_alloc(_nj);
-  _q_trunc     = gsl_vector_alloc(_nj-1);
-  _c           = gsl_vector_alloc(_nc);
-  _xc          = gsl_vector_alloc(_ni);
-  _tau_j       = gsl_vector_alloc(_nj);
-  _v           = gsl_vector_alloc(_nj);
-  _p           = gsl_vector_alloc(_nj);
-  _b           = gsl_vector_alloc(_nc);
-  _ditau_j     = gsl_matrix_alloc(_nj, _nc);
-  _dmu_q       = gsl_vector_alloc(_nj);
-  _Gamma_q     = gsl_vector_alloc(_nj);
-  _dmu_q_term2 = gsl_vector_alloc(_nj);
-  _dmu_q_term3 = gsl_matrix_alloc(_nj, _nj);
-  _dmu_q_term4 = gsl_vector_alloc(_nj);
-  _dmu_q_term5 = gsl_vector_alloc(_nj);
+  _x            = gsl_vector_alloc(_nx);
+  _q            = gsl_vector_alloc(_nj);
+  _q_trunc      = gsl_vector_alloc(_nj-1);
+  _c            = gsl_vector_alloc(_nc);
+  _xc           = gsl_vector_alloc(_ni);
+  _tau_j        = gsl_vector_alloc(_nj);
+  _v            = gsl_vector_alloc(_nj);
+  _p            = gsl_vector_alloc(_nj);
+  _b            = gsl_vector_alloc(_nc);
+  _ditau_j      = gsl_matrix_alloc(_nj, _nc);
+  _dmu_dq       = gsl_vector_alloc(_nj);
+  _Gamma        = gsl_vector_alloc(_nj);
+  _dmu_dq_term2 = gsl_vector_alloc(_nj);
+  _dmu_dq_term3 = gsl_matrix_alloc(_nj, _nj);
+  _dmu_dq_term4 = gsl_vector_alloc(_nj);
+  _dmu_dq_term5 = gsl_vector_alloc(_nj);
   /*** Initialize all variables to zero ***/
   gsl_vector_set_zero(_x);
   gsl_vector_set_zero(_q);
@@ -1589,12 +1644,12 @@ void Model::initialize_dynamic_variables( void )
   gsl_vector_set_zero(_p);
   gsl_vector_set_zero(_b);
   gsl_matrix_set_zero(_ditau_j);
-  gsl_vector_set_zero(_dmu_q);
-  gsl_vector_set_zero(_Gamma_q);
-  gsl_vector_set_zero(_dmu_q_term2);
-  gsl_matrix_set_zero(_dmu_q_term3);
-  gsl_vector_set_zero(_dmu_q_term4);
-  gsl_vector_set_zero(_dmu_q_term5);
+  gsl_vector_set_zero(_dmu_dq);
+  gsl_vector_set_zero(_Gamma);
+  gsl_vector_set_zero(_dmu_dq_term2);
+  gsl_matrix_set_zero(_dmu_dq_term3);
+  gsl_vector_set_zero(_dmu_dq_term4);
+  gsl_vector_set_zero(_dmu_dq_term5);
   /*** Initialize vector views ***/
   _x_view = gsl_vector_subvector(_xc, 0, _nx);
   _c_view = gsl_vector_subvector(_xc, _nx, _nc);
@@ -1654,13 +1709,14 @@ void Model::compute_xc( void )
  */
 void Model::iMM( int j )
 {
-  double term1 = 1.0;
+  // iMM <- function(j,c,xc) as.numeric(prod(1 + KS[,j]/xc)/kcatf[j])
+  double prod_KM_f = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    term1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_f *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  double term2 = gsl_vector_get(_kcat_f, j);
-  gsl_vector_set(_tau_j, j, term1/term2);
+  gsl_vector_set(_tau_j, j, prod_KM_f/kcatf);
 }
 
 /**
@@ -1671,16 +1727,17 @@ void Model::iMM( int j )
  */
 void Model::iMMi( int j )
 {
-  double term1 = 1.0;
-  double term2 = 1.0;
+  // iMMi <- function(j,c,xc) as.numeric( prod(1 + xc*rKI[,j])*prod(1 + KS[,j]/xc) /kcatf[j] )
+  double prod_KI   = 1.0;
+  double prod_KM_f = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    double rKI = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
-    term1     *= 1.0+gsl_vector_get(_xc, i)*rKI;
-    term2     *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    double rKI = (gsl_matrix_get(_KI, i, j) > _tol ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    prod_KI   *= 1.0 + gsl_vector_get(_xc, i)*rKI;
+    prod_KM_f *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  double term3 = gsl_vector_get(_kcat_f, j);
-  gsl_vector_set(_tau_j, j, term1*term2/term3);
+  gsl_vector_set(_tau_j, j, prod_KI*prod_KM_f/kcatf);
 }
 
 /**
@@ -1691,15 +1748,17 @@ void Model::iMMi( int j )
  */
 void Model::iMMa( int j )
 {
-  double term1 = 1.0;
-  double term2 = 1.0;
+  // iMMa <- function(j,c,xc) as.numeric(prod(1 + KA[,j]/xc)*prod(1 + KS[,j]/xc)/kcatf[j])
+  double prod_KA   = 1.0;
+  double prod_KM_f = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    term1 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
-    term2 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    prod_KA   *= 1.0 + gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_f *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  double term3 = gsl_vector_get(_kcat_f, j);
-  gsl_vector_set(_tau_j, j, term1*term2/term3);
+  
+  gsl_vector_set(_tau_j, j, prod_KA*prod_KM_f/kcatf);
 }
 
 /**
@@ -1710,18 +1769,19 @@ void Model::iMMa( int j )
  */
 void Model::iMMia( int j )
 {
-  double term1 = 1.0;
-  double term2 = 1.0;
-  double term3 = 1.0;
+  // iMMia <- function(j,c,xc)  as.numeric(prod(1 + xc*rKI[,j])*prod(1 + KA[,j]/xc)*prod(1 + KS[,j]/xc)/kcat[j])
+  double prod_KI   = 1.0;
+  double prod_KA   = 1.0;
+  double prod_KM_f = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    double rKI = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
-    term1     *= 1.0+gsl_vector_get(_xc, i)*rKI;
-    term2     *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
-    term3     *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    double rKI  = (gsl_matrix_get(_KI, i, j) > _tol ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    prod_KI    *= 1.0 + gsl_vector_get(_xc, i)*rKI;
+    prod_KA    *= 1.0 + gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_f  *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
-  double term4 = gsl_vector_get(_kcat_f, j);
-  gsl_vector_set(_tau_j, j, term1*term2*term3/term4);
+  gsl_vector_set(_tau_j, j, prod_KI*prod_KA*prod_KM_f/kcatf);
 }
 
 /**
@@ -1732,16 +1792,57 @@ void Model::iMMia( int j )
  */
 void Model::rMM( int j )
 {
-  double kcatf = gsl_vector_get(_kcat_f, j);
-  double prodf = 1.0;
-  double kcatb = gsl_vector_get(_kcat_b, j);
-  double prodb = 1.0;
+  // rMM <- 1 / ( kcatf[j]/prod(1 + KS[,j]/xc) - kcatb[j]/prod(1 + KP[,j]/xc)  )
+  double prod_KM_f = 1.0;
+  double prod_KM_b = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
+  double kcatb     = gsl_vector_get(_kcat_b, j);
   for (int i = 0; i < _ni; i++)
   {
-    prodf *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    prodb *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_f *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_b *= 1.0 + gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
   }
-  gsl_vector_set(_tau_j, j, 1.0/(kcatf/prodf-kcatb/prodb));
+  gsl_vector_set(_tau_j, j, 1.0/(kcatf/prod_KM_f-kcatb/prod_KM_b));
+}
+
+/**
+ * \brief    Global Michaelis-Menten kinetics
+ * \details  Formula: tauj[j] = prod(1 + KA[,j]/ca)*prod(1 + ca/KI[,j])*( prod(1 + subr) + prod(1 + prodr) - 1 )/( kcatf[j]*prod(subr) - kcatb[j]*prod(prodr)  )
+ * \param    int j
+ * \return   \e void
+ */
+void Model::gMM( int j )
+{
+  double kcatf       = gsl_vector_get(_kcat_f, j);
+  double kcatb       = gsl_vector_get(_kcat_b, j);
+  double prod_KM_f   = 1.0;
+  double prod_KM_b   = 1.0;
+  double prod_KM_f_1 = 1.0;
+  double prod_KM_b_1 = 1.0;
+  double prod_KA_1   = 1.0;
+  double prod_KI_1   = 1.0;
+  for (int i = 0; i < _ni; i++)
+  {
+    double x_c  = gsl_vector_get(_xc, i);
+    double KM_f = gsl_matrix_get(_KM_f, i, j);
+    double KM_b = gsl_matrix_get(_KM_b, i, j);
+    double KA   = gsl_matrix_get(_KA, i, j);
+    double rKI  = (gsl_matrix_get(_KI, i, j) > _tol ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    if (KM_f > 0.0)
+    {
+      prod_KM_f   *= x_c/KM_f;
+      prod_KM_f_1 *= 1.0 + x_c/KM_f;
+    }
+    if (KM_b > 0.0)
+    {
+      prod_KM_b   *= x_c/KM_b;
+      prod_KM_b_1 *= 1.0 + x_c/KM_b;
+    }
+    prod_KA_1 *= 1.0 + KA/x_c;
+    prod_KI_1 *= 1.0 + x_c*rKI;
+  }
+  double tau_j = prod_KA_1*prod_KI_1*(prod_KM_f_1+prod_KM_b_1-1.0)/(kcatf*prod_KM_f-kcatb*prod_KM_b);
+  gsl_vector_set(_tau_j, j, tau_j);
 }
 
 /**
@@ -1752,6 +1853,8 @@ void Model::rMM( int j )
  */
 void Model::compute_tau( int j )
 {
+  //gMM(j);
+  //return;
   switch(_type[j])
   {
     case IMM:
@@ -1780,7 +1883,7 @@ void Model::compute_tau( int j )
  */
 void Model::diMM( int j )
 {
-  double constant1 = gsl_vector_get(_kcat_f, j);
+  double kcatf = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -1790,10 +1893,10 @@ void Model::diMM( int j )
     {
       if (index != y)
       {
-        term2 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        term2 *= 1.0 + gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
     }
-    gsl_matrix_set(_ditau_j, j, i, -term1*term2/constant1);
+    gsl_matrix_set(_ditau_j, j, i, -term1*term2/kcatf);
   }
 }
 
@@ -1805,30 +1908,31 @@ void Model::diMM( int j )
  */
 void Model::diMMi( int j )
 {
-  double constant1 = 1.0;
-  double constant2 = 1.0;
-  double constant3 = gsl_vector_get(_kcat_f, j);
+  double prod_KI   = 1.0;
+  double prod_KM_f = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    double rKI = (gsl_matrix_get(_KI, i, j) > 1e-10 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
-    constant1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    constant2 *= 1.0+gsl_vector_get(_xc, i)*rKI;
+    double rKI  = (gsl_matrix_get(_KI, i, j) > _tol ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    prod_KI    *= 1.0 + gsl_vector_get(_xc, i)*rKI;
+    prod_KM_f  *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    
   }
+  // ditauj[i2] <- ( rKI[y,j] * prod_KM_f - prod_KI * (KS[y,j]/(c[i2]^2)) * prod(1 + KS[-y,j]/xc[-y]) )/kcatf[j]
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
-    double rKI   = (gsl_matrix_get(_KI, y, j) > 1e-10 ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
-    double term1 = rKI*constant1;
-    double term2 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
-    double term3 = 1.0;
+    double rKI   = (gsl_matrix_get(_KI, y, j) > _tol ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
+    double term1 = gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
+    double term2 = 1.0;
     for (int index = 0; index < _ni; index++)
     {
       if (index != y)
       {
-        term3 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        term2 *= 1.0 + gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
     }
-    gsl_matrix_set(_ditau_j, j, i, (term1-constant2*term2*term3)/constant3);
+    gsl_matrix_set(_ditau_j, j, i, (rKI*prod_KM_f-prod_KI*term1*term2)/kcatf);
   }
 }
 
@@ -1840,14 +1944,15 @@ void Model::diMMi( int j )
  */
 void Model::diMMa( int j )
 {
-  double constant1 = 1.0;
-  double constant2 = 1.0;
-  double constant3 = gsl_vector_get(_kcat_f, j);
+  double prod_KA   = 1.0;
+  double prod_KM_f = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    constant1 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    constant2 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    prod_KA   *= 1.0 + gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_f *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
+  // ditauj[i2] <- -as.numeric( term1*prod_KM_f + term2*prod_KA*term3 )/kcatf[j]
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -1858,10 +1963,10 @@ void Model::diMMa( int j )
     {
       if (index != y)
       {
-        term3 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        term3 *= 1.0 + gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
     }
-    gsl_matrix_set(_ditau_j, j, i, -(constant1*term1+constant2*term2*term3)/constant3);
+    gsl_matrix_set(_ditau_j, j, i, -(term1*prod_KM_f+term2*prod_KA*term3)/kcatf);
   }
 }
 
@@ -1873,21 +1978,21 @@ void Model::diMMa( int j )
  */
 void Model::diMMia( int j )
 {
-  double constant1 = 1.0;
-  double constant2 = 1.0;
-  double constant3 = 1.0;
-  double constant4 = gsl_vector_get(_kcat_f, j);
+  double prod_KI   = 1.0;
+  double prod_KA   = 1.0;
+  double prod_KM_f = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
   for (int i = 0; i < _ni; i++)
   {
-    double rKI = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
-    constant1 *= 1.0+gsl_vector_get(_xc, i)*rKI;
-    constant2 *= 1.0+gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
-    constant3 *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    double rKI  = (gsl_matrix_get(_KI, i, j) > _tol ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    prod_KI    *= 1.0 + gsl_vector_get(_xc, i)*rKI;
+    prod_KA    *= 1.0 + gsl_matrix_get(_KA, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_f  *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
   }
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
-    double rKI   = (gsl_matrix_get(_KI, y, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
+    double rKI   = (gsl_matrix_get(_KI, y, j) > _tol ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
     double term1 = rKI;
     double term2 = -gsl_matrix_get(_KA, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
     double term3 = -gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
@@ -1896,11 +2001,10 @@ void Model::diMMia( int j )
     {
       if (index != y)
       {
-        term4 *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        term4 *= 1.0 + gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
       }
     }
-    double term5 = (term1*constant2*constant3)+(term2*constant1*constant3)+(term3*term4*constant1*constant2);
-    gsl_matrix_set(_ditau_j, j, i, term5/constant4);
+    gsl_matrix_set(_ditau_j, j, i, (rKI*prod_KA*prod_KM_f+prod_KI*term2*prod_KM_f+prod_KI*prod_KA*term3*term4)/kcatf);
   }
 }
 
@@ -1915,16 +2019,17 @@ void Model::drMM( int j )
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Calculate constant terms for reaction j */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double kcatf = gsl_vector_get(_kcat_f, j);
-  double kcatb = gsl_vector_get(_kcat_b, j);
-  double prodf = 1.0;
-  double prodb = 1.0;
+  double prod_KM_f = 1.0;
+  double prod_KM_b = 1.0;
+  double kcatf     = gsl_vector_get(_kcat_f, j);
+  double kcatb     = gsl_vector_get(_kcat_b, j);
   for (int i = 0; i < _ni; i++)
   {
-    prodf *= 1.0+gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
-    prodb *= 1.0+gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_f *= 1.0 + gsl_matrix_get(_KM_f, i, j)/gsl_vector_get(_xc, i);
+    prod_KM_b *= 1.0 + gsl_matrix_get(_KM_b, i, j)/gsl_vector_get(_xc, i);
   }
-  double tau_j = 1.0/(kcatf/prodf-kcatb/prodb);
+  //double tau_j_2 = 1.0 / gsl_pow_int(kcatf/prod_KM_f-kcatb/prod_KM_b, 2);
+  double tau_j = 1.0/(kcatf/prod_KM_f-kcatb/prod_KM_b);
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate terms depending on substrate  */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -1939,12 +2044,117 @@ void Model::drMM( int j )
     {
       if (index != y)
       {
-        prodf *= 1.0+gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
-        prodb *= 1.0+gsl_matrix_get(_KM_b, index, j)/gsl_vector_get(_xc, index);
+        prodf *= 1.0 + gsl_matrix_get(_KM_f, index, j)/gsl_vector_get(_xc, index);
+        prodb *= 1.0 + gsl_matrix_get(_KM_b, index, j)/gsl_vector_get(_xc, index);
       }
     }
-    double term3 = kcatf/prodf*term1 - kcatb/prodb*term2;
-    gsl_matrix_set(_ditau_j, j, i, -term3*gsl_pow_int(tau_j, 2));
+    double ditauj = (kcatf/prodf)*term1 - (kcatb/prodb)*term2;
+    gsl_matrix_set(_ditau_j, j, i, -ditauj*tau_j*tau_j);
+  }
+}
+
+/**
+ * \brief    Global derivative function with respect to metabolite concentrations
+ * \details  Formula: --
+ * \param    int j
+ * \return   \e void
+ */
+void Model::dgMM( int j )
+{
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Calculate constant terms for reaction j */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  double kcatf       = gsl_vector_get(_kcat_f, j);
+  double kcatb       = gsl_vector_get(_kcat_b, j);
+  double prod_KM_f   = 1.0;
+  double prod_KM_b   = 1.0;
+  double prod_KM_f_1 = 1.0;
+  double prod_KM_b_1 = 1.0;
+  double prod_KA_1   = 1.0;
+  double prod_KI_1   = 1.0;
+  for (int i = 0; i < _ni; i++)
+  {
+    double x_c  = gsl_vector_get(_xc, i);
+    double KM_f = gsl_matrix_get(_KM_f, i, j);
+    double KM_b = gsl_matrix_get(_KM_b, i, j);
+    double KA   = gsl_matrix_get(_KA, i, j);
+    double rKI  = (gsl_matrix_get(_KI, i, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, i, j) : 0.0);
+    if (KM_f > 0.0)
+    {
+      prod_KM_f   *= x_c/KM_f;
+      prod_KM_f_1 *= 1.0 + x_c/KM_f;
+    }
+    if (KM_b > 0.0)
+    {
+      prod_KM_b   *= x_c/KM_b;
+      prod_KM_b_1 *= 1.0 + x_c/KM_b;
+    }
+    prod_KA_1 *= 1.0 + KA/x_c;
+    prod_KI_1 *= 1.0 + x_c*rKI;
+  }
+  double tau_j_A = prod_KA_1*prod_KI_1;
+  double tau_j_B = prod_KM_f_1+prod_KM_b_1-1.0;
+  double tau_j_C = kcatf*prod_KM_f-kcatb*prod_KM_b;
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Calculate terms depending on substrate  */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  for (int i = 0; i < _nc; i++)
+  {
+    int y = i+_nx;
+    //### 2.1) Calculate products depending on y ###
+    double prod_KM_f_y   = 1.0;
+    double prod_KM_b_y   = 1.0;
+    double prod_KM_f_1_y = 1.0;
+    double prod_KM_b_1_y = 1.0;
+    double prod_KA_1_y   = 1.0;
+    double prod_KI_1_y   = 1.0;
+    for (int index = 0; index < _ni; index++)
+    {
+      if (index != y)
+      {
+        double rKI  = (gsl_matrix_get(_KI, index, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, index, j) : 0.0);
+        double x_c  = gsl_vector_get(_xc, index);
+        double KM_f = gsl_matrix_get(_KM_f, index, j);
+        double KM_b = gsl_matrix_get(_KM_b, index, j);
+        if (KM_f > 0.0)
+        {
+          prod_KM_f_y   *= x_c/KM_f;
+          prod_KM_f_1_y *= 1.0 + x_c/KM_f;
+        }
+        if (KM_b > 0.0)
+        {
+          prod_KM_b_y   *= x_c/KM_b;
+          prod_KM_b_1_y *= 1.0 + x_c/KM_b;
+        }
+        prod_KA_1_y *= 1.0 + gsl_matrix_get(_KA, index, j)/x_c;
+        prod_KI_1_y *= 1.0 + x_c*rKI;
+      }
+    }
+    //### 2.2) Calculate dtau_j terms ###
+    double KM_f  = gsl_matrix_get(_KM_f, y, j);
+    double KM_b  = gsl_matrix_get(_KM_b, y, j);
+    double rKI   = (gsl_matrix_get(_KI, y, j) > 0.0 ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
+    double term1 = gsl_matrix_get(_KA, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
+    double term2 = 0.0;
+    double term3 = 0.0;
+    double term4 = 0.0;
+    double term5 = 0.0;
+    if (KM_f > 0.0)
+    {
+      term2 = prod_KM_f_1_y/KM_f;
+      term4 = kcatf/KM_f*prod_KM_f_y;
+    }
+    if (KM_b > 0.0)
+    {
+      term3 = prod_KM_b_1_y/KM_b;
+      term5 = kcatb/KM_b*prod_KM_b_y;
+    }
+    double dtau_j_A = -term1*prod_KA_1_y*prod_KI_1 + prod_KA_1*rKI*prod_KI_1_y;
+    double dtau_j_B = term2+term3;
+    double dtau_j_C = term4-term5;
+    //### 2.3) Calculate dtau_j ###
+    double ditau_j = ( dtau_j_A*tau_j_B + tau_j_A*dtau_j_B - tau_j_A*tau_j_B*dtau_j_C/tau_j_C  )/tau_j_C;
+    gsl_matrix_set(_ditau_j, j, i, ditau_j);
   }
 }
 
@@ -1956,6 +2166,8 @@ void Model::drMM( int j )
  */
 void Model::compute_dtau( int j )
 {
+  //dgMM(j);
+  //return;
   switch(_type[j])
   {
     case IMM:
@@ -2041,23 +2253,24 @@ void Model::compute_density( void )
  * \param    void
  * \return   \e void
  */
-void Model::compute_dmu_q( void )
+void Model::compute_dmu_dq( void )
 {
+  // ((mu(f)^2)/b(f)[p]) * (M[p,]/mu(f)   - t(f) %*% ( rho*dtau(ci(f))%*%M ) - tau(ci(f)) )
   /*--------*/
-  _dmu_q_term1 = gsl_pow_int(_mu, 2)/gsl_vector_get(_b, _a);
+  _dmu_dq_term1 = gsl_pow_int(_mu, 2)/gsl_vector_get(_b, _a);
   /*--------*/
-  gsl_matrix_get_row(_dmu_q_term2, _M, _a);
-  gsl_vector_scale(_dmu_q_term2, 1.0/_mu);
+  gsl_matrix_get_row(_dmu_dq_term2, _M, _a);
+  gsl_vector_scale(_dmu_dq_term2, 1.0/_mu);
   /*--------*/
-  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, _rho, _ditau_j, _M, 0.0, _dmu_q_term3);
-  gsl_blas_dgemv(CblasTrans, 1.0, _dmu_q_term3, _q, 0.0, _dmu_q_term4);
+  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, _rho, _ditau_j, _M, 0.0, _dmu_dq_term3);
+  gsl_blas_dgemv(CblasTrans, 1.0, _dmu_dq_term3, _q, 0.0, _dmu_dq_term4);
   /*--------*/
-  gsl_vector_memcpy(_dmu_q_term5, _tau_j);
+  gsl_vector_memcpy(_dmu_dq_term5, _tau_j);
   /*--------*/
-  gsl_vector_memcpy(_dmu_q, _dmu_q_term2);
-  gsl_vector_sub(_dmu_q, _dmu_q_term4);
-  gsl_vector_sub(_dmu_q, _dmu_q_term5);
-  gsl_vector_scale(_dmu_q, _dmu_q_term1);
+  gsl_vector_memcpy(_dmu_dq, _dmu_dq_term2);
+  gsl_vector_sub(_dmu_dq, _dmu_dq_term4);
+  gsl_vector_sub(_dmu_dq, _dmu_dq_term5);
+  gsl_vector_scale(_dmu_dq, _dmu_dq_term1);
 }
 
 /**
@@ -2066,13 +2279,12 @@ void Model::compute_dmu_q( void )
  * \param    void
  * \return   \e void
  */
-void Model::compute_Gamma_q( void )
+void Model::compute_Gamma( void )
 {
-  // self.dmu_q-self.dmu_q[0]*(self.sM/self.sM[0])
-  gsl_vector_memcpy(_Gamma_q, _sM);
-  gsl_vector_scale(_Gamma_q, gsl_vector_get(_dmu_q, 0)/gsl_vector_get(_sM, 0));
-  gsl_vector_scale(_Gamma_q, -1.0);
-  gsl_vector_add(_Gamma_q, _dmu_q);
+  gsl_vector_memcpy(_Gamma, _sM);
+  gsl_vector_scale(_Gamma, gsl_vector_get(_dmu_dq, 0)/gsl_vector_get(_sM, 0));
+  gsl_vector_scale(_Gamma, -1.0);
+  gsl_vector_add(_Gamma, _dmu_dq);
 }
 
 /**
@@ -2108,8 +2320,8 @@ void Model::calculate_second_order_terms( void )
   {
     compute_dtau(j);
   }
-  compute_dmu_q();
-  compute_Gamma_q();
+  compute_dmu_dq();
+  compute_Gamma();
 }
 
 /**
@@ -2132,7 +2344,7 @@ void Model::check_model_consistency( void )
   /* 2) Test negative concentrations constraint */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test2 = true;
-  if (gsl_vector_min(_c) < 0.0)//-_tol)
+  if (gsl_vector_min(_c) < 0.0)
   {
     test2 = false;
   }
@@ -2140,7 +2352,7 @@ void Model::check_model_consistency( void )
   /* 3) Test negative proteins constraint       */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   bool test3 = true;
-  if (gsl_vector_min(_p) < 0.0)//-_tol)
+  if (gsl_vector_min(_p) < 0.0)
   {
     test3 = false;
   }
@@ -2168,23 +2380,26 @@ void Model::block_reactions( void )
   for (int j = 0; j < _nj-1; j++)
   {
     /*** 1.1) Reaction is irreversible ***/
-    if (_type[j+1] != RMM && gsl_vector_get(_q_trunc, j) <= _tol)
+    if (gsl_vector_get(_q_trunc, j) <= _tol) // (_type[j+1] != RMM && gsl_vector_get(_q_trunc, j) <= _tol)
     {
       gsl_vector_set(_q_trunc, j, _tol);
-      if (gsl_vector_get(_Gamma_q, j+1) < 0.0)
+      if (gsl_vector_get(_Gamma, j+1) < 0.0)
       {
-        gsl_vector_set(_Gamma_q, j+1, 0.0);
+        gsl_vector_set(_Gamma, j+1, 0.0);
       }
     }
     /*** 1.2) Reaction is reversible ***/
     /*
     else if (_type[j+1] == RMM && fabs(gsl_vector_get(_q_trunc, j)) < _tol)
     {
-      if (gsl_vector_get(_Gamma_q, j+1) > 0.0)
+      double gamma_j = gsl_vector_get(_Gamma, j+1);
+      double q_j     = gsl_vector_get(_q_trunc, j);
+      std::cout << q_j << " " << gamma_j << "\n";
+      if (q_j < 0.0 && q_j > -_tol && gamma_j > 0.0)
       {
         gsl_vector_set(_q_trunc, j, _tol);
       }
-      if (gsl_vector_get(_Gamma_q, j+1) < 0.0)
+      if (q_j > 0.0 && q_j < _tol && gamma_j < 0.0)
       {
         gsl_vector_set(_q_trunc, j, -_tol);
       }
@@ -2200,7 +2415,7 @@ void Model::block_reactions( void )
     double val = item.second;
     assert(j > 0);
     gsl_vector_set(_q_trunc, j-1, val);
-    gsl_vector_set(_Gamma_q, j, 0.0);
+    gsl_vector_set(_Gamma, j, 0.0);
   }
 }
 
