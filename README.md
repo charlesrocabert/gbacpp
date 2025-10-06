@@ -176,6 +176,7 @@ The command line parameters are described below. The description is also availab
 - <code>-trajectory</code>, <code>--write-trajectory</code>: Indicates if the trajectory should be written as output files. Tracking the optimization trajectory can be useful during tests,
 - <code>-output</code>, <code>--output-path</code>: Specify the path of output files,
 - <code>-tol</code>, <code>--tolerance</code>: Specify the tolerance value ($10^{-10}$ by default),
+- <code>-mutol</code>, <code>--mu-tolerance</code>: Specify the relative growth rate difference tolerance value ($10^{-10}$ by default),
 - <code>-stable</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged growth rate as a stop criterium ($10,000$ by default),
 - <code>-max</code>, <code>--max-iter</code>: Specify the maximal number of iterations as a stop criterium ($100,000,000$ by default),
 - <code>-reload</code>, <code>--reload</code>: Indicates if the last trajectory point should be used as q0
