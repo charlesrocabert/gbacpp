@@ -50,7 +50,6 @@ The optimization process relies on a gradient ascent approach, and is preferred 
   - [4.2) Code optimization](#optimization)
   - [4.3) Find an optimum](#find_optimum)
   - [4.4) Optimization parameters](#optimization_parameters)
-  - [4.5) Usage example](#usage_example)
 - [5) SRC model format tutorial](#src_model_format_tutorial)
 - [6) Units conversion tutorial](#units_conversion_tutorial)
 - [7) Copyright](#copyright)
@@ -182,20 +181,6 @@ The command line parameters are described below. The description is also availab
 - <code>-reload</code>, <code>--reload</code>: Indicates if the last trajectory point should be used as q0
 - <code>-restart</code>, <code>--restart</code>: Indicates if the last trajectory point should be used as a fresh start
 - <code>-verbose</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
-        
-### 4.5) Usage example <a name="usage_example"></a>
-
-In this example, growth rate optimums are calculated for all the external conditions of the <em>Escherichia coli</em> toy model EC12b (see folder <code>./examples/toy_models</code>).
-
-First, navigate to the folder <code>./examples</code> using the <code>cd</code> command:
-
-    cd ./examples
-
-Then, call the optimization algorithm:
-
-    find_model_optimum -path ./toy_models -name EC12b -condition all -output ./output -verbose
-
-Here, optimums are calculated for all conditions, and saved in the folder <code>./examples/output</code>. Verbose mode is activated to get insights in the optimization process.
 
 # 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
