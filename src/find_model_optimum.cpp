@@ -42,7 +42,7 @@
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &verbose, bool &extra_verbose );
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose );
 void printUsage( void );
 void printHeader( void );
 
@@ -73,10 +73,14 @@ int main(int argc, char const** argv)
   bool        hessian          = false;
   bool        reload           = false;
   bool        restart          = false;
+  bool        use_previous_sol = false;
   bool        verbose          = false;
   bool        extra_verbose    = false;
-  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
-  
+  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, stable_count, max_iter, hessian, reload, restart, use_previous_sol, verbose, extra_verbose);
+  if (condition != "all" && use_previous_sol)
+  {
+    throw std::invalid_argument("> Error: option -previous (--use-previous-sol) can only be used with condition \"all\"");
+  }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Print the header in verbose mode               */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -108,7 +112,7 @@ int main(int argc, char const** argv)
   }
   else
   {
-    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
+    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, use_previous_sol, verbose, extra_verbose);
   }
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -138,11 +142,12 @@ int main(int argc, char const** argv)
  * \param    bool &hessian
  * \param    bool &reload
  * \param    bool &restart
+ * \param    bool &use_previous_sol
  * \param    bool &verbose
  * \param    bool &extra_verbose
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &verbose, bool &extra_verbose )
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose )
 {
   if (argc == 1)
   {
@@ -279,6 +284,10 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
     {
       restart = true;
     }
+    else if (strcmp(argv[i], "-previous") == 0 || strcmp(argv[i], "--use-previous-sol") == 0)
+    {
+      use_previous_sol = true;
+    }
     else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0)
     {
       verbose = true;
@@ -362,6 +371,8 @@ void printUsage( void )
   std::cout << "        indicates if the last trajectory point should be used as q0\n";
   std::cout << "  -restart, --restart\n";
   std::cout << "        indicates if the last trajectory point should be used as a fresh start\n";
+  std::cout << "  -previous, --use-previous-sol\n";
+  std::cout << "        indicates if the last optimal solution should be used (only for condition=\"all\")\n";
   std::cout << "  -v, --verbose\n";
   std::cout << "        indicates if the program should run in verbose mode\n";
   std::cout << "  -vv, --extra-verbose\n";

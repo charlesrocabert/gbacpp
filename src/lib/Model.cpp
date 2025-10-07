@@ -380,21 +380,39 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
  * \param    bool hessian
  * \param    bool reload
  * \param    bool restart
+ * \param    bool use_previous_sol
  * \param    bool verbose
  * \param    bool extra_verbose
  * \return   \e bool
  */
-void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
+void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool use_previous_sol, bool verbose, bool extra_verbose )
 {
   if (write_optimum)
   {
     open_optimum_output_files(output_path, "all");
   }
+  bool reload_local  = false;
+  bool restart_local = false;
   for (int i = 0; i < (int)_condition_ids.size(); i++)
   {
+    if (i > 0 && use_previous_sol)
+    {
+      reload_local  = true;
+      restart_local = true;
+      std::stringstream source;
+      std::stringstream target;
+      std::stringstream cmdline;
+      if (i < (int)_condition_ids.size())
+      {
+        source << output_path << "/" << _model_name << "_" << _condition_ids[(i-1)] << "_q.bin";
+        target << output_path << "/" << _model_name << "_" <<  _condition_ids[i] << "_q.bin";
+        cmdline << "cp " << source.str() << " " << target.str();
+        std::system(cmdline.str().c_str());
+      }
+    }
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, stable_count, max_iter, hessian, reload_local, restart_local, verbose, extra_verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     if (write_optimum)
@@ -877,6 +895,7 @@ void Model::write_optimum_output_files( std::string condition, bool converged, d
   _v_optimum_file << "\n";
   _p_optimum_file << "\n";
   _b_optimum_file << "\n";
+  _state_optimum_file.flush();
   _q_optimum_file.flush();
   _c_optimum_file.flush();
   _v_optimum_file.flush();
@@ -943,7 +962,7 @@ void Model::reload_q0( int &nb_iterations, double &t, double &dt, std::string ou
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   std::stringstream filename;
   filename << output_path << "/" << _model_name << "_" << condition << "_q.bin";
-  FILE *f    = fopen(filename.str().c_str(), "rb");
+  FILE *f = fopen(filename.str().c_str(), "rb");
   fread(&nb_iterations, sizeof(int), 1, f);
   fread(&t, sizeof(double), 1, f);
   fread(&dt, sizeof(double), 1, f);

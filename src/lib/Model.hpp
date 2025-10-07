@@ -96,7 +96,7 @@ public:
   void read_random_solutions( void );
   
   void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
-  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
+  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool use_previous_sol, bool verbose, bool extra_verbose );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -315,7 +315,7 @@ inline double Model::get_mu( void )
  */
 inline void Model::set_tol( double tol )
 {
-  if (tol <= 0.0)
+  if (tol < 0.0)
   {
     throw std::invalid_argument("> Error: tolerance value is too low ("+std::to_string(tol)+")");
   }
