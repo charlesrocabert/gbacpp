@@ -135,13 +135,13 @@ Once <strong>gbacpp</strong> has been compiled and installed, follow the next st
 
 ### 4.1) Why using a gradient ascent <a name="gradient_ascent"></a>
 
-SRC models are non-linear constraint-based problems. Solving such tasks in much more difficult than linear problems (<em>e.g.</em> FBA problems).
+Optimizing SRC models is a non-linear constraint-based problem. Solving such a task in much more difficult than linear problems (<em>e.g.</em> FBA problems).
 A few solvers are available, and can usually handle small SRC models. However, we noticed that these solvers tend to fail when solving larger GBA problems, and are unable to handle genome-scale models.
 
 As GBA formalism provides analytical solutions to calculate the growth rate gradient, we have implemented <strong>gbacpp</strong> to circumvent this limitation, allowing us to solve large, or even genome-scale SRC models in a reasonable timeframe.
 
 <!--
-In <strong>gbacpp</strong>, gradient ascent is timestep-adaptive, ensuring solutions stay consistent. In particular, we have implemented controls when concentrations or fluxes converge to zero to avoid algorithmic traps.
+In <strong>gbacpp</strong>, gradient ascent is timestep-adaptive, ensuring solutions stay consistent. In particular, we have implemented controls when fluxes converge to zero to avoid algorithmic traps.
 -->
 
 ### 4.2) Code optimization <a name="optimization"></a>
