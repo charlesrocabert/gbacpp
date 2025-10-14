@@ -1830,6 +1830,7 @@ void Model::rMM( int j )
  * \param    int j
  * \return   \e void
  */
+/*
 void Model::gMM( int j )
 {
   double kcatf       = gsl_vector_get(_kcat_f, j);
@@ -1863,6 +1864,7 @@ void Model::gMM( int j )
   double tau_j = prod_KA_1*prod_KI_1*(prod_KM_f_1+prod_KM_b_1-1.0)/(kcatf*prod_KM_f-kcatb*prod_KM_b);
   gsl_vector_set(_tau_j, j, tau_j);
 }
+*/
 
 /**
  * \brief    Compute tau_j
@@ -2012,7 +2014,6 @@ void Model::diMMia( int j )
   {
     int    y     = i+_nx;
     double rKI   = (gsl_matrix_get(_KI, y, j) > _tol ? 1.0/gsl_matrix_get(_KI, y, j) : 0.0);
-    double term1 = rKI;
     double term2 = -gsl_matrix_get(_KA, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
     double term3 = -gsl_matrix_get(_KM_f, y, j)/gsl_pow_int(gsl_vector_get(_c, i), 2);
     double term4 = 1.0;
@@ -2078,11 +2079,9 @@ void Model::drMM( int j )
  * \param    int j
  * \return   \e void
  */
+/*
 void Model::dgMM( int j )
 {
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Calculate constant terms for reaction j */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   double kcatf       = gsl_vector_get(_kcat_f, j);
   double kcatb       = gsl_vector_get(_kcat_b, j);
   double prod_KM_f   = 1.0;
@@ -2114,9 +2113,6 @@ void Model::dgMM( int j )
   double tau_j_A = prod_KA_1*prod_KI_1;
   double tau_j_B = prod_KM_f_1+prod_KM_b_1-1.0;
   double tau_j_C = kcatf*prod_KM_f-kcatb*prod_KM_b;
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate terms depending on substrate  */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int y = i+_nx;
@@ -2176,6 +2172,7 @@ void Model::dgMM( int j )
     gsl_matrix_set(_ditau_j, j, i, ditau_j);
   }
 }
+*/
 
 /**
  * \brief    Compute ditau_j
