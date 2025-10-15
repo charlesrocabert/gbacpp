@@ -1006,7 +1006,7 @@ void Model::print_to_standard_ouput( std::string condition, bool converged, doub
   {
     std::cout << "\t" << _reaction_ids[j];
   }
-  std::cout << std::endl << "f";
+  std::cout << std::endl << "q";
   for (int j = 0; j < _nj; j++)
   {
     std::cout << "\t" << gsl_vector_get(_q, j);
@@ -1508,8 +1508,8 @@ void Model::load_q0( void )
   assert(_q0==NULL);
   _q0 = gsl_vector_alloc(_nj);
   gsl_vector_set_zero(_q0);
-  assert(is_file_exist(_model_path+"/"+_model_name+"/q0.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/q0.csv", std::ios::in);
+  assert(is_file_exist(_model_path+"/"+_model_name+"/q.csv"));
+  std::ifstream file(_model_path+"/"+_model_name+"/q.csv", std::ios::in);
   assert(file);
   std::string line;
   std::string reaction_id;
