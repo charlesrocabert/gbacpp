@@ -177,14 +177,14 @@ The command line parameters are described below. The description is also availab
 - <code>-output</code>, <code>--output-path</code>: Specify the path of output files,
 - <code>-tol</code>, <code>--tolerance</code>: Specify the tolerance value ($10^{-10}$ by default),
 - <code>-mutol</code>, <code>--mu-tolerance</code>: Specify the relative growth rate difference tolerance value ($10^{-10}$ by default),
-- <code>-stable</code>, <code>--stable-count</code>: Specify the maximal number of iterations with unchanged growth rate as a stop criterium ($10,000$ by default),
+- <code>-conv</code>, <code>--convergence-count</code>: Specify the number of iterations under mu tolerance needed to assume convergence ($10,000$ by default),
 - <code>-max</code>, <code>--max-iter</code>: Specify the maximal number of iterations as a stop criterium ($100,000,000$ by default),
 - <code>-reload</code>, <code>--reload</code>: Indicates if the last trajectory point should be used as q0
 - <code>-restart</code>, <code>--restart</code>: Indicates if the last trajectory point should be used as a fresh start
 - <code>-previous</code>, <code>--use-previous-sol</code>: Indicates if the solution of the previous condition should be used to initiate the next (only works when <code>condition=all</code>)
 - <code>-v</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 - <code>-vv</code>, <code>--extra-verbose</code>: Indicates if the program should run in extra-verbose mode (can conflict with the option <code>-print</code>).
-
+  
 # 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
 A tutorial is available to better understand the content of a self-replicating cell model:
