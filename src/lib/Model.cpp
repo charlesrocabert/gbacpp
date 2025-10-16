@@ -1512,20 +1512,26 @@ void Model::load_q0( void )
   std::ifstream file(_model_path+"/"+_model_name+"/q.csv", std::ios::in);
   assert(file);
   std::string line;
-  std::string reaction_id;
   std::string str_value;
   getline(file, line);
-  while(getline(file, line))
+  getline(file, line);
+  std::stringstream flux(line.c_str());
+  int index = -1;
+  while(getline(flux, str_value, ';'))
   {
-    std::stringstream flux(line.c_str());
-    getline(flux, reaction_id, ';');
-    getline(flux, str_value, ';');
-    reaction_id.erase(std::remove(reaction_id.begin(), reaction_id.end(), '\r'), reaction_id.end());
-    assert(_reaction_indices.find(reaction_id) != _reaction_indices.end());
-    double value = stod(str_value);
-    gsl_vector_set(_q0, _reaction_indices[reaction_id], value);
+    if (index==-1)
+    {
+      assert(str_value=="q0");
+    }
+    else
+    {
+      double value = stod(str_value);
+      gsl_vector_set(_q0, index, value);
+    }
+    index++;
   }
   file.close();
+  assert(index==_nj);
 }
 
 /**
