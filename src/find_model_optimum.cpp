@@ -42,7 +42,7 @@
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose );
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &convergence_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose );
 void printUsage( void );
 void printHeader( void );
 
@@ -59,24 +59,24 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Read parameters                                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  std::string model_path       = "";
-  std::string model_name       = "";
-  std::string condition        = "";
-  bool        print_optimum    = false;
-  bool        write_optimum    = false;
-  bool        write_trajectory = false;
-  std::string output_path      = ".";
-  double      tol              = 1e-10;
-  double      mu_tol           = 1e-10;
-  int         stable_count     = 10000;
-  int         max_iter         = 100000000;
-  bool        hessian          = false;
-  bool        reload           = false;
-  bool        restart          = false;
-  bool        use_previous_sol = false;
-  bool        verbose          = false;
-  bool        extra_verbose    = false;
-  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, stable_count, max_iter, hessian, reload, restart, use_previous_sol, verbose, extra_verbose);
+  std::string model_path        = "";
+  std::string model_name        = "";
+  std::string condition         = "";
+  bool        print_optimum     = false;
+  bool        write_optimum     = false;
+  bool        write_trajectory  = false;
+  std::string output_path       = ".";
+  double      tol               = 1e-10;
+  double      mu_tol            = 1e-10;
+  int         convergence_count = 10000;
+  int         max_iter          = 100000000;
+  bool        hessian           = false;
+  bool        reload            = false;
+  bool        restart           = false;
+  bool        use_previous_sol  = false;
+  bool        verbose           = false;
+  bool        extra_verbose     = false;
+  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, convergence_count, max_iter, hessian, reload, restart, use_previous_sol, verbose, extra_verbose);
   if (condition != "all" && use_previous_sol)
   {
     throw std::invalid_argument("> Error: option -previous (--use-previous-sol) can only be used with condition \"all\"");
@@ -108,11 +108,11 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   if (condition != "all")// && condition != "random")
   {
-    model->compute_optimum(condition, print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
+    model->compute_optimum(condition, print_optimum, write_optimum, write_trajectory, output_path, convergence_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
   }
   else
   {
-    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, stable_count, max_iter, hessian, reload, restart, use_previous_sol, verbose, extra_verbose);
+    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, convergence_count, max_iter, hessian, reload, restart, use_previous_sol, verbose, extra_verbose);
   }
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -137,7 +137,7 @@ int main(int argc, char const** argv)
  * \param    std::string &output_path
  * \param    double &tol
  * \param    double &mu_tol
- * \param    double &stable_count
+ * \param    double &convergence_count
  * \param    int &max_iter
  * \param    bool &hessian
  * \param    bool &reload
@@ -147,7 +147,7 @@ int main(int argc, char const** argv)
  * \param    bool &extra_verbose
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &stable_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose )
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, int &convergence_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose )
 {
   if (argc == 1)
   {
@@ -250,15 +250,15 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
         mu_tol = atof(argv[i+1]);
       }
     }
-    else if (strcmp(argv[i], "-stable") == 0 || strcmp(argv[i], "--stable-count") == 0)
+    else if (strcmp(argv[i], "-conv") == 0 || strcmp(argv[i], "--convergence-count") == 0)
     {
       if (i+1 == argc)
       {
-        throw std::invalid_argument("> Error: Stable mu count is missing");
+        throw std::invalid_argument("> Error: Mu convergence count is missing");
       }
       else
       {
-        stable_count = atof(argv[i+1]);
+        convergence_count = atof(argv[i+1]);
       }
     }
     else if (strcmp(argv[i], "-max") == 0 || strcmp(argv[i], "--max-iter") == 0)
@@ -361,8 +361,8 @@ void printUsage( void )
   std::cout << "        specify the tolerance value\n";
   std::cout << "  -mutol, --mu-tolerance\n";
   std::cout << "        specify the relative growth rate difference tolerance value\n";
-  std::cout << "  -stable, --stable-count\n";
-  std::cout << "        specify the maximal number of iterations with unchanged mu\n";
+  std::cout << "  -conv, --convergence-count\n";
+  std::cout << "        specify the number of iterations under mu tolerance needed to assume convergence\n";
   std::cout << "  -max, --max-iter\n";
   std::cout << "        specify the maximal number of iterations\n";
   //std::cout << "  -hessian, --hessian\n";
