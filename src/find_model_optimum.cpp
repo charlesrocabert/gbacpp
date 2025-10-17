@@ -367,10 +367,10 @@ void printUsage( void )
   std::cout << "        specify the maximal number of iterations\n";
   //std::cout << "  -hessian, --hessian\n";
   //std::cout << "        indicates if the diagonal Hessian should be estimated\n";
-  std::cout << "  -reload, --reload\n";
-  std::cout << "        indicates if the last trajectory point should be used as q0\n";
-  std::cout << "  -restart, --restart\n";
-  std::cout << "        indicates if the last trajectory point should be used as a fresh start\n";
+  //std::cout << "  -reload, --reload\n";
+  //std::cout << "        indicates if the last trajectory point should be used as q0\n";
+  //std::cout << "  -restart, --restart\n";
+  //std::cout << "        indicates if the last trajectory point should be used as a fresh start\n";
   std::cout << "  -previous, --use-previous-sol\n";
   std::cout << "        indicates if the last optimal solution should be used (only for condition=\"all\")\n";
   std::cout << "  -v, --verbose\n";

@@ -605,9 +605,9 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       t            = t+dt;
       _mu_diff     = fabs(_mu-previous_mu);
       _mu_rel_diff = fabs(_mu-previous_mu)/previous_mu;
-      save_q(nb_iterations, t, dt, output_path, condition);
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
+        save_q(nb_iterations, t, dt, output_path, condition);
         write_trajectory_output_files(condition, nb_iterations, t, dt);
         if (extra_verbose)
         {
