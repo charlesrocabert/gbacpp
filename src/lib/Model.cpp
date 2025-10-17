@@ -838,6 +838,13 @@ void Model::open_optimum_output_files( std::string output_path, std::string cond
   _v_optimum_file.open(v_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _p_optimum_file.open(p_optimum_filename.str(), std::ios::out | std::ios::trunc);
   _b_optimum_file.open(b_optimum_filename.str(), std::ios::out | std::ios::trunc);
+  /*** Set precision ***/
+  _state_optimum_file << std::fixed << std::setprecision(100);
+  _q_optimum_file << std::fixed << std::setprecision(100);
+  _c_optimum_file << std::fixed << std::setprecision(100);
+  _v_optimum_file << std::fixed << std::setprecision(100);
+  _p_optimum_file << std::fixed << std::setprecision(100);
+  _b_optimum_file << std::fixed << std::setprecision(100);
   /*** Write headers ***/
   _state_optimum_file << "condition;mu;density;consistent;converged;run_time\n";
   _q_optimum_file << "condition";
