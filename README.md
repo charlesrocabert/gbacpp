@@ -25,17 +25,18 @@ The software has been optimized to solve large-scale self-replicating cell (SRC)
 The optimization process relies on a gradient ascent approach, and is preferred for models offering a convex solution space.
 </p>
 
-<p align="justify">
-:ballot_box_with_check: Note that SRC models must comply to a standardized format. Guidelines are available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">SRC model format tutorial</a>.
 
-:ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
+> [!NOTE]
+> :ballot_box_with_check: Note that SRC models must comply to a standardized format. Guidelines are available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">SRC model format tutorial</a>.
+>
+> :ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
+> 
+> :ballot_box_with_check: The gradient ascent algorithm will be detailed in the documentation soon.
+> 
+> :ballot_box_with_check: <strong>gbacpp</strong> will integrate evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
+> 
+> :ballot_box_with_check: A complete tutorial on GBA formalism is also available at https://cellgrowthsim.com/.
 
-:ballot_box_with_check: The gradient ascent algorithm will be detailed in the documentation soon.
-
-:ballot_box_with_check: <strong>gbacpp</strong> will integrate evolutionary algorithms in the near future (see <a href="#roadmap">Roadmap</a>).
-
-:ballot_box_with_check: A complete tutorial on GBA formalism is also available at https://cellgrowthsim.com/.
-</p>
 
 # Table of contents
 - [1) Roadmap](#roadmap)
@@ -100,9 +101,9 @@ The binary executable <code>find_model_optimum</code> should be available in the
 export PATH="/usr/bin:$PATH"
 ```
 
-<p align="justify">
-:warning: If you want to simply compile the software without installing it into your system, follow the next instructions.
-</p>
+> [!TIP]
+> If you want to simply compile the software without installing it into your system, follow the next instructions.
+
 
 ### 3.4) Manual software compilation <a name="manual_software_compilation"></a>
 
