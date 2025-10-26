@@ -36,7 +36,7 @@
 #define MIN_DT               1e-100 /*!< Minimal timestep value                                    */
 #define H_MIN                1e-8   /*!< Minimal absolute Hessian value                            */
 #define KAPPA_MAX            1e+4   /*!< Maximal absolute inverse Hessian value                    */
-#define EXPORT_DATA_COUNT    100    /*!< Timestep window for data export                           */
+#define EXPORT_DATA_COUNT    1000   /*!< Timestep window for data export                           */
 
 
 #endif /* defined(__gbacpp__Macros__) */

@@ -151,14 +151,12 @@ protected:
   void iMMa( int j );
   void iMMia( int j );
   void rMM( int j );
-  //void gMM( int j );
   void compute_tau( int j );
   void diMM( int j );
   void diMMi( int j );
   void diMMa( int j );
   void diMMia( int j );
   void drMM( int j );
-  //void dgMM( int j );
   void compute_dtau( int j );
   void compute_mu( void );
   void compute_v( void );
