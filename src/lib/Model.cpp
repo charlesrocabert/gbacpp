@@ -531,14 +531,15 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   {
     std::cout << " > Initial growth rate = " << _mu << std::endl;
   }
-  gsl_vector* previous_q_trunc         = gsl_vector_alloc(_nj-1);
-  gsl_vector* hessian_previous_q_trunc = gsl_vector_alloc(_nj-1);
-  gsl_vector* previous_Gamma_trunc     = gsl_vector_alloc(_nj-1);
-  gsl_vector* scaled_Gammadt_trunc     = gsl_vector_alloc(_nj-1);
-  gsl_vector_view Gamma_trunc          = gsl_vector_subvector(_Gamma, 1, _nj-1);
+  gsl_vector* previous_q_trunc     = gsl_vector_alloc(_nj-1);
+  gsl_vector* scaled_Gammadt_trunc = gsl_vector_alloc(_nj-1);
+  gsl_vector_view Gamma_trunc      = gsl_vector_subvector(_Gamma, 1, _nj-1);
   gsl_vector_memcpy(previous_q_trunc, _q_trunc);
-  gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
-  gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
+  //gsl_vector* hessian_previous_q_trunc = gsl_vector_alloc(_nj-1);
+  //gsl_vector* previous_Gamma_trunc     = gsl_vector_alloc(_nj-1);
+  
+  //gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
+  //gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
   if (write_trajectory)
   {
     write_trajectory_output_files(condition, nb_iterations, t, dt);
@@ -598,9 +599,9 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     calculate();
     if (_consistent && _mu >= previous_mu)
     {
-      gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
       gsl_vector_memcpy(previous_q_trunc, _q_trunc);
-      gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
+      //gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
+      //gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
       dt_counter++;
       t            = t+dt;
       _mu_diff     = fabs(_mu-previous_mu);
@@ -648,13 +649,13 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   }
   save_q(nb_iterations, t, dt, output_path, condition);
   gsl_vector_free(previous_q_trunc);
-  gsl_vector_free(hessian_previous_q_trunc);
-  gsl_vector_free(previous_Gamma_trunc);
   gsl_vector_free(scaled_Gammadt_trunc);
-  previous_q_trunc         = NULL;
-  hessian_previous_q_trunc = NULL;
-  previous_Gamma_trunc     = NULL;
-  scaled_Gammadt_trunc     = NULL;
+  previous_q_trunc     = NULL;
+  scaled_Gammadt_trunc = NULL;
+  //gsl_vector_free(hessian_previous_q_trunc);
+  //gsl_vector_free(previous_Gamma_trunc);
+  //hessian_previous_q_trunc = NULL;
+  //previous_Gamma_trunc     = NULL;
   if (write_trajectory)
   {
     write_trajectory_output_files(condition, nb_iterations, t, dt);
