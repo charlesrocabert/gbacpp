@@ -95,7 +95,7 @@ The sheet `M` contains the mass fraction matrix $\mathbf{M}$, which is the penda
 - All metabolites starting with `x_` are external metabolites with constant concentration.
 
 > [!WARNING]  
-> Stoichiometric coefficients must be converted following GBA formalism (see <a href="https://github.com/charlesrocabert/gbammsyn/blob/main/pipeline/MMSYN_tutorial_5.ipynb" target="_blank">tutorial 5</a>).
+> Stoichiometric coefficients must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
 For example, the model below has three reactions and four metabolites (three internal, one external):
 
@@ -114,7 +114,7 @@ The sheet `kcat` contains the vectors of forward (`kcat_f`) and backward (`kcat_
 - For forward irreversible reactions, backward values will be zero.
 
 > [!WARNING]  
-> $k_\text{cat}$ values must be converted following GBA formalism (see <a href="https://github.com/charlesrocabert/gbammsyn/blob/main/pipeline/MMSYN_tutorial_5.ipynb" target="_blank">tutorial 5</a>).
+> $k_\text{cat}$ values must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
 For example, the model below has three irreversible reactions (`kcat_b = 0`):
 
@@ -130,7 +130,7 @@ The sheet `K` contains the matrix of Michaelis constants $\mathbf{K}$ (usually, 
 - The matrix maps Michaelis constants from reactions to substrates and products, therefore including forward and backward $K_\text{M}$ values.
 
 > [!WARNING]
-> $K_\text{M}$ values must be converted following GBA formalism (see <a href="https://github.com/charlesrocabert/gbammsyn/blob/main/pipeline/MMSYN_tutorial_5.ipynb" target="_blank">tutorial 5</a>).
+> $K_\text{M}$ values must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
 For example, the model below has three irreversible reactions and four metabolites (three internal, one external):
 
