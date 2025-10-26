@@ -165,7 +165,7 @@ For example, the following model has 25 conditions with a glucose gradient. Here
 ### 2.7) Initial and optimal solutions (<code>q</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="q"></a>
 
 This sheet `q.csv` contains two sorts of flux fraction vectors (vector $q$ in GBA formalism):
-- An initial solution vector $q_0$, calculated with linear sub-routines (see <a href="https://github.com/charlesrocabert/gbammsyn/tree/main/pipeline" target="_blank">the genome-scale tutorial</a>). This solution is generally used as a starting point to optimize the model.
+- An initial solution vector $q_0$, calculated with linear sub-routines. This solution is generally used as a starting point to optimize the model.
 - If available, optimal solutions for each external condition.
 
 For example, the model below has the following initial solution $f_0$:
@@ -189,7 +189,7 @@ The optional sheet `KI` contains inhibition constants $K_\text{I}$ (usually in g
 The optional sheet `protein_contributions` contains a mapping linking enzyme mass concentrations (the vector $p$ in GBA formalism) and protein mass concentrations. This sheet is useful to calculate predicted proteomics from estimated enzymatic concentrations (vector $p$ in GBA formalism).
 
 > [!WARNING]  
-> This sheet can only be obtained with biological knowledge of the constructed SRC model, see <a href="https://github.com/charlesrocabert/gbammsyn/tree/main/pipeline" target="_blank">the genome-scale tutorial</a>.
+> This sheet can only be obtained with biological knowledge of the constructed SRC model.
 
 Here is an example:
 
