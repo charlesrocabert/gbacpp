@@ -1,67 +1,67 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/cb2ea68d-7cb8-4094-8e69-d0c84af8bbbf" width=200 />
-
+  <h1 align="center">Self-replicating cell (SRC) model format tutorial</h1>
 </p>
 
 <p align="center">
-  <h3 align="center">Self-replicating cell (SRC) model format tutorial</h3>
+  <img src="https://github.com/user-attachments/assets/cb2ea68d-7cb8-4094-8e69-d0c84af8bbbf" width=200 />
 </p>
 
 -----------------
 
-Self-replicating cell (SRC) models must comply to a standard format to be compatible with growth balance analysis (GBA) formalism. Please refer to <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. (2023)</a> and the tutorial available on https://cellgrowthsim.com/ for other detailed sources.
+Self-replicating cell (SRC) models must comply to a standard format. Please refer to <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. (2023)</a> and the tutorial available on <a href="https://cellgrowthsim.com/" target="_blank">https://cellgrowthsim.com/</a> for other detailed sources.
 
-Two formats are used to distribute SRC models: the text format CSV and the OpenDocument Spreadsheet format ODS. Data organization is strictly identical in both formats. As for now, <strong>gbacpp</strong> reads SRC models in CSV format only.
+Two formats are used to distribute SRC models: the OpenDocument Spreadsheet format ODS and the text format CSV. Data organization is strictly identical in both formats. ODS models are prefered for diffusion.
 
 # Table of contents
-- [1) Files organization](#files_organization)
-- [2) Files content](#files_content)
-  - [2.1) Model information (<code>Info.csv</code>)](#info)
-  - [2.2) Mass fraction matrix (<code>M.csv</code>)](#M)
-  - [2.3) Forward and backward turnover rates vectors (<code>kcat.csv</code>)](#kcat)
-  - [2.4) Michaelis constants matrix (<code>K.csv</code>)](#K)
-  - [2.5) External conditions matrix (<code>conditions.csv</code>)](#conditions)
-  - [2.6) Initial solution (<code>f0.csv</code>)](#f0)
-  - [2.7) Activation constants matrix (<code>KA.csv</code>)](#KA)
-  - [2.8) Inhibition constants matrix (<code>KI.csv</code>)](#KI)
-  - [2.9) List of constant reactions (<code>constant_reactions.csv</code>)](#constant_reactions)
-  - [2.10) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>)](#protein_contributions)
+- [1) Model file organization](#organization)
+- [2) Sheet content](#content)
+  - [2.1) Model information (<code>Info</code>)](#info)
+  - [2.2) Mass fraction matrix (<code>M</code>)](#M)
+  - [2.3) Forward and backward turnover rates vectors (<code>kcat</code>)](#kcat)
+  - [2.4) Michaelis constants matrix (<code>K</code>)](#K)
+  - [2.5) Cell's total density (<code>rho</code>)](#rho)
+  - [2.6) External conditions matrix (<code>conditions</code>)](#conditions)
+  - [2.7) Initial and optimal solutions (<code>q</code>)](#q)
+  - [2.8) Activation constants matrix (<code>KA</code>)](#KA)
+  - [2.9) Inhibition constants matrix (<code>KI</code>)](#KI)
+  - [2.10) Enzyme to protein mass concentration mapping (<code>protein_contributions</code>)](#protein_contributions)
 
-# 1) Files organization <a name="files_organization"></a>
+# 1) Model file organization <a name="organization"></a>
 
-The SRC model is organized as a set of CSV files located in a folder having the name of the model. They usually contain GBA variables (such as matrices, or vectors), but also additional variables and information.
+The SRC model is organized as a set of sheets inside a single ODS file. They usually contain GBA variables (such as matrices, or vectors), but also additional variables and information.
 
-      └── model_name
-           ├── Info.csv
-           ├── M.csv
-           ├── kcat.csv
-           ├── K.csv
-           ├── conditions.csv
-           ├── f0.csv
-           ├── KA.csv
-           ├── KI.csv
-           ├── constant_rhs.csv
-           ├── constant_reactions.csv
-           └── protein_contributions.csv
+      └── ODS file
+           ├── Info
+           ├── M
+           ├── kcat
+           ├── K
+           ├── rho
+           ├── conditions
+           ├── KA
+           ├── KI
+           └── protein_contributions
 
-Some files are mandatory to set a minimal SRC model. These are:
-- `M.csv`
-- `kcat.csv`
-- `K.csv`
-- `conditions.csv`
-- `f0.csv`
+Some sheets are mandatory to set a minimal SRC model (<img src="https://img.shields.io/badge/mandatory-red" />).
+These are:
+- `M`
+- `kcat`
+- `K`
+- `rho`
+- `conditions`
+- `q`
 
-Other files are optional.
+Other sheets are optional (<img src="https://img.shields.io/badge/optional-grey" />).
 
-⚠️ All CSV files have `;` separators, and `\n` line breaks.
+> [!NOTE]  
+> CSV files replicate sheets' organization, with `;` separator, and `\n` line breaks.
 
-# 2) Files content <a name="files_content"></a>
+# 2) Sheet content <a name="content"></a>
 
-### 2.1) Model information (<code>Info.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="info"></a>
+### 2.1) Model information (<code>Info</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="info"></a>
 
-The optional file `Infos.csv` contains various information about the model (units, file description, ...).
+The optional sheet `Infos` contains various information about the model (units, file description, ...).
 
-The content is free but must follow a standard structure:
+The content is free but must follow a hierarchical structure:
 
       └── Category
            ├── Key 1: Descriptor 1
@@ -70,7 +70,7 @@ The content is free but must follow a standard structure:
 
 Usually, categories are "General" (model name, short description, ...), "Units", "Sheets", etc...
 
-For example, the toy model A has the following information:
+For example:
 
       └── General
            ├── Name: A
@@ -83,18 +83,21 @@ For example, the toy model A has the following information:
            ├── M: Mass fraction matrix
            ├── K: Forward Michaelis constant matrix
            ├── kcat: Turnover numbers
-           └── conditions: Value of rho and external concentrations at different growth conditions
+           ├── rho: Total density
+           └── conditions: Value of external concentrations at different growth conditions
 
-### 2.2) Mass fraction matrix $\mathbf{M}$ (<code>M.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="M"></a>
+### 2.2) Mass fraction matrix $\mathbf{M}$ (<code>M</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="M"></a>
 
-The file `M.csv` contains the mass fraction matrix $\mathbf{M}$, which is the pendant of the stoichiometric matrix in normalized mass units (see <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al., 2023</a>). This file is mandatory to have minimal kinetics:
+The sheet `M` contains the mass fraction matrix $\mathbf{M}$, which is the pendant of the stoichiometric matrix in normalized mass units (see <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al., 2023</a>). This sheet is mandatory to have minimal kinetics:
 - Metabolites are in row, reactions in columns.
 - The last row corresponds to total protein amount (`Protein`).
 - The last column corresponds to the ribosome reaction (`Ribosome`), producing the total protein amount.
 - All metabolites starting with `x_` are external metabolites with constant concentration.
-- :warning: Stoichiometric coefficients must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
-For example, the toy model B has the following mass fraction matrix:
+> [!WARNING]  
+> Stoichiometric coefficients must be converted following GBA formalism (see <a href="https://github.com/charlesrocabert/gbammsyn/blob/main/pipeline/MMSYN_tutorial_5.ipynb" target="_blank">tutorial 5</a>).
+
+For example, the model below has three reactions and four metabolites (three internal, one external):
 
 |             | **rxn1** | **rnx2** | **Ribosome** |
 |:-----------:|:--------:|:--------:|:------------:|
@@ -103,29 +106,33 @@ For example, the toy model B has the following mass fraction matrix:
 |    **AA**   |     0    |     1    |      -1      |
 | **Protein** |     0    |     0    |       1      |
 
-### 2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="kcat"></a>
+### 2.3) Forward and backward $k_\text{cat}$ vectors (<code>kcat</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="kcat"></a>
 
-The file `kcat.csv` contains the vectors of forward (`kcat_f`) and backward (`kcat_b`) turnover rates $k_\text{cat}$ (usually, in h<sup>-1</sup>). This file is mandatory to have minimal kinetics:
+The sheet `kcat` contains the vectors of forward (`kcat_f`) and backward (`kcat_b`) turnover rates $k_\text{cat}$ (usually, in h<sup>-1</sup>). This sheet is mandatory to have minimal kinetics:
 - Reactions are in column.
 - `kcat_f` and `kcat_b` vectors are in row.
 - For forward irreversible reactions, backward values will be zero.
-- :warning: $k_\text{cat}$ values must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
-For example, the toy model B has the following $k_\text{cat}$ vectors:
+> [!WARNING]  
+> $k_\text{cat}$ values must be converted following GBA formalism (see <a href="https://github.com/charlesrocabert/gbammsyn/blob/main/pipeline/MMSYN_tutorial_5.ipynb" target="_blank">tutorial 5</a>).
+
+For example, the model below has three irreversible reactions (`kcat_b = 0`):
 
 |            | **rxn1** | **rnx2** | **Ribosome** |
 |:----------:|:--------:|:--------:|:------------:|
 | **kcat_f** |    150   |    50    |     4.55     |
 | **kcat_b** |     0    |     0    |       0      |
 
-### 2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="K"></a>
+### 2.4) Michaelis constants matrix $\mathbf{K}$ (<code>K</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="K"></a>
 
-The file `K.csv` contains the matrix of Michaelis constants $\mathbf{K}$ (usually, in g.L<sup>-1</sup>). This file is mandatory to have minimal kinetics:
+The sheet `K` contains the matrix of Michaelis constants $\mathbf{K}$ (usually, in g.L<sup>-1</sup>). This sheet is mandatory to have minimal kinetics:
 - Metabolites are in row, reactions in columns (as in the matrix $\mathbf{M}$).
 - The matrix maps Michaelis constants from reactions to substrates and products, therefore including forward and backward $K_\text{M}$ values.
-- :warning: $K_\text{M}$ values must be converted following GBA formalism (see the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>).
 
-For example, the toy model B has the following Michaelis constant matrix:
+> [!WARNING]
+> $K_\text{M}$ values must be converted following GBA formalism (see <a href="https://github.com/charlesrocabert/gbammsyn/blob/main/pipeline/MMSYN_tutorial_5.ipynb" target="_blank">tutorial 5</a>).
+
+For example, the model below has three irreversible reactions and four metabolites (three internal, one external):
 
 |             | **rxn1** | **rnx2** | **Ribosome** |
 |:-----------:|:--------:|:--------:|:------------:|
@@ -134,25 +141,34 @@ For example, the toy model B has the following Michaelis constant matrix:
 |    **AA**   |     0    |     0    |      8.3     |
 | **Protein** |     0    |     0    |       0      |
 
-### 2.5) External conditions matrix (<code>conditions.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="conditions"></a>
+### 2.5) Cell's total density (<code>rho</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="rho"></a>
 
-The file `conditions.csv` contains the list of external conditions. This file is mandatory to have minimal kinetics. Each condition contains:
-- Condition identifiers are in column (usually numbered from 1 to N),
-- External metabolite concentrations are in row (usually, in g.L<sup>-1</sup>).
-- The total density $\rho$ is located in the first row (usually, in g.L<sup>-1</sup>).
+The sheet `rho` contains the cell's total density $\rho$ in g/L. This sheet is mandatory to have minimal kinetics.
+For example, the following model has a total density $\rho = 340 g/L$ (typical of <em>E. coli</em> dry mass):
 
-For example, the toy model B has 25 conditions with a glucose gradient. Here are the first 5 conditions. $\rho = 340 g/L$ represents the typical <em>E. coli</em> dry mass:
+|         | **(g/L)** |
+|:-------:|:---------:|
+| **rho** |  340      |
+
+### 2.6) External conditions matrix (<code>conditions</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="conditions"></a>
+
+The sheet `conditions` contains the list of external conditions. This sheet is mandatory to have minimal kinetics. Each condition contains:
+- Condition identifiers in column (usually numbered from 1 to N),
+- External metabolite concentrations in row (usually, in g.L<sup>-1</sup>).
+
+For example, the following model has 25 conditions with a glucose gradient. Here are the first 5 conditions:
 
 |            | **1** | **2** | **3** | **4** | **5** |
-|:----------:|:-----:|:-----:|:-----:|-------|-------|
-| **$\rho$** |  340  |  340  |  340  | 340   | 340   |
+|:----------:|:-----:|:-----:|:-----:|:-----:|:-----:|
 |   **x_G**  |  100  | 66.67 | 44.44 | 29.63 | 19.75 |
 
-### 2.6) Initial solution $\mathbf{f}_0$ (<code>f0.csv</code>) <img src="https://img.shields.io/badge/mandatory-red" /> <a name="f0"></a>
+### 2.7) Initial and optimal solutions (<code>q</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="q"></a>
 
-This file `f0.csv` contains a flux fraction vector $f_0$ being an initial valid solution for the SRC model. This solution must be generated by the user (see the Python module <a href="https://github.com/charlesrocabert/gbapy" target="_blank">gbapy</a>). This solution is used as a starting point for the gradient ascent algorithm.
+This sheet `q.csv` contains two sorts of flux fraction vectors (vector $q$ in GBA formalism):
+- An initial solution vector $q_0$, calculated with linear sub-routines (see <a href="https://github.com/charlesrocabert/gbammsyn/tree/main/pipeline" target="_blank">the genome-scale tutorial</a>). This solution is generally used as a starting point to optimize the model.
+- If available, optimal solutions for each external condition.
 
-For example, the toy model A has the following initial solution $f_0$:
+For example, the model below has the following initial solution $f_0$:
 
 | **Reaction** | **f0** |
 |:------------:|:------:|
@@ -160,28 +176,20 @@ For example, the toy model A has the following initial solution $f_0$:
 |   **rxn2**   |  0.97  |
 | **Ribosome** | 0.93   |
 
-### 2.7) Activation constants matrix $\mathbf{K_\text{A}}$ (<code>KA.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KA"></a>
+### 2.8) Activation constants matrix $\mathbf{K_\text{A}}$ (<code>KA</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KA"></a>
 
-The optional file `KA.csv` contains activation constants $K_\text{A}$ (usually in g.L<sup>-1</sup>), where some metabolites acts as activators of one or more reactions. The structure is the same than the Michaelis constants matrix.
+The optional sheet `KA` contains activation constants $K_\text{A}$ (usually in g.L<sup>-1</sup>), where some metabolites acts as activators of one or more reactions. The structure is the same than the Michaelis constants matrix.
 
-### 2.8) Inhibition constants matrix $\mathbf{K_\text{I}}$ (<code>KI.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KI"></a>
+### 2.9) Inhibition constants matrix $\mathbf{K_\text{I}}$ (<code>KI</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="KI"></a>
 
-The optional file `KI.csv` contains inhibition constants $K_\text{I}$ (usually in g.L<sup>-1</sup>), where some metabolites acts as inhibitors of one or more reactions. The structure is the same than the Michaelis constants matrix.
+The optional sheet `KI` contains inhibition constants $K_\text{I}$ (usually in g.L<sup>-1</sup>), where some metabolites acts as inhibitors of one or more reactions. The structure is the same than the Michaelis constants matrix.
 
-### 2.9) List of constant reactions (<code>constant_reactions.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="constant_reactions"></a>
+### 2.10) Enzyme to protein mass concentration mapping (<code>protein_contributions</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="protein_contributions"></a>
 
-The optional file `constant_reactions.csv` contains a list of reactions and their associated values in the flux fraction vector $f$, that are kept constant during optimization. For example:
+The optional sheet `protein_contributions` contains a mapping linking enzyme mass concentrations (the vector $p$ in GBA formalism) and protein mass concentrations. This sheet is useful to calculate predicted proteomics from estimated enzymatic concentrations (vector $p$ in GBA formalism).
 
-| **Reaction** | **Value** |
-|:------------:|:------:|
-|   **r1**   |   0.2  |
-|   **r2**   |  0.01  |
-
-### 2.10) Enzyme to protein mass concentration mapping (<code>protein_contributions.csv</code>) <img src="https://img.shields.io/badge/optional-grey" /> <a name="protein_contributions"></a>
-
-The optional file `protein_contributions.csv` contains a mapping linking enzyme mass concentrations (the vector $p$ in GBA formalism) and protein mass concentrations. This file is useful to build predicted proteomics of a SRC model and compare it to experimental datasets.
-
-:warning: This file could only be obtained with biological knowledge of the constructed SRC model, see the Python module <a href="https://github.com/charlesrocabert/gbapy" target="_blank">gbapy</a>.
+> [!WARNING]  
+> This sheet can only be obtained with biological knowledge of the constructed SRC model, see <a href="https://github.com/charlesrocabert/gbammsyn/tree/main/pipeline" target="_blank">the genome-scale tutorial</a>.
 
 Here is an example:
 
@@ -192,3 +200,4 @@ Here is an example:
 | DADNK        | protein_0382 | 1.0208683119101258 |
 | DADNabc      | protein_0008 | 0.1358904650088565 |
 | DADNabc      | protein_0009 | 0.3862941601280572 |
+
