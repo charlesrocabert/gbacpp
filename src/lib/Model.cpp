@@ -648,11 +648,13 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   }
   save_q(nb_iterations, t, dt, output_path, condition);
   gsl_vector_free(previous_q_trunc);
+  gsl_vector_free(hessian_previous_q_trunc);
   gsl_vector_free(previous_Gamma_trunc);
   gsl_vector_free(scaled_Gammadt_trunc);
-  previous_q_trunc     = NULL;
-  previous_Gamma_trunc = NULL;
-  scaled_Gammadt_trunc = NULL;
+  previous_q_trunc         = NULL;
+  hessian_previous_q_trunc = NULL;
+  previous_Gamma_trunc     = NULL;
+  scaled_Gammadt_trunc     = NULL;
   if (write_trajectory)
   {
     write_trajectory_output_files(condition, nb_iterations, t, dt);
