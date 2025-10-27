@@ -512,6 +512,8 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   double dt            = 0.01;
   int    dt_counter    = 0;
   int    nb_iterations = 0;
+  double nb_successes  = 0.0;
+  double nb_fails      = 0.0;
   _convergence_count   = 0;
   _mu_diff             = 0.0;
   _mu_rel_diff         = 0.0;
@@ -537,7 +539,6 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   gsl_vector_memcpy(previous_q_trunc, _q_trunc);
   //gsl_vector* hessian_previous_q_trunc = gsl_vector_alloc(_nj-1);
   //gsl_vector* previous_Gamma_trunc     = gsl_vector_alloc(_nj-1);
-  
   //gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
   //gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
   if (write_trajectory)
@@ -603,16 +604,17 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       //gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
       //gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
       dt_counter++;
-      t            = t+dt;
-      _mu_diff     = fabs(_mu-previous_mu);
-      _mu_rel_diff = fabs(_mu-previous_mu)/previous_mu;
+      nb_successes += 1.0;
+      t            += dt;
+      _mu_diff      = fabs(_mu-previous_mu);
+      _mu_rel_diff  = fabs(_mu-previous_mu)/previous_mu;
       if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
       {
         save_q(nb_iterations, t, dt, output_path, condition);
         write_trajectory_output_files(condition, nb_iterations, t, dt);
         if (extra_verbose)
         {
-          std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", mu_diff=" << _mu_diff << ", rel_diff=" << _mu_rel_diff << ", conv=" << _convergence_count << ", dt=" << dt << ")" << std::endl;
+          std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", mu_diff=" << _mu_diff << ", rel_diff=" << _mu_rel_diff << ", conv=" << _convergence_count << ", dt=" << dt << ", s_rate=" << nb_successes/(nb_successes+nb_fails) << ")" << std::endl;
         }
       }
       if (_mu_rel_diff < _mu_tol)
@@ -635,6 +637,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     }
     else
     {
+      nb_fails += 1.0;
       gsl_vector_memcpy(_q_trunc, previous_q_trunc);
       calculate_q_from_q_trunc();
       calculate();
