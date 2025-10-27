@@ -96,8 +96,8 @@ public:
   void read_from_csv( void );
   void read_random_solutions( void );
   
-  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
-  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool use_previous_sol, bool verbose, bool extra_verbose );
+  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
+  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool use_previous_sol, bool verbose, bool extra_verbose );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -112,7 +112,7 @@ protected:
   bool is_path_exist( std::string path );
   bool is_file_exist( std::string filename );
   
-  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int stable_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
+  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
   
   void open_trajectory_output_files( std::string output_path, std::string condition, bool append );
   void write_trajectory_output_files( std::string condition, int iter, double t, double dt );
@@ -254,16 +254,16 @@ protected:
   
   /*----------------------------------------------- Variables for calculation optimization */
   
-  gsl_vector_view _x_view;       /*!< x segment view of vector xc                 */
-  gsl_vector_view _c_view;       /*!< c segment view of vector xc                 */
-  double          _dmu_dq_term1; /*!< Variable for the calculation of dmu_dq      */
-  gsl_vector*     _dmu_dq_term2; /*!< Variable for the calculation of dmu_dq      */
-  gsl_matrix*     _dmu_dq_term3; /*!< Variable for the calculation of dmu_dq      */
-  gsl_vector*     _dmu_dq_term4; /*!< Variable for the calculation of dmu_dq      */
-  gsl_vector*     _dmu_dq_term5; /*!< Variable for the calculation of dmu_dq      */
-  int             _stable_count; /*!< Stable mu count (convergence metric)        */
-  double          _mu_diff;      /*!< Next mu to current mu differential          */
-  double          _mu_rel_diff;  /*!< Next mu to current mu relative differential */
+  gsl_vector_view _x_view;            /*!< x segment view of vector xc                 */
+  gsl_vector_view _c_view;            /*!< c segment view of vector xc                 */
+  double          _dmu_dq_term1;      /*!< Variable for the calculation of dmu_dq      */
+  gsl_vector*     _dmu_dq_term2;      /*!< Variable for the calculation of dmu_dq      */
+  gsl_matrix*     _dmu_dq_term3;      /*!< Variable for the calculation of dmu_dq      */
+  gsl_vector*     _dmu_dq_term4;      /*!< Variable for the calculation of dmu_dq      */
+  gsl_vector*     _dmu_dq_term5;      /*!< Variable for the calculation of dmu_dq      */
+  int             _convergence_count; /*!< Stable mu count (convergence metric)        */
+  double          _mu_diff;           /*!< Next mu to current mu differential          */
+  double          _mu_rel_diff;       /*!< Next mu to current mu relative differential */
   
   /*----------------------------------------------- Solutions */
   
