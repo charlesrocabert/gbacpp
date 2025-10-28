@@ -85,6 +85,7 @@ public:
   
   inline void set_tol( double tol );
   inline void set_mu_tol( double mu_tol );
+  inline void set_q_tol( double q_tol );
   inline void set_condition( std::string condition );
   inline void initialize_q( void );
   inline void calculate_q_from_q_trunc( void );
@@ -184,6 +185,7 @@ protected:
   
   double _tol;    /*!< Tolerance value    */
   double _mu_tol; /*!< Mu tolerance value */
+  double _q_tol;  /*!< Q tolerance value  */
   
   /*----------------------------------------------- Identifier lists */
   
@@ -336,6 +338,21 @@ inline void Model::set_mu_tol( double mu_tol )
     throw std::invalid_argument("> Error: mu tolerance value is too low ("+std::to_string(mu_tol)+")");
   }
   _mu_tol = mu_tol;
+}
+
+/**
+ * \brief    Set the q tolerance value
+ * \details  --
+ * \param    double q_tol
+ * \return   \e void
+ */
+inline void Model::set_q_tol( double q_tol )
+{
+  if (q_tol <= 0.0)
+  {
+    throw std::invalid_argument("> Error: q tolerance value is too low ("+std::to_string(q_tol)+")");
+  }
+  _q_tol = q_tol;
 }
 
 /**

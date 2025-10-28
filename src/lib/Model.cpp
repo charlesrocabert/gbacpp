@@ -598,10 +598,10 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
         write_trajectory_output_files(condition, nb_iterations, t, dt);
         if (extra_verbose)
         {
-          std::cout << " > Mu = " << _mu << " (iter=" << nb_iterations << ", max(q_diff)= " << _max_q_rel_diff << ", rel_diff=" << _mu_rel_diff << ", conv=" << _convergence_count << ", s_rate=" << nb_successes/(nb_successes+nb_fails) << ")" << std::endl;
+          std::cout << " > Mu = " << _mu << " (conv=" << _convergence_count << ", iter=" << nb_iterations << ", q_diff=" << _max_q_rel_diff << ", mu_diff=" << _mu_rel_diff << ", s_rate=" << nb_successes/(nb_successes+nb_fails) << ")" << std::endl;
         }
       }
-      if (_mu_rel_diff < _mu_tol)
+      if (_mu_rel_diff < _mu_tol && _max_q_rel_diff < _q_tol)
       {
         _convergence_count++;
       }
