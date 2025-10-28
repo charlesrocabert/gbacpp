@@ -130,6 +130,7 @@ Model::Model( std::string model_path, std::string model_name )
   _convergence_count = 0;
   _mu_diff           = 0.0;
   _mu_rel_diff       = 0.0;
+  _max_q_rel_diff    = 0.0;
   
   /*----------------------------------------------- Solutions */
   
@@ -345,7 +346,7 @@ void Model::read_random_solutions( void )
 void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
 {
   std::clock_t begin = clock();
-  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, convergence_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, convergence_count, max_iter, reload, restart, verbose, extra_verbose);
   std::clock_t end   = clock();
   double runtime     = double(end-begin)/CLOCKS_PER_SEC;
   if (write_optimum)
@@ -412,7 +413,7 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum
     }
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, convergence_count, max_iter, hessian, reload_local, restart_local, verbose, extra_verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, convergence_count, max_iter, reload_local, restart_local, verbose, extra_verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     if (write_optimum)
@@ -476,6 +477,195 @@ bool Model::is_file_exist( std::string filename )
  * \param    std::string output_path
  * \param    int convergence_count
  * \param    int max_iter
+ * \param    bool reload
+ * \param    bool restart
+ * \param    bool verbose
+ * \param    bool extra_verbose
+ * \return   \e bool
+ */
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool verbose, bool extra_verbose )
+{
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Check for parameter errors          */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
+  if (it==_condition_ids.end())
+  {
+    throw std::invalid_argument("> Error: Unknown condition");
+  }
+  if (!is_path_exist(output_path))
+  {
+    throw std::invalid_argument("> Error: Path '"+output_path+"' does not exist");
+  }
+  if (convergence_count < 0)
+  {
+    throw std::invalid_argument("> Error: The convergence_count count parameter must be positive or null");
+  }
+  if (max_iter <= 0)
+  {
+    throw std::invalid_argument("> Error: The maximum number of iterations must be positive");
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Initialize main variables           */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  if (write_trajectory)
+  {
+    bool append = reload && !restart;
+    open_trajectory_output_files(output_path, condition, append);
+  }
+  double previous_mu   = 0.0;
+  double t             = 0.0;
+  double dt            = 0.01;
+  int    dt_counter    = 0;
+  int    nb_iterations = 0;
+  double nb_successes  = 0.0;
+  double nb_fails      = 0.0;
+  _convergence_count   = 0;
+  _mu_diff             = 0.0;
+  _mu_rel_diff         = 0.0;
+  _max_q_rel_diff      = 0.0;
+  if (reload)
+  {
+    reload_q0(nb_iterations, t, dt, output_path, condition, restart);
+  }
+  _adjust_concentrations = false;
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Check for initial state consistency */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  set_condition(condition);
+  initialize_q();
+  calculate();
+  if (!_consistent)
+  {
+    throw std::runtime_error("> Error: The initial solution q0 is not consistent");
+  }
+  if (extra_verbose)
+  {
+    std::cout << " > Initial growth rate = " << _mu << std::endl;
+  }
+  if (write_trajectory)
+  {
+    write_trajectory_output_files(condition, nb_iterations, t, dt);
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 4) Start the gradient ascent algorithm */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  gsl_vector* previous_q_trunc     = gsl_vector_alloc(_nj-1);
+  gsl_vector* scaled_Gammadt_trunc = gsl_vector_alloc(_nj-1);
+  gsl_vector_memcpy(previous_q_trunc, _q_trunc);
+  while (nb_iterations < max_iter)
+  {
+    /*** 4.1) Calculate the next iteration ***/
+    nb_iterations++;
+    if (_convergence_count >= convergence_count)
+    {
+      break;
+    }
+    previous_mu = _mu;
+    block_reactions();
+    gsl_vector_view Gamma_trunc = gsl_vector_subvector(_Gamma, 1, _nj-1);
+    gsl_vector_memcpy(scaled_Gammadt_trunc, &Gamma_trunc.vector);
+    gsl_vector_scale(scaled_Gammadt_trunc, dt);
+    gsl_vector_add(_q_trunc, scaled_Gammadt_trunc);
+    calculate_q_from_q_trunc();
+    calculate();
+    /*** 4.2) The iteration is successful ***/
+    if (_consistent && _mu >= previous_mu)
+    {
+      /*************************************/
+      const double* q_data    = _q_trunc->data;
+      const size_t  q_stride  = _q_trunc->stride;
+      const double* qp_data   = previous_q_trunc->data;
+      const size_t  qp_stride = previous_q_trunc->stride;
+      _max_q_rel_diff         = 0.0;
+      for (int j = 0; j < _nj-1; j++)
+      {
+        double q_rel_diff = fabs(q_data[j*q_stride]-qp_data[j*qp_stride])/qp_data[j*qp_stride];
+        if (_max_q_rel_diff < q_rel_diff)
+        {
+          _max_q_rel_diff = q_rel_diff;
+        }
+      }
+      gsl_vector_memcpy(previous_q_trunc, _q_trunc);
+      dt_counter++;
+      nb_successes += 1.0;
+      t            += dt;
+      _mu_diff      = fabs(_mu-previous_mu);
+      _mu_rel_diff  = fabs(_mu-previous_mu)/previous_mu;
+      if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
+      {
+        save_q(nb_iterations, t, dt, output_path, condition);
+        write_trajectory_output_files(condition, nb_iterations, t, dt);
+        if (extra_verbose)
+        {
+          std::cout << " > Mu = " << _mu << " (iter=" << nb_iterations << ", max(q_diff)= " << _max_q_rel_diff << ", rel_diff=" << _mu_rel_diff << ", conv=" << _convergence_count << ", s_rate=" << nb_successes/(nb_successes+nb_fails) << ")" << std::endl;
+        }
+      }
+      if (_mu_rel_diff < _mu_tol)
+      {
+        _convergence_count++;
+      }
+      else
+      {
+        _convergence_count--;
+        if (_convergence_count < 0)
+        {
+          _convergence_count = 0;
+        }
+      }
+      if (dt_counter == INCREASING_DT_COUNT)
+      {
+        dt         *= INCREASING_DT_FACTOR;
+        dt_counter  = 0;
+      }
+    }
+    /*** 4.3) The iteration failed ***/
+    else
+    {
+      nb_fails += 1.0;
+      gsl_vector_memcpy(_q_trunc, previous_q_trunc);
+      calculate_q_from_q_trunc();
+      calculate();
+      assert(_consistent);
+      dt         /= DECREASING_DT_FACTOR;
+      dt_counter  = 0;
+      if (dt < 1e-100)
+      {
+        throw std::runtime_error("> Error: The timestep is too small (dt < 1e-100)");
+      }
+    }
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 5) Finalize the gradient ascent        */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  save_q(nb_iterations, t, dt, output_path, condition);
+  gsl_vector_free(previous_q_trunc);
+  gsl_vector_free(scaled_Gammadt_trunc);
+  previous_q_trunc     = NULL;
+  scaled_Gammadt_trunc = NULL;
+  if (write_trajectory)
+  {
+    write_trajectory_output_files(condition, nb_iterations, t, dt);
+    close_trajectory_ouput_files();
+  }
+  if (_convergence_count >= convergence_count)
+  {
+    return(true);
+  }
+  else
+  {
+    return(false);
+  }
+}
+
+/**
+ * \brief    Compute the gradient ascent trajectory with Hessian estimate
+ * \details  --
+ * \param    std::string condition
+ * \param    bool write_trajectory
+ * \param    std::string output_path
+ * \param    int convergence_count
+ * \param    int max_iter
  * \param    bool hessian
  * \param    bool reload
  * \param    bool restart
@@ -483,7 +673,7 @@ bool Model::is_file_exist( std::string filename )
  * \param    bool extra_verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
+bool Model::compute_gradient_ascent_hessian( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
 {
   auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
   if (it==_condition_ids.end())
@@ -719,7 +909,7 @@ void Model::open_trajectory_output_files( std::string output_path, std::string c
     /*~~~~~~~~~~~~~~~~~~*/
     /* 2) Write headers */
     /*~~~~~~~~~~~~~~~~~~*/
-    _state_trajectory_file << "condition;iter;t;dt;mu;density;consistent;mu_diff;mu_rel_diff;convergence_count\n";
+    _state_trajectory_file << "condition;iter;t;dt;mu;density;consistent;mu_diff;mu_rel_diff;max_q_rel_diff;convergence_count\n";
     _q_trajectory_file << "condition;iter;t;dt";
     _c_trajectory_file << "condition;iter;t;dt";
     _v_trajectory_file << "condition;iter;t;dt";
@@ -758,7 +948,7 @@ void Model::write_trajectory_output_files( std::string condition, int iter, doub
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Update state file               */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  _state_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << ";" << _mu_rel_diff << ";" << _convergence_count << "\n";
+  _state_trajectory_file << condition << ";" << iter << ";" << t << ";" << dt << ";" << _mu << ";" << _density << ";" << _consistent << ";" << _mu_diff << ";" << _mu_rel_diff << ";" << _max_q_rel_diff << ";" << _convergence_count << "\n";
   _state_trajectory_file.flush();
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Update metabolites related file */
