@@ -573,19 +573,23 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
     if (_consistent && _mu >= previous_mu)
     {
       /*************************************/
-      const double* q_data    = _q_trunc->data;
-      const size_t  q_stride  = _q_trunc->stride;
-      const double* qp_data   = previous_q_trunc->data;
-      const size_t  qp_stride = previous_q_trunc->stride;
-      _max_q_rel_diff         = 0.0;
-      for (int j = 0; j < _nj-1; j++)
+      _max_q_rel_diff = 0.0;
+      if (_q_tol < 1.0)
       {
-        double q_rel_diff = fabs(q_data[j*q_stride]-qp_data[j*qp_stride])/qp_data[j*qp_stride];
-        if (_max_q_rel_diff < q_rel_diff)
+        const double* q_data    = _q_trunc->data;
+        const size_t  q_stride  = _q_trunc->stride;
+        const double* qp_data   = previous_q_trunc->data;
+        const size_t  qp_stride = previous_q_trunc->stride;
+        for (int j = 0; j < _nj-1; j++)
         {
-          _max_q_rel_diff = q_rel_diff;
+          double q_rel_diff = fabs(q_data[j*q_stride]-qp_data[j*qp_stride]);//qp_data[j*qp_stride];
+          if (_max_q_rel_diff < q_rel_diff)
+          {
+            _max_q_rel_diff = q_rel_diff;
+          }
         }
       }
+      /*************************************/
       gsl_vector_memcpy(previous_q_trunc, _q_trunc);
       dt_counter++;
       nb_successes += 1.0;

@@ -68,7 +68,7 @@ int main(int argc, char const** argv)
   std::string output_path       = ".";
   double      tol               = 1e-10;
   double      mu_tol            = 1e-10;
-  double      q_tol             = 1e-10;
+  double      q_tol             = 10000;
   int         convergence_count = 10000;
   int         max_iter          = 100000000;
   bool        hessian           = false;
