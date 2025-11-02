@@ -8,6 +8,7 @@ scripts/**
 hpc/**
 output/**
 examples/output/**
+models/JCVISYN3A/**
 
 # Compilation products
 build/**
