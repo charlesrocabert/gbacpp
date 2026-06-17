@@ -2,7 +2,7 @@
  * \file      Model.hpp
  * \author    Charles Rocabert
  * \date      22-07-2024
- * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert.
+ * \copyright gbacpp. Copyright © 2024-2026 Charles Rocabert.
  * \license   GNU General Public License v3 (GPLv3)
  * \brief     Model class declaration
  */
@@ -10,8 +10,8 @@
 /************************************************************************
  * gbacpp (growth balance analysis for C++)
  * Web: https://github.com/charlesrocabert/gbacpp
- * Copyright © 2024-2025 Charles Rocabert.
- * 
+ * Copyright © 2024-2026 Charles Rocabert.
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or

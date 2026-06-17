@@ -2,7 +2,7 @@
  * \file      find_model_optimum.cpp
  * \author    Charles Rocabert
  * \date      22-07-2024
- * \copyright gbacpp. Copyright © 2024-2025 Charles Rocabert.
+ * \copyright gbacpp. Copyright © 2024-2026 Charles Rocabert.
  * \license   GNU General Public License v3 (GPLv3)
  * \brief     find_model_optimum executable
  */
@@ -10,8 +10,8 @@
 /************************************************************************
  * gbacpp (growth balance analysis for C++)
  * Web: https://github.com/charlesrocabert/gbacpp
- * Copyright © 2024-2025 Charles Rocabert.
- * 
+ * Copyright © 2024-2026 Charles Rocabert.
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -140,7 +140,7 @@ int main(int argc, char const** argv)
  * \param    double &tol
  * \param    double &mu_tol
  * \param    double &q_tol
- * \param    double &convergence_count
+ * \param    int &convergence_count
  * \param    int &max_iter
  * \param    bool &hessian
  * \param    bool &reload
@@ -208,7 +208,7 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
         counter++;
       }
     }
-    else if (strcmp(argv[i], "-print") == 0 || strcmp(argv[i], "--print-trajectory") == 0)
+    else if (strcmp(argv[i], "-print") == 0 || strcmp(argv[i], "--print-optimum") == 0)
     {
       print_optimum = true;
     }
@@ -272,7 +272,7 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
       }
       else
       {
-        convergence_count = atof(argv[i+1]);
+        convergence_count = atoi(argv[i+1]);
       }
     }
     else if (strcmp(argv[i], "-max") == 0 || strcmp(argv[i], "--max-iter") == 0)
@@ -334,7 +334,7 @@ void printUsage( void )
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Release)\n";
 #endif
   std::cout << "* Web: https://github.com/charlesrocabert/gbacpp\n";
-  std::cout << "* Copyright © 2024-2025 Charles Rocabert.\n";
+  std::cout << "* Copyright © 2024-2026 Charles Rocabert.\n";
   std::cout << "*\n";
   std::cout << "* This program is free software: you can redistribute it and/or modify\n";
   std::cout << "* it under the terms of the GNU General Public License as published by\n";
@@ -413,7 +413,7 @@ void printHeader( void )
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Release)\n";
 #endif
   std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                        \n";
-  std::cout << "* GPLv3 License © 2024-2025 Charles Rocabert.                           \n";
+  std::cout << "* GPLv3 License © 2024-2026 Charles Rocabert.                           \n";
   std::cout << "************************************************************************\n";
   std::cout << "\n";
 }
