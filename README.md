@@ -20,16 +20,16 @@
 -----------------
 
 <p align="justify">
-<strong>gbacpp</strong> is a C++ implementation of the growth balance analysis mathematical formalism (GBA; <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
+<strong>gbacpp</strong> is a C++ implementation of the growth balance analysis mathematical formalism (GBA; <a href="https://doi.org/10.1371/journal.pcbi.1011156">Dourado et al. 2023</a>).
 The software has been optimized to solve large-scale self-replicating cell (SRC) models, for which available solvers for non-linear constraint-based problems usually struggle.
 The optimization process relies on a gradient ascent approach, and is preferred for models offering a convex solution space.
 </p>
 
 
 > [!NOTE]
-> :ballot_box_with_check: Note that SRC models must comply to a standardized format. Guidelines are available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">SRC model format tutorial</a>.
+> :ballot_box_with_check: Note that SRC models must comply to a standardized format. Guidelines are available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md">SRC model format tutorial</a>.
 >
-> :ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
+> :ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb">units conversion tutorial</a>.
 > 
 > :ballot_box_with_check: The gradient ascent algorithm will be detailed in the documentation soon.
 > 
@@ -147,7 +147,7 @@ In <strong>gbacpp</strong>, gradient ascent is timestep-adaptive, ensuring solut
 
 ### 4.2) Code optimization <a name="optimization"></a>
 
-The gradient ascent implemented here relies on $\dfrac{\partial \mu}{\partial f}$, the growth rate derivative against the flux fraction vector $f$. As presented in <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. (2023)</a>, analytical expressions are available to explicitely calculate these values, while it requires heavy linear algebra.
+The gradient ascent implemented here relies on $\dfrac{\partial \mu}{\partial f}$, the growth rate derivative against the flux fraction vector $f$. As presented in <a href="https://doi.org/10.1371/journal.pcbi.1011156">Dourado et al. (2023)</a>, analytical expressions are available to explicitely calculate these values, while it requires heavy linear algebra.
 
 <strong>gbacpp</strong> combines two benefits of using C++. Compilers natively optimize calculations (<em>e.g.</em>, using vectorization), and we could strongly optimize calculations and memory management.
 This approach makes <strong>gbacpp</strong> a fast solution.
