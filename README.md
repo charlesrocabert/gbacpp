@@ -51,10 +51,8 @@ The optimization process relies on a gradient ascent approach, and is preferred 
   - [4.2) Code optimization](#optimization)
   - [4.3) Find an optimum](#find_optimum)
   - [4.4) Optimization parameters](#optimization_parameters)
-- [5) SRC model format tutorial](#src_model_format_tutorial)
-- [6) Units conversion tutorial](#units_conversion_tutorial)
-- [7) Copyright](#copyright)
-- [8) License](#license)
+- [5) Copyright](#copyright)
+- [6) License](#license)
 
 # 1) Roadmap <a name="roadmap"></a>
 
@@ -189,28 +187,12 @@ The command line parameters are described below. The description is also availab
 - <code>-previous</code>, <code>--use-previous-sol</code>: Indicates if the solution of the previous condition should be used to initiate the next (only works when <code>condition=all</code>)
 - <code>-v</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 - <code>-vv</code>, <code>--extra-verbose</code>: Indicates if the program should run in extra-verbose mode (can conflict with the option <code>-print</code>).
-  
-# 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
-A tutorial is available to better understand the content of a self-replicating cell model:
+# 5) Copyright <a name="copyright"></a>
 
-<p align="center">
-<a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">:link: SRC model format tutorial</a>
-</p>
+Copyright © 2024-2026 Charles Rocabert.
 
-# 6) Units conversion tutorial <a name="units_conversion_tutorial"></a>
-
-A tutorial is available for users starting from standard stoichiometric coefficients and kinetic parameters, and wanting to convert them into GBA formalism:
-
-<p align="center">
-<a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">:link: Units conversion tutorial</a>
-</p>
-
-# 7) Copyright <a name="copyright"></a>
-
-Copyright © 2024-2025 Charles Rocabert.
-
-# 8) License <a name="license"></a>
+# 7) License <a name="license"></a>
 
 <p align="justify">
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
