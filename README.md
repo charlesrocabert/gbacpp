@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/2a888a9f-1653-469a-9739-55f4cd9e3b21" width=200 />
+  <img src="https://github.com/user-attachments/assets/52797642-b9c8-4e38-84b5-3c3786171fa4" width=350 />
 
 </p>
 <h3 align="center">Growth Balance Analysis for C++</h3>
 
 <p align="center">
 <br />
-<a href="https://github.com/charlesrocabert/gbacpp/releases/latest"><img src="https://img.shields.io/github/release/charlesrocabert/gbacpp/all.svg" /></a>&nbsp;
+<a href="https://github.com/charlesrocabert/gbacpp/releases/latest"><img src="https://img.shields.io/github/v/release/charlesrocabert/gbacpp?include_prereleases" alt="GitHub release"></a>&nbsp;
 <a href="https://github.com/charlesrocabert/gbacpp/actions/workflows/cmake-multi-platform.yml"><img src="https://github.com/charlesrocabert/gbacpp/actions/workflows/cmake-multi-platform.yml/badge.svg" /></a>&nbsp;
 <a href="https://github.com/charlesrocabert/gbacpp/LICENSE.html"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 </p>
@@ -20,16 +20,16 @@
 -----------------
 
 <p align="justify">
-<strong>gbacpp</strong> is a C++ implementation of the growth balance analysis mathematical formalism (GBA; <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. 2023</a>).
+<strong>gbacpp</strong> is a C++ implementation of the growth balance analysis mathematical formalism (GBA; <a href="https://doi.org/10.1371/journal.pcbi.1011156">Dourado et al. 2023</a>).
 The software has been optimized to solve large-scale self-replicating cell (SRC) models, for which available solvers for non-linear constraint-based problems usually struggle.
 The optimization process relies on a gradient ascent approach, and is preferred for models offering a convex solution space.
 </p>
 
 
 > [!NOTE]
-> :ballot_box_with_check: Note that SRC models must comply to a standardized format. Guidelines are available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">SRC model format tutorial</a>.
+> :ballot_box_with_check: Note that SRC models must comply to a standardized format. Guidelines are available in the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md">SRC model format tutorial</a>.
 >
-> :ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">units conversion tutorial</a>.
+> :ballot_box_with_check: When building a SRC model, stoichiometric coefficients, and kinetic parameters must be converted following GBA formalism. See the <a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb">units conversion tutorial</a>.
 > 
 > :ballot_box_with_check: The gradient ascent algorithm will be detailed in the documentation soon.
 > 
@@ -51,10 +51,8 @@ The optimization process relies on a gradient ascent approach, and is preferred 
   - [4.2) Code optimization](#optimization)
   - [4.3) Find an optimum](#find_optimum)
   - [4.4) Optimization parameters](#optimization_parameters)
-- [5) SRC model format tutorial](#src_model_format_tutorial)
-- [6) Units conversion tutorial](#units_conversion_tutorial)
-- [7) Copyright](#copyright)
-- [8) License](#license)
+- [5) Copyright](#copyright)
+- [6) License](#license)
 
 # 1) Roadmap <a name="roadmap"></a>
 
@@ -149,7 +147,7 @@ In <strong>gbacpp</strong>, gradient ascent is timestep-adaptive, ensuring solut
 
 ### 4.2) Code optimization <a name="optimization"></a>
 
-The gradient ascent implemented here relies on $\dfrac{\partial \mu}{\partial f}$, the growth rate derivative against the flux fraction vector $f$. As presented in <a href="https://doi.org/10.1371/journal.pcbi.1011156" target="_blank">Dourado et al. (2023)</a>, analytical expressions are available to explicitely calculate these values, while it requires heavy linear algebra.
+The gradient ascent implemented here relies on $\dfrac{\partial \mu}{\partial f}$, the growth rate derivative against the flux fraction vector $f$. As presented in <a href="https://doi.org/10.1371/journal.pcbi.1011156">Dourado et al. (2023)</a>, analytical expressions are available to explicitely calculate these values, while it requires heavy linear algebra.
 
 <strong>gbacpp</strong> combines two benefits of using C++. Compilers natively optimize calculations (<em>e.g.</em>, using vectorization), and we could strongly optimize calculations and memory management.
 This approach makes <strong>gbacpp</strong> a fast solution.
@@ -189,28 +187,12 @@ The command line parameters are described below. The description is also availab
 - <code>-previous</code>, <code>--use-previous-sol</code>: Indicates if the solution of the previous condition should be used to initiate the next (only works when <code>condition=all</code>)
 - <code>-v</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 - <code>-vv</code>, <code>--extra-verbose</code>: Indicates if the program should run in extra-verbose mode (can conflict with the option <code>-print</code>).
-  
-# 5) SRC model format tutorial <a name="src_model_format_tutorial"></a>
 
-A tutorial is available to better understand the content of a self-replicating cell model:
+# 5) Copyright <a name="copyright"></a>
 
-<p align="center">
-<a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/src_model_format_tutorial.md" target="_blank">:link: SRC model format tutorial</a>
-</p>
+Copyright © 2024-2026 Charles Rocabert.
 
-# 6) Units conversion tutorial <a name="units_conversion_tutorial"></a>
-
-A tutorial is available for users starting from standard stoichiometric coefficients and kinetic parameters, and wanting to convert them into GBA formalism:
-
-<p align="center">
-<a href="https://github.com/charlesrocabert/gbacpp/blob/main/tutorials/units_conversion_tutorial.ipynb" target="_blank">:link: Units conversion tutorial</a>
-</p>
-
-# 7) Copyright <a name="copyright"></a>
-
-Copyright © 2024-2025 Charles Rocabert.
-
-# 8) License <a name="license"></a>
+# 7) License <a name="license"></a>
 
 <p align="justify">
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
