@@ -39,50 +39,33 @@ The optimization process relies on a gradient ascent approach, and is preferred 
 
 
 # Table of contents
-- [1) Roadmap](#roadmap)
-- [2) Contributing](#contributing)
-- [3) Installation instructions](#installation_instructions)
-  - [3.1) Supported platforms](#supported_platforms)
-  - [3.2) Dependencies](#dependencies)
-  - [3.3) Installation](#installation)
-  - [3.4) Manual software compilation](#manual_software_compilation)
-- [4) First usage](#first_usage)
-  - [4.1) Why using a gradient ascent](#gradient_ascent)
-  - [4.2) Code optimization](#optimization)
-  - [4.3) Find an optimum](#find_optimum)
-  - [4.4) Optimization parameters](#optimization_parameters)
-- [5) Copyright](#copyright)
-- [6) License](#license)
+- [Installation instructions](#installation_instructions)
+  - [Supported platforms](#supported_platforms)
+  - [Dependencies](#dependencies)
+  - [Installation](#installation)
+  - [Manual software compilation](#manual_software_compilation)
+- [First usage](#first_usage)
+  - [Why using a gradient ascent](#gradient_ascent)
+  - [Code optimization](#optimization)
+  - [Find an optimum](#find_optimum)
+  - [Optimization parameters](#optimization_parameters)
+- [Contributing](#contributing)
+- [Copyright](#copyright)
+- [License](#license)
 
-# 1) Roadmap <a name="roadmap"></a>
 
-| Task | Status |
-|---|---|
-| Gradient ascent (best for full column-rank SRC models with minimal support) | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Done-green.svg"/></a> |
-| Reload/restart a gradient ascent | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Done-green.svg"/></a> |
-| Improving gradient ascent stop criteria | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-Doing-yellow.svg"/></a> |
-| Introducing second derivatives in gradient ascent | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
-| Handling ODS models | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
-| MCMC algorithm | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
-| Forward-in-time population level simulations | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
-| Lineage tracking | <a href="https://postgresql.org"><img src="https://img.shields.io/badge/Status-To do-red.svg"/></a> |
-
-# 2) Contributing <a name="contributing"></a>
-
-If you wish to contribute, do not hesitate to reach <a href="mailto:charles DOT rocabert AT hhu DOT de">the developer</href>.
-
-# 3) Installation instructions <a name="installation_instructions"></a>
+# Installation instructions <a name="installation_instructions"></a>
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it to a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. Then follow the steps below to compile and build the executables.
 
-### 3.1) Supported platforms <a name="supported_platforms"></a>
+### Supported platforms <a name="supported_platforms"></a>
 <strong>gbacpp</strong> software has been primilary developed for Unix/Linux and macOS systems.
 
-### 3.2) Dependencies <a name="dependencies"></a>
+### Dependencies <a name="dependencies"></a>
 * A C++ compiler (GCC, LLVM, ...; C++17 required),
 * CMake $\geq$ 3.5 (command line version),
 * GSL $\geq$ 2.8 (https://www.gnu.org/software/gsl/).
 
-### 3.3) Installation <a name="installation"></a>
+### Installation <a name="installation"></a>
 
 <p align="justify">
 Download the <a href="https://github.com/charlesrocabert/gbacpp/releases/latest">latest release</a> of <strong>gbacpp</strong>, and save it into a directory of your choice. Open a terminal and use the <code>cd</code> command to navigate to this directory. To install <strong>gbacpp</strong>, simply call the script <code>install.sh</code> on the command line:
@@ -105,7 +88,7 @@ export PATH="/usr/bin:$PATH"
 > If you want to simply compile the software without installing it into your system, follow the next instructions.
 
 
-### 3.4) Manual software compilation <a name="manual_software_compilation"></a>
+### Manual software compilation <a name="manual_software_compilation"></a>
 
 #### • User mode
 To manually compile <strong>gbacpp</strong>, run the following instructions on the command line:
@@ -131,10 +114,10 @@ To clean compiled files and binary executables, run:
 
     bash make_clean.sh
 
-# 4) First usage <a name="first_usage"></a>
+# First usage <a name="first_usage"></a>
 Once <strong>gbacpp</strong> has been compiled and installed, follow the next steps for a first usage of the software.
 
-### 4.1) Why using a gradient ascent <a name="gradient_ascent"></a>
+### Why using a gradient ascent <a name="gradient_ascent"></a>
 
 Optimizing SRC models is a non-linear constraint-based problem. Solving such a task in much more difficult than linear problems (<em>e.g.</em> FBA problems).
 A few solvers are available, and can usually handle small SRC models. However, we noticed that these solvers tend to fail when solving larger GBA problems, and are unable to handle genome-scale models.
@@ -145,14 +128,14 @@ As GBA formalism provides analytical solutions to calculate the growth rate grad
 In <strong>gbacpp</strong>, gradient ascent is timestep-adaptive, ensuring solutions stay consistent. In particular, we have implemented controls when fluxes converge to zero to avoid algorithmic traps.
 -->
 
-### 4.2) Code optimization <a name="optimization"></a>
+### Code optimization <a name="optimization"></a>
 
 The gradient ascent implemented here relies on $\dfrac{\partial \mu}{\partial f}$, the growth rate derivative against the flux fraction vector $f$. As presented in <a href="https://doi.org/10.1371/journal.pcbi.1011156">Dourado et al. (2023)</a>, analytical expressions are available to explicitely calculate these values, while it requires heavy linear algebra.
 
 <strong>gbacpp</strong> combines two benefits of using C++. Compilers natively optimize calculations (<em>e.g.</em>, using vectorization), and we could strongly optimize calculations and memory management.
 This approach makes <strong>gbacpp</strong> a fast solution.
 
-### 4.3) Find an optimum <a name="find_optimum"></a>
+### Find an optimum <a name="find_optimum"></a>
 To run a gradient ascent optimization on a SRC model, execute the following command line:
 
     find_model_optimum <parameters>
@@ -161,7 +144,7 @@ The command line parameters are described below. The description is also availab
 
     find_model_optimum -h
 
-### 4.4) Optimization parameters <a name="optimization_parameters"></a>
+### Optimization parameters <a name="optimization_parameters"></a>
 
 - <code>-h</code>, <code>--help</code>: Print the help, then exit,
 - <code>-version</code>, <code>--version</code>: Print the current version, then exit,
@@ -188,11 +171,15 @@ The command line parameters are described below. The description is also availab
 - <code>-v</code>, <code>--verbose</code>: Indicates if the program should run in verbose mode (can conflict with the option <code>-print</code>).
 - <code>-vv</code>, <code>--extra-verbose</code>: Indicates if the program should run in extra-verbose mode (can conflict with the option <code>-print</code>).
 
-# 5) Copyright <a name="copyright"></a>
+# Contributing <a name="contributing"></a>
+
+If you wish to contribute, do not hesitate to reach <a href="mailto:charles DOT rocabert AT hhu DOT de">the developer</href>.
+
+# Copyright <a name="copyright"></a>
 
 Copyright © 2024-2026 Charles Rocabert.
 
-# 7) License <a name="license"></a>
+# License <a name="license"></a>
 
 <p align="justify">
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
