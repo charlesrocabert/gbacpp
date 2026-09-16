@@ -3,11 +3,9 @@
 *.Rhistory
 *.Rapp.history
 clean_folders.sh
+copy_mmsyn_model.sh
 xcode/**
-scripts/**
-hpc/**
-output/**
-examples/output/**
+tests/**
 models/JCVISYN3A/**
 
 # Compilation products
