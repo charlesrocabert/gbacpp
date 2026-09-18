@@ -1,10 +1,10 @@
 /**
- * \file      find_model_optimum.cpp
+ * \file      gba_GA.cpp
  * \author    Charles Rocabert
  * \date      22-07-2024
  * \copyright gbacpp. Copyright © 2024-2026 Charles Rocabert.
  * \license   GNU General Public License v3 (GPLv3)
- * \brief     find_model_optimum executable
+ * \brief     gba_GA executable
  */
 
 /************************************************************************
@@ -36,8 +36,8 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-#include "Config.h"
-//#include "../cmake/Config.h"
+//#include "Config.h"
+#include "../cmake/Config.h"
 #include "./lib/Macros.hpp"
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
@@ -350,8 +350,8 @@ void printUsage( void )
   std::cout << "* along with this program.  If not, see <https://www.gnu.org/licenses/>.\n";
   std::cout << "************************************************************************\n";
   std::cout << "\n";
-  std::cout << "Usage: find_model_optimum -h or --help\n";
-  std::cout << "   or: find_model_optimum [options]\n";
+  std::cout << "Usage: gba_GA -h or --help\n";
+  std::cout << "   or: gba_GA [options]\n";
   std::cout << "Options are:\n";
   std::cout << "  -h, --help\n";
   std::cout << "        print this help, then exit\n";
@@ -412,8 +412,21 @@ void printHeader( void )
 #ifdef NDEBUG
   std::cout << "* " << PACKAGE << " " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << " (Release)\n";
 #endif
-  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp                        \n";
-  std::cout << "* GPLv3 License © 2024-2026 Charles Rocabert.                           \n";
+  std::cout << "* Web: https://github.com/charlesrocabert/gbacpp\n";
+  std::cout << "* Copyright © 2024-2026 Charles Rocabert.\n";
+  std::cout << "*\n";
+  std::cout << "* This program is free software: you can redistribute it and/or modify\n";
+  std::cout << "* it under the terms of the GNU General Public License as published by\n";
+  std::cout << "* the Free Software Foundation, either version 3 of the License, or\n";
+  std::cout << "* (at your option) any later version.\n";
+  std::cout << "*\n";
+  std::cout << "* This program is distributed in the hope that it will be useful,\n";
+  std::cout << "* but WITHOUT ANY WARRANTY; without even the implied warranty of\n";
+  std::cout << "* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n";
+  std::cout << "* GNU General Public License for more details.\n";
+  std::cout << "*\n";
+  std::cout << "* You should have received a copy of the GNU General Public License\n";
+  std::cout << "* along with this program.  If not, see <https://www.gnu.org/licenses/>.\n";
   std::cout << "************************************************************************\n";
   std::cout << "\n";
 }
