@@ -131,11 +131,6 @@ Model::Model( std::string model_path, std::string model_name )
   _mu_diff           = 0.0;
   _mu_rel_diff       = 0.0;
   _max_q_rel_diff    = 0.0;
-  
-  /*----------------------------------------------- Solutions */
-  
-  _nb_random_solutions = 0;
-  _random_solutions.clear();
 }
 
 /*----------------------------
@@ -237,16 +232,6 @@ Model::~Model( void )
   _dmu_dq_term3 = NULL;
   _dmu_dq_term4 = NULL;
   _dmu_dq_term5 = NULL;
-  
-  /*----------------------------------------------- Solutions */
-  
-  for (int i = 0; i < _nb_random_solutions; i++)
-  {
-    gsl_vector_free(_random_solutions[i]);
-    _random_solutions[i] = NULL;
-  }
-  _nb_random_solutions = 0;
-  _random_solutions.clear();
 }
 
 /*----------------------------
@@ -276,57 +261,6 @@ void Model::read_from_csv( void )
 }
 
 /**
- * \brief    Read pre-generated random solutions
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::read_random_solutions( void )
-{
-  assert(_random_solutions.size()==0);
-  assert(is_path_exist(_model_path+"/"+_model_name));
-  assert(is_file_exist(_model_path+"/"+_model_name+"/random_solutions.csv"));
-  std::ifstream file(_model_path+"/"+_model_name+"/random_solutions.csv", std::ios::in);
-  assert(file);
-  std::string line;
-  std::string str_value;
-  getline(file, line);
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Load the header and parse reaction indices */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  std::vector<std::string> header;
-  std::stringstream flux(line.c_str());
-  while(getline(flux, str_value, ';'))
-  {
-    header.push_back(str_value);
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Parse each random solution                 */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  _nb_random_solutions = 0;
-  while(getline(file, line))
-  {
-    /*** 2.1) Initialize the new solution vector ***/
-    _random_solutions[_nb_random_solutions] = gsl_vector_alloc(_nj);
-    gsl_vector_set_zero(_random_solutions[_nb_random_solutions]);
-    /*** 2.2) Parse the line ***/
-    std::stringstream flux(line.c_str());
-    int pos = 0;
-    while(getline(flux, str_value, ';'))
-    {
-      if (_reaction_indices.find(header[pos]) != _reaction_indices.end())
-      {
-        gsl_vector_set(_random_solutions[_nb_random_solutions], _reaction_indices[header[pos]], stod(str_value));
-      }
-      pos++;
-    }
-    /*** 2.3) Update the number of random solutions ***/
-    _nb_random_solutions++;
-  }
-  file.close();
-}
-
-/**
  * \brief    Compute the optimum for one condition
  * \details  --
  * \param    std::string condition
@@ -336,17 +270,16 @@ void Model::read_random_solutions( void )
  * \param    std::string output_path
  * \param    int convergence_count
  * \param    int max_iter
- * \param    bool hessian
  * \param    bool reload
  * \param    bool restart
  * \param    bool verbose
  * \param    bool extra_verbose
  * \return   \e bool
  */
-void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
+void Model::compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool verbose, bool extra_verbose )
 {
   std::clock_t begin = clock();
-  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, convergence_count, max_iter, reload, restart, verbose, extra_verbose);
+  bool converged     = compute_gradient_ascent(condition, write_trajectory, output_path, convergence_count, max_iter, reload, restart, extra_verbose);
   std::clock_t end   = clock();
   double runtime     = double(end-begin)/CLOCKS_PER_SEC;
   if (write_optimum)
@@ -378,7 +311,6 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
  * \param    std::string output_path
  * \param    int convergence_count
  * \param    int max_iter
- * \param    bool hessian
  * \param    bool reload
  * \param    bool restart
  * \param    bool use_previous_sol
@@ -386,7 +318,7 @@ void Model::compute_optimum( std::string condition, bool print_optimum, bool wri
  * \param    bool extra_verbose
  * \return   \e bool
  */
-void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool use_previous_sol, bool verbose, bool extra_verbose )
+void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool use_previous_sol, bool verbose, bool extra_verbose )
 {
   if (write_optimum)
   {
@@ -413,7 +345,7 @@ void Model::compute_optimum_by_condition( bool print_optimum, bool write_optimum
     }
     std::clock_t begin     = clock();
     std::string  condition = _condition_ids[i];
-    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, convergence_count, max_iter, reload_local, restart_local, verbose, extra_verbose);
+    bool         converged = compute_gradient_ascent(condition, write_trajectory, output_path, convergence_count, max_iter, reload_local, restart_local, extra_verbose);
     std::clock_t end       = clock();
     double       runtime   = double(end-begin)/CLOCKS_PER_SEC;
     if (write_optimum)
@@ -480,10 +412,9 @@ bool Model::is_file_exist( std::string filename )
  * \param    bool reload
  * \param    bool restart
  * \param    bool verbose
- * \param    bool extra_verbose
  * \return   \e bool
  */
-bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool verbose, bool extra_verbose )
+bool Model::compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool verbose )
 {
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 1) Check for parameter errors          */
@@ -539,7 +470,7 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   {
     throw std::runtime_error("> Error: The initial solution q0 is not consistent");
   }
-  if (extra_verbose)
+  if (verbose)
   {
     std::cout << " > Initial growth rate = " << _mu << std::endl;
   }
@@ -600,12 +531,12 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
       {
         save_q(nb_iterations, t, dt, output_path, condition);
         write_trajectory_output_files(condition, nb_iterations, t, dt);
-        if (extra_verbose)
+        if (verbose)
         {
           std::cout << " > Mu = " << _mu << " (conv=" << _convergence_count << ", iter=" << nb_iterations << ", q_diff=" << _max_q_rel_diff << ", mu_diff=" << _mu_rel_diff << ", s_rate=" << nb_successes/(nb_successes+nb_fails) << ")" << std::endl;
         }
       }
-      if (_mu_rel_diff < _mu_tol && _max_q_rel_diff < _q_tol)
+      if (_mu_diff < _mu_tol && _max_q_rel_diff < _q_tol)
       {
         _convergence_count++;
       }
@@ -647,212 +578,6 @@ bool Model::compute_gradient_ascent( std::string condition, bool write_trajector
   gsl_vector_free(scaled_Gammadt_trunc);
   previous_q_trunc     = NULL;
   scaled_Gammadt_trunc = NULL;
-  if (write_trajectory)
-  {
-    write_trajectory_output_files(condition, nb_iterations, t, dt);
-    close_trajectory_ouput_files();
-  }
-  if (_convergence_count >= convergence_count)
-  {
-    return(true);
-  }
-  else
-  {
-    return(false);
-  }
-}
-
-/**
- * \brief    Compute the gradient ascent trajectory with Hessian estimate
- * \details  --
- * \param    std::string condition
- * \param    bool write_trajectory
- * \param    std::string output_path
- * \param    int convergence_count
- * \param    int max_iter
- * \param    bool hessian
- * \param    bool reload
- * \param    bool restart
- * \param    bool verbose
- * \param    bool extra_verbose
- * \return   \e bool
- */
-bool Model::compute_gradient_ascent_hessian( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose )
-{
-  auto it = std::find(_condition_ids.begin(), _condition_ids.end(), condition);
-  if (it==_condition_ids.end())
-  {
-    throw std::invalid_argument("> Error: Unknown condition");
-  }
-  if (!is_path_exist(output_path))
-  {
-    throw std::invalid_argument("> Error: Path '"+output_path+"' does not exist");
-  }
-  if (convergence_count < 0)
-  {
-    throw std::invalid_argument("> Error: The convergence_count count parameter must be positive or null");
-  }
-  if (max_iter <= 0)
-  {
-    throw std::invalid_argument("> Error: The maximum number of iterations must be positive");
-  }
-  if (write_trajectory)
-  {
-    bool append = reload && !restart;
-    open_trajectory_output_files(output_path, condition, append);
-  }
-  double previous_mu   = 0.0;
-  double t             = 0.0;
-  double dt            = 0.01;
-  int    dt_counter    = 0;
-  int    nb_iterations = 0;
-  double nb_successes  = 0.0;
-  double nb_fails      = 0.0;
-  _convergence_count   = 0;
-  _mu_diff             = 0.0;
-  _mu_rel_diff         = 0.0;
-  if (reload)
-  {
-    reload_q0(nb_iterations, t, dt, output_path, condition, restart);
-  }
-  _adjust_concentrations = false;
-  set_condition(condition);
-  initialize_q();
-  calculate();
-  if (!_consistent)
-  {
-    throw std::runtime_error("> Error: The initial solution q0 is not consistent");
-  }
-  if (extra_verbose)
-  {
-    std::cout << " > Initial growth rate = " << _mu << std::endl;
-  }
-  gsl_vector* previous_q_trunc     = gsl_vector_alloc(_nj-1);
-  gsl_vector* scaled_Gammadt_trunc = gsl_vector_alloc(_nj-1);
-  gsl_vector_view Gamma_trunc      = gsl_vector_subvector(_Gamma, 1, _nj-1);
-  gsl_vector_memcpy(previous_q_trunc, _q_trunc);
-  //gsl_vector* hessian_previous_q_trunc = gsl_vector_alloc(_nj-1);
-  //gsl_vector* previous_Gamma_trunc     = gsl_vector_alloc(_nj-1);
-  //gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
-  //gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
-  if (write_trajectory)
-  {
-    write_trajectory_output_files(condition, nb_iterations, t, dt);
-  }
-  while (nb_iterations < max_iter)
-  {
-    nb_iterations++;
-    if (_convergence_count >= convergence_count)
-    {
-      break;
-    }
-    previous_mu = _mu;
-    block_reactions();
-    gsl_vector_view Gamma_trunc = gsl_vector_subvector(_Gamma, 1, _nj-1);
-    /*
-    if (hessian)
-    {
-      double alpha = 1.0;
-      for (int j = 0; j < _nj-1; j++)
-      {
-        double gamma_j          = gsl_vector_get(&Gamma_trunc.vector, j);
-        double previous_gamma_j = gsl_vector_get(previous_Gamma_trunc, j);
-        double f_j              = gsl_vector_get(_q_trunc, j);
-        double previous_f_j     = gsl_vector_get(hessian_previous_q_trunc, j);
-        double gamma_diff       = fabs(gamma_j-previous_gamma_j);
-        double f_diff           = fabs(f_j-previous_f_j);
-        double h_j              = gamma_diff/f_diff;
-        if (h_j < H_MIN)
-        {
-          h_j = H_MIN;
-        }
-        double h_j_inv = 1.0/h_j;
-        if (h_j_inv > 1e+2)
-        {
-          h_j_inv = 1e+2;
-        }
-        double rescaled_gamma_j = gamma_j*h_j_inv;
-        if (f_diff > H_MIN)
-        {
-          gsl_vector_set(scaled_Gammadt_trunc, j, alpha*rescaled_gamma_j+(1-alpha)*gamma_j);
-        }
-        else
-        {
-          gsl_vector_set(scaled_Gammadt_trunc, j, gamma_j);
-        }
-      }
-    }
-    else
-    {
-      gsl_vector_memcpy(scaled_Gammadt_trunc, &Gamma_trunc.vector);
-    }
-     */
-    gsl_vector_memcpy(scaled_Gammadt_trunc, &Gamma_trunc.vector);
-    gsl_vector_scale(scaled_Gammadt_trunc, dt);
-    gsl_vector_add(_q_trunc, scaled_Gammadt_trunc);
-    calculate_q_from_q_trunc();
-    calculate();
-    if (_consistent && _mu >= previous_mu)
-    {
-      gsl_vector_memcpy(previous_q_trunc, _q_trunc);
-      //gsl_vector_memcpy(hessian_previous_q_trunc, previous_q_trunc);
-      //gsl_vector_memcpy(previous_Gamma_trunc, &Gamma_trunc.vector);
-      dt_counter++;
-      nb_successes += 1.0;
-      t            += dt;
-      _mu_diff      = fabs(_mu-previous_mu);
-      _mu_rel_diff  = fabs(_mu-previous_mu)/previous_mu;
-      if (write_trajectory && nb_iterations%EXPORT_DATA_COUNT == 0)
-      {
-        save_q(nb_iterations, t, dt, output_path, condition);
-        write_trajectory_output_files(condition, nb_iterations, t, dt);
-        if (extra_verbose)
-        {
-          std::cout << " > Growth rate = " << _mu << " (iter=" << nb_iterations << ", mu_diff=" << _mu_diff << ", rel_diff=" << _mu_rel_diff << ", conv=" << _convergence_count << ", dt=" << dt << ", s_rate=" << nb_successes/(nb_successes+nb_fails) << ")" << std::endl;
-        }
-      }
-      if (_mu_rel_diff < _mu_tol)
-      {
-        _convergence_count++;
-      }
-      else
-      {
-        _convergence_count--;
-        if (_convergence_count < 0)
-        {
-          _convergence_count = 0;
-        }
-      }
-      if (dt_counter == INCREASING_DT_COUNT)
-      {
-        dt         *= INCREASING_DT_FACTOR;
-        dt_counter  = 0;
-      }
-    }
-    else
-    {
-      nb_fails += 1.0;
-      gsl_vector_memcpy(_q_trunc, previous_q_trunc);
-      calculate_q_from_q_trunc();
-      calculate();
-      assert(_consistent);
-      dt         /= DECREASING_DT_FACTOR;
-      dt_counter  = 0;
-      if (dt < 1e-100)
-      {
-        throw std::runtime_error("> Error: The timestep is too small (1e-100)");
-      }
-    }
-  }
-  save_q(nb_iterations, t, dt, output_path, condition);
-  gsl_vector_free(previous_q_trunc);
-  gsl_vector_free(scaled_Gammadt_trunc);
-  previous_q_trunc     = NULL;
-  scaled_Gammadt_trunc = NULL;
-  //gsl_vector_free(hessian_previous_q_trunc);
-  //gsl_vector_free(previous_Gamma_trunc);
-  //hessian_previous_q_trunc = NULL;
-  //previous_Gamma_trunc     = NULL;
   if (write_trajectory)
   {
     write_trajectory_output_files(condition, nb_iterations, t, dt);
@@ -2179,26 +1904,26 @@ void Model::diMM( int j )
   size_t  xc_stride = _xc->stride;
   double  kcatf     = gsl_vector_get(_kcat_f, j);
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate kinetics             */
+  /* 2) Prepare product variables      */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  double KM_prod_y_total = 1.0;
+  for (int i = 0; i < _ni; i++)
+  {
+    KM_prod_y_total *= 1.0 + km_data[i * km_stride]/xc_data[i * xc_stride];
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Calculate kinetics             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y         = i+_nx;
     double ci        = c_data[i * c_stride];
     double KM_c2     = km_data[y * km_stride]/(ci*ci);
-    double KM_prod_y = 1.0;
-    for (int index = 0; index < y; index++)
-    {
-      KM_prod_y *= 1.0 + km_data[index * km_stride]/xc_data[index * xc_stride];
-    }
-    for (int index = y+1; index < _ni; index++)
-    {
-      KM_prod_y *= 1.0 + km_data[index * km_stride]/xc_data[index * xc_stride];
-    }
+    double KM_prod_y = KM_prod_y_total/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
     gsl_matrix_set(_ditau_j, j, i, -KM_c2*KM_prod_y/kcatf);
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Manage pointers                */
+  /* 4) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   km_data = NULL;
   c_data  = NULL;
@@ -2228,7 +1953,7 @@ void Model::diMMi( int j )
   double  prod_KI   = 1.0;
   double  prod_KM_f = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate kinetics             */
+  /* 2) Prepare product variables      */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _ni; i++)
   {
@@ -2237,6 +1962,9 @@ void Model::diMMi( int j )
     prod_KI    *= 1.0 + xci*rKI;
     prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
   }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Calculate kinetics             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   // ditauj[i2] <- ( rKI[y,j] * prod_KM_f - prod_KI * (KS[y,j]/(c[i2]^2)) * prod(1 + KS[-y,j]/xc[-y]) )/kcatf[j]
   for (int i = 0; i < _nc; i++)
   {
@@ -2244,19 +1972,11 @@ void Model::diMMi( int j )
     double rKI   = (ki_data[y * ki_stride] > _tol ? 1.0/ki_data[y * ki_stride] : 0.0);
     double ci    = c_data[i * c_stride];
     double term1 = km_data[y * km_stride]/(ci*ci);
-    double term2 = 1.0;
-    for (int index = 0; index < y; index++)
-    {
-      term2 *= 1.0 + km_data[index * km_stride]/xc_data[index * xc_stride];
-    }
-    for (int index = y+1; index < _ni; index++)
-    {
-      term2 *= 1.0 + km_data[index * km_stride]/xc_data[index * xc_stride];
-    }
+    double term2 = prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
     gsl_matrix_set(_ditau_j, j, i, (rKI*prod_KM_f-prod_KI*term1*term2)/kcatf);
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Manage pointers                */
+  /* 4) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   ki_data = NULL;
   km_data = NULL;
@@ -2287,7 +2007,7 @@ void Model::diMMa( int j )
   double  prod_KA   = 1.0;
   double  prod_KM_f = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate kinetics             */
+  /* 2) Prepare product variables      */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _ni; i++)
   {
@@ -2295,6 +2015,9 @@ void Model::diMMa( int j )
     prod_KA    *= 1.0 + ka_data[i * ka_stride]/xci;
     prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
   }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Calculate kinetics             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   // ditauj[i2] <- -as.numeric( term1*prod_KM_f + term2*prod_KA*term3 )/kcatf[j]
   for (int i = 0; i < _nc; i++)
   {
@@ -2302,19 +2025,11 @@ void Model::diMMa( int j )
     double ci    = c_data[i * c_stride];
     double term1 = ka_data[y * ka_stride]/(ci*ci);
     double term2 = km_data[y * km_stride]/(ci*ci);
-    double term3 = 1.0;
-    for (int index = 0; index < y; index++)
-    {
-      term3 *= 1.0 + km_data[index * km_stride]/xc_data[index * xc_stride];
-    }
-    for (int index = y+1; index < _ni; index++)
-    {
-      term3 *= 1.0 + km_data[index * km_stride]/xc_data[index * xc_stride];
-    }
+    double term3 = prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
     gsl_matrix_set(_ditau_j, j, i, -(term1*prod_KM_f+term2*prod_KA*term3)/kcatf);
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Manage pointers                */
+  /* 4) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   ka_data = NULL;
   km_data = NULL;
@@ -2348,7 +2063,7 @@ void Model::diMMia( int j )
   double  prod_KA   = 1.0;
   double  prod_KM_f = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate kinetics             */
+  /* 2) Prepare product variables      */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _ni; i++)
   {
@@ -2358,6 +2073,9 @@ void Model::diMMia( int j )
     prod_KA    *= 1.0 + ka_data[i * ka_stride]/xci;
     prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
   }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Calculate kinetics             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
     int    y     = i+_nx;
@@ -2365,19 +2083,11 @@ void Model::diMMia( int j )
     double ci    = c_data[i * c_stride];
     double term2 = -ka_data[y * ka_stride]/(ci*ci);
     double term3 = -km_data[y * km_stride]/(ci*ci);
-    double term4 = 1.0;
-    for (int index = 0; index < y; index++)
-    {
-      term4 *= 1.0 + km_data[index * km_stride]/xc_data[index * xc_stride];
-    }
-    for (int index = y+1; index < _ni; index++)
-    {
-      term4 *= 1.0 + km_data[index * km_stride]/xc_data[index * xc_stride];
-    }
+    double term4 = prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
     gsl_matrix_set(_ditau_j, j, i, (rKI*prod_KA*prod_KM_f+prod_KI*term2*prod_KM_f+prod_KI*prod_KA*term3*term4)/kcatf);
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Manage pointers                */
+  /* 4) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   ki_data = NULL;
   ka_data = NULL;
@@ -2410,7 +2120,7 @@ void Model::drMM( int j )
   double  prod_KM_f  = 1.0;
   double  prod_KM_b  = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate kinetics             */
+  /* 2) Prepare product variables      */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _ni; i++)
   {
@@ -2418,35 +2128,26 @@ void Model::drMM( int j )
     prod_KM_f  *= 1.0 + kmf_data[i * kmf_stride]/xci;
     prod_KM_b  *= 1.0 + kmb_data[i * kmb_stride]/xci;
   }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Calculate kinetics             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   //double tau_j_2 = 1.0 / gsl_pow_int(kcatf/prod_KM_f-kcatb/prod_KM_b, 2);
   double tau_j = 1.0/(kcatf/prod_KM_f-kcatb/prod_KM_b);
   for (int i = 0; i < _nc; i++)
   {
-    int    y     = i+_nx;
-    double ci    = c_data[i * c_stride];
-    double kmfy  = kmf_data[y * kmf_stride];
-    double kmby  = kmb_data[y * kmb_stride];
-    double term1 = kmfy/((ci+kmfy)*(ci+kmfy));
-    double term2 = kmby/((ci+kmby)*(ci+kmby));
-    double prodf  = 1.0;
-    double prodb  = 1.0;
-    for (int index = 0; index < y; index++)
-    {
-      double xcindex  = xc_data[index * xc_stride];
-      prodf          *= 1.0 + kmf_data[index * kmf_stride]/xcindex;
-      prodb          *= 1.0 + kmb_data[index * kmb_stride]/xcindex;
-    }
-    for (int index = y+1; index < _ni; index++)
-    {
-      double xcindex  = xc_data[index * xc_stride];
-      prodf          *= 1.0 + kmf_data[index * kmf_stride]/xcindex;
-      prodb          *= 1.0 + kmb_data[index * kmb_stride]/xcindex;
-    }
+    int    y      = i+_nx;
+    double ci     = c_data[i * c_stride];
+    double kmfy   = kmf_data[y * kmf_stride];
+    double kmby   = kmb_data[y * kmb_stride];
+    double term1  = kmfy/((ci+kmfy)*(ci+kmfy));
+    double term2  = kmby/((ci+kmby)*(ci+kmby));
+    double prodf  = prod_KM_f/(1.0 + kmf_data[y * kmf_stride]/xc_data[y * xc_stride]);
+    double prodb  = prod_KM_b/(1.0 + kmb_data[y * kmb_stride]/xc_data[y * xc_stride]);
     double ditauj = (kcatf/prodf)*term1 - (kcatb/prodb)*term2;
     gsl_matrix_set(_ditau_j, j, i, -ditauj*tau_j*tau_j);
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Manage pointers                */
+  /* 4) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   kmf_data = NULL;
   kmb_data = NULL;

@@ -95,10 +95,9 @@ public:
    *----------------------------*/
   
   void read_from_csv( void );
-  void read_random_solutions( void );
   
-  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
-  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool use_previous_sol, bool verbose, bool extra_verbose );
+  void compute_optimum( std::string condition, bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool verbose, bool extra_verbose );
+  void compute_optimum_by_condition( bool print_optimum, bool write_optimum, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool use_previous_sol, bool verbose, bool extra_verbose );
   
   /*----------------------------
    * PUBLIC ATTRIBUTES
@@ -113,8 +112,7 @@ protected:
   bool is_path_exist( std::string path );
   bool is_file_exist( std::string filename );
   
-  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool verbose, bool extra_verbose );
-  bool compute_gradient_ascent_hessian( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool hessian, bool reload, bool restart, bool verbose, bool extra_verbose );
+  bool compute_gradient_ascent( std::string condition, bool write_trajectory, std::string output_path, int convergence_count, int max_iter, bool reload, bool restart, bool verbose );
   
   void open_trajectory_output_files( std::string output_path, std::string condition, bool append );
   void write_trajectory_output_files( std::string condition, int iter, double t, double dt );
@@ -268,11 +266,6 @@ protected:
   double          _mu_diff;           /*!< Next mu to current mu differential            */
   double          _mu_rel_diff;       /*!< Next mu to current mu relative differential   */
   double          _max_q_rel_diff;    /*!< Next q to current q max relative differential */
-  
-  /*----------------------------------------------- Solutions */
-  
-  int                                  _nb_random_solutions; /*!< Number of random solutions */
-  std::unordered_map<int, gsl_vector*> _random_solutions;    /*!< List of random q vectors   */
   
   /*----------------------------------------------- Output files */
   

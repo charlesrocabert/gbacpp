@@ -42,7 +42,7 @@
 #include "./lib/Enums.hpp"
 #include "./lib/Model.hpp"
 
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, double &q_tol, int &convergence_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose );
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, double &q_tol, int &convergence_count, int &max_iter, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose );
 void printUsage( void );
 void printHeader( void );
 
@@ -71,13 +71,12 @@ int main(int argc, char const** argv)
   double      q_tol             = 10000;
   int         convergence_count = 10000;
   int         max_iter          = 100000000;
-  bool        hessian           = false;
   bool        reload            = false;
   bool        restart           = false;
   bool        use_previous_sol  = false;
   bool        verbose           = false;
   bool        extra_verbose     = false;
-  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, q_tol, convergence_count, max_iter, hessian, reload, restart, use_previous_sol, verbose, extra_verbose);
+  readArgs(argc, argv, model_path, model_name, condition, print_optimum, write_optimum, write_trajectory, output_path, tol, mu_tol, q_tol, convergence_count, max_iter, reload, restart, use_previous_sol, verbose, extra_verbose);
   if (condition != "all" && use_previous_sol)
   {
     throw std::invalid_argument("> Error: option -previous (--use-previous-sol) can only be used with condition \"all\"");
@@ -110,11 +109,11 @@ int main(int argc, char const** argv)
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   if (condition != "all")// && condition != "random")
   {
-    model->compute_optimum(condition, print_optimum, write_optimum, write_trajectory, output_path, convergence_count, max_iter, hessian, reload, restart, verbose, extra_verbose);
+    model->compute_optimum(condition, print_optimum, write_optimum, write_trajectory, output_path, convergence_count, max_iter, reload, restart, verbose, extra_verbose);
   }
   else
   {
-    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, convergence_count, max_iter, hessian, reload, restart, use_previous_sol, verbose, extra_verbose);
+    model->compute_optimum_by_condition(print_optimum, write_optimum, write_trajectory, output_path, convergence_count, max_iter, reload, restart, use_previous_sol, verbose, extra_verbose);
   }
   
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -142,7 +141,6 @@ int main(int argc, char const** argv)
  * \param    double &q_tol
  * \param    int &convergence_count
  * \param    int &max_iter
- * \param    bool &hessian
  * \param    bool &reload
  * \param    bool &restart
  * \param    bool &use_previous_sol
@@ -150,7 +148,7 @@ int main(int argc, char const** argv)
  * \param    bool &extra_verbose
  * \return   \e void
  */
-void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, double &q_tol, int &convergence_count, int &max_iter, bool &hessian, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose )
+void readArgs( int argc, char const** argv, std::string &model_path, std::string &model_name, std::string &condition, bool &print_optimum, bool &write_optimum, bool &write_trajectory, std::string &output_path, double &tol, double &mu_tol, double &q_tol, int &convergence_count, int &max_iter, bool &reload, bool &restart, bool &use_previous_sol, bool &verbose, bool &extra_verbose )
 {
   if (argc == 1)
   {
@@ -286,10 +284,6 @@ void readArgs( int argc, char const** argv, std::string &model_path, std::string
         max_iter = atoi(argv[i+1]);
       }
     }
-    else if (strcmp(argv[i], "-hessian") == 0 || strcmp(argv[i], "--hessian") == 0)
-    {
-      hessian = true;
-    }
     else if (strcmp(argv[i], "-reload") == 0 || strcmp(argv[i], "--reload") == 0)
     {
       reload = true;
@@ -381,8 +375,6 @@ void printUsage( void )
   std::cout << "        specify the number of iterations under mu tolerance needed to assume convergence\n";
   std::cout << "  -max, --max-iter\n";
   std::cout << "        specify the maximal number of iterations\n";
-  //std::cout << "  -hessian, --hessian\n";
-  //std::cout << "        indicates if the diagonal Hessian should be estimated\n";
   //std::cout << "  -reload, --reload\n";
   //std::cout << "        indicates if the last trajectory point should be used as q0\n";
   //std::cout << "  -restart, --restart\n";
