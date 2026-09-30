@@ -66,8 +66,8 @@ set(EXECUTABLE_OUTPUT_PATH ../build/bin)
 set(GA_EXECUTABLE gba_GA)
 add_executable(${GA_EXECUTABLE} src/gba_GA.cpp)
 
-set(MCMC_EXECUTABLE gba_MCMC)
-add_executable(${MCMC_EXECUTABLE} src/gba_MCMC.cpp)
+#set(MCMC_EXECUTABLE gba_MCMC)
+#add_executable(${MCMC_EXECUTABLE} src/gba_MCMC.cpp)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Find and link external libraries                                             #
@@ -76,7 +76,7 @@ find_package(GSL REQUIRED)
 if(GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
   target_link_libraries(${GA_EXECUTABLE} ${GSL_LIBRARIES})
-  target_link_libraries(${MCMC_EXECUTABLE} ${GSL_LIBRARIES})
+  #target_link_libraries(${MCMC_EXECUTABLE} ${GSL_LIBRARIES})
 endif(GSL_FOUND)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -91,7 +91,7 @@ add_library(
 )
 target_link_libraries(gbacpp PRIVATE GSL::gsl)
 target_link_libraries(${GA_EXECUTABLE} gbacpp)
-target_link_libraries(${MCMC_EXECUTABLE} gbacpp)
+#target_link_libraries(${MCMC_EXECUTABLE} gbacpp)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Build the Config.h file                                                      #
