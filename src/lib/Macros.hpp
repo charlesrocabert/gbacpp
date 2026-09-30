@@ -26,8 +26,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  ************************************************************************/
 
-#ifndef __gbacpp__Macros__
-#define __gbacpp__Macros__
+#ifndef GBACPP_LIB_MACROS_HPP
+#define GBACPP_LIB_MACROS_HPP
 
 
 #define DECREASING_DT_FACTOR 5.0    /*!< Timestep dividing factor                                  */
@@ -39,5 +39,5 @@
 #define EXPORT_DATA_COUNT    1000   /*!< Timestep window for data export                           */
 
 
-#endif /* defined(__gbacpp__Macros__) */
+#endif /* defined(GBACPP_LIB_MACROS_HPP) */
 

@@ -26,8 +26,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  ************************************************************************/
 
-#ifndef __gbacpp__Enums__
-#define __gbacpp__Enums__
+#ifndef GBACPP_LIB_ENUMS_HPP
+#define GBACPP_LIB_ENUMS_HPP
 
 
 /**
@@ -44,5 +44,5 @@ enum rtype
 };
 
 
-#endif /* defined(__gbacpp__Enums__) */
+#endif /* defined(GBACPP_LIB_ENUMS_HPP) */
 

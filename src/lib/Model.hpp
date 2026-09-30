@@ -27,8 +27,8 @@
  ************************************************************************/
 
 
-#ifndef __gbacpp__Model__
-#define __gbacpp__Model__
+#ifndef GBACPP_LIB_MODEL_HPP
+#define GBACPP_LIB_MODEL_HPP
 
 #include <iostream>
 #include <fstream>
@@ -416,4 +416,4 @@ inline void Model::calculate_q_from_q_trunc( void )
 }
 
 
-#endif /* defined(__gbacpp__Model__) */
+#endif /* defined(GBACPP_LIB_MODEL_HPP) */
