@@ -107,7 +107,8 @@ include_directories("${PROJECT_BINARY_DIR}")
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 install(
   TARGETS
-    ${OPTIMUM_EXECUTABLE}
+    ${GA_EXECUTABLE}
+    #${MCMC_EXECUTABLE}
   DESTINATION
     bin
 )
