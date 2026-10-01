@@ -144,20 +144,24 @@ protected:
   void initialize_dynamic_variables( void );
   
   void calculate( void );
+  
+  
   void compute_c( void );
   void compute_xc( void );
+  
+  void compute_tau_dtau( int j );
+  
   void iMM( int j );
-  void iMMi( int j );
-  void iMMa( int j );
-  void iMMia( int j );
-  void rMM( int j );
-  void compute_tau( int j );
   void diMM( int j );
+  void iMMi( int j );
   void diMMi( int j );
+  void iMMa( int j );
   void diMMa( int j );
+  void iMMia( int j );
   void diMMia( int j );
+  void rMM( int j );
   void drMM( int j );
-  void compute_dtau( int j );
+  
   void compute_mu( void );
   void compute_v( void );
   void compute_p( void );
@@ -165,8 +169,7 @@ protected:
   void compute_density( void );
   void compute_dmu_dq( void );
   void compute_Gamma( void );
-  void calculate_first_order_terms( void );
-  void calculate_second_order_terms( void );
+  
   void check_model_consistency( void );
   void block_reactions( void );
   
@@ -257,6 +260,10 @@ protected:
   
   gsl_vector_view _x_view;            /*!< x segment view of vector xc                   */
   gsl_vector_view _c_view;            /*!< c segment view of vector xc                   */
+  double          _prod_KM_f;         /*!< Variable for the calculation of tau and dtau  */
+  double          _prod_KM_b;         /*!< Variable for the calculation of tau and dtau  */
+  double          _prod_KI;           /*!< Variable for the calculation of tau and dtau  */
+  double          _prod_KA;           /*!< Variable for the calculation of tau and dtau  */
   double          _dmu_dq_term1;      /*!< Variable for the calculation of dmu_dq        */
   gsl_vector*     _dmu_dq_term2;      /*!< Variable for the calculation of dmu_dq        */
   gsl_matrix*     _dmu_dq_term3;      /*!< Variable for the calculation of dmu_dq        */

@@ -122,6 +122,10 @@ Model::Model( std::string model_path, std::string model_name )
   
   /*----------------------------------------------- Variables for calculation and optimization */
   
+  _prod_KM_f         = 1.0;
+  _prod_KM_b         = 1.0;
+  _prod_KI           = 1.0;
+  _prod_KA           = 1.0;
   _dmu_dq_term1      = 0.0;
   _dmu_dq_term2      = NULL;
   _dmu_dq_term3      = NULL;
@@ -1619,8 +1623,19 @@ void Model::initialize_dynamic_variables( void )
  */
 void Model::calculate( void )
 {
-  calculate_first_order_terms();
-  calculate_second_order_terms();
+  compute_c();
+  compute_xc();
+  for (int j = 0; j < _nj; j++)
+  {
+    compute_tau_dtau(j);
+  }
+  compute_mu();
+  compute_v();
+  compute_p();
+  compute_b();
+  compute_density();
+  compute_dmu_dq();
+  compute_Gamma();
   check_model_consistency();
 }
 
@@ -1658,6 +1673,43 @@ void Model::compute_xc( void )
 }
 
 /**
+ * \brief    Compute tau_j and ditau_j
+ * \details  --
+ * \param    int j
+ * \return   \e void
+ */
+void Model::compute_tau_dtau( int j )
+{
+  _prod_KM_f = 1.0;
+  _prod_KM_b = 1.0;
+  _prod_KI   = 1.0;
+  _prod_KA   = 1.0;
+  switch(_type[j])
+  {
+    case IMM:
+      iMM(j);
+      diMM(j);
+      break;
+    case IMMI:
+      iMMi(j);
+      diMMi(j);
+      break;
+    case IMMA:
+      iMMa(j);
+      diMMa(j);
+      break;
+    case IMMIA:
+      iMMia(j);
+      diMMia(j);
+      break;
+    case RMM:
+      rMM(j);
+      drMM(j);
+      break;
+  }
+}
+
+/**
  * \brief    Irreversible Michaelis-Menten kinetics
  * \details  Formula: tau_j = prod(1+Km_f[,j]/xc)/kcat_f[j]
  * \param    int j
@@ -1674,21 +1726,58 @@ void Model::iMM( int j )
   const double* xc_data   = _xc->data;
   const size_t  xc_stride = _xc->stride;
   double        kcatf     = gsl_vector_get(_kcat_f, j);
-  double        prod_KM_f = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate kinetics             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  _prod_KM_f = 1.0;
   for (int i = 0; i < _ni; i++)
   {
-    prod_KM_f *= 1.0 + km_data[i * km_stride]/xc_data[i * xc_stride];
+    _prod_KM_f *= 1.0 + km_data[i * km_stride]/xc_data[i * xc_stride];
   }
-  gsl_vector_set(_tau_j, j, prod_KM_f/kcatf);
+  gsl_vector_set(_tau_j, j, _prod_KM_f/kcatf);
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   km_data = NULL;
   xc_data = NULL;
   
+}
+
+/**
+ * \brief    Derivative of iMM with respect to metabolite concentrations
+ * \details  Formula: --
+ * \param    int j
+ * \return   \e void
+ */
+void Model::diMM( int j )
+{
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Initialize vectors and scalars */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  double* km_data   = gsl_matrix_const_column(_KM_f, j).vector.data;
+  size_t  km_stride = gsl_matrix_const_column(_KM_f, j).vector.stride;
+  double* c_data    = _c->data;
+  size_t  c_stride  = _c->stride;
+  double* xc_data   = _xc->data;
+  size_t  xc_stride = _xc->stride;
+  double  kcatf     = gsl_vector_get(_kcat_f, j);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Calculate kinetics             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  for (int i = 0; i < _nc; i++)
+  {
+    int    y         = i+_nx;
+    double ci        = c_data[i * c_stride];
+    double KM_c2     = km_data[y * km_stride]/(ci*ci);
+    double KM_prod_y = _prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
+    gsl_matrix_set(_ditau_j, j, i, -KM_c2*KM_prod_y/kcatf);
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Manage pointers                */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  km_data = NULL;
+  c_data  = NULL;
+  xc_data = NULL;
 }
 
 /**
@@ -1710,24 +1799,66 @@ void Model::iMMi( int j )
   const double* xc_data   = _xc->data;
   const size_t  xc_stride = _xc->stride;
   double        kcatf     = gsl_vector_get(_kcat_f, j);
-  double        prod_KI   = 1.0;
-  double        prod_KM_f = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate kinetics             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  _prod_KM_f = 1.0;
+  _prod_KI   = 1.0;
   for (int i = 0; i < _ni; i++)
   {
     double rKI  = (ki_data[i * ki_stride] > _tol ? 1.0/ki_data[i * ki_stride] : 0.0);
     double xci  = xc_data[i * xc_stride];
-    prod_KI    *= 1.0 + xci*rKI;
-    prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
+    _prod_KM_f *= 1.0 + km_data[i * km_stride]/xci;
+    _prod_KI   *= 1.0 + xci*rKI;
   }
-  gsl_vector_set(_tau_j, j, prod_KI*prod_KM_f/kcatf);
+  gsl_vector_set(_tau_j, j, _prod_KI*_prod_KM_f/kcatf);
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   ki_data = NULL;
   km_data = NULL;
+  xc_data = NULL;
+}
+
+/**
+ * \brief    Derivative of iMMi with respect to metabolite concentrations
+ * \details  Formula: --
+ * \param    int j
+ * \return   \e void
+ */
+void Model::diMMi( int j )
+{
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Initialize vectors and scalars */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  double* ki_data   = gsl_matrix_const_column(_KI, j).vector.data;
+  size_t  ki_stride = gsl_matrix_const_column(_KI, j).vector.stride;
+  double* km_data   = gsl_matrix_const_column(_KM_f, j).vector.data;
+  size_t  km_stride = gsl_matrix_const_column(_KM_f, j).vector.stride;
+  double* c_data    = _c->data;
+  size_t  c_stride  = _c->stride;
+  double* xc_data   = _xc->data;
+  size_t  xc_stride = _xc->stride;
+  double  kcatf     = gsl_vector_get(_kcat_f, j);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Calculate kinetics             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  // ditauj[i2] <- ( rKI[y,j] * prod_KM_f - prod_KI * (KS[y,j]/(c[i2]^2)) * prod(1 + KS[-y,j]/xc[-y]) )/kcatf[j]
+  for (int i = 0; i < _nc; i++)
+  {
+    int    y     = i+_nx;
+    double rKI   = (ki_data[y * ki_stride] > _tol ? 1.0/ki_data[y * ki_stride] : 0.0);
+    double ci    = c_data[i * c_stride];
+    double term1 = km_data[y * km_stride]/(ci*ci);
+    double term2 = _prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
+    gsl_matrix_set(_ditau_j, j, i, (rKI*_prod_KM_f-_prod_KI*term1*term2)/kcatf);
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Manage pointers                */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  ki_data = NULL;
+  km_data = NULL;
+  c_data  = NULL;
   xc_data = NULL;
 }
 
@@ -1750,23 +1881,66 @@ void Model::iMMa( int j )
   const double* xc_data   = _xc->data;
   const size_t  xc_stride = _xc->stride;
   double        kcatf     = gsl_vector_get(_kcat_f, j);
-  double        prod_KA   = 1.0;
-  double        prod_KM_f = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate kinetics             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  _prod_KM_f = 1.0;
+  _prod_KA   = 1.0;
   for (int i = 0; i < _ni; i++)
   {
     double xci  = xc_data[i * xc_stride];
-    prod_KA    *= 1.0 + ka_data[i * ka_stride]/xci;
-    prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
+    _prod_KM_f *= 1.0 + km_data[i * km_stride]/xci;
+    _prod_KA   *= 1.0 + ka_data[i * ka_stride]/xci;
+    
   }
-  gsl_vector_set(_tau_j, j, prod_KA*prod_KM_f/kcatf);
+  gsl_vector_set(_tau_j, j, _prod_KA*_prod_KM_f/kcatf);
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   ka_data = NULL;
   km_data = NULL;
+  xc_data = NULL;
+}
+
+/**
+ * \brief    Derivative of iMMa with respect to metabolite concentrations
+ * \details  Formula: --
+ * \param    int j
+ * \return   \e void
+ */
+void Model::diMMa( int j )
+{
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Initialize vectors and scalars */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  double* ka_data   = gsl_matrix_const_column(_KA, j).vector.data;
+  size_t  ka_stride = gsl_matrix_const_column(_KA, j).vector.stride;
+  double* km_data   = gsl_matrix_const_column(_KM_f, j).vector.data;
+  size_t  km_stride = gsl_matrix_const_column(_KM_f, j).vector.stride;
+  double* c_data    = _c->data;
+  size_t  c_stride  = _c->stride;
+  double* xc_data   = _xc->data;
+  size_t  xc_stride = _xc->stride;
+  double  kcatf     = gsl_vector_get(_kcat_f, j);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Calculate kinetics             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  // ditauj[i2] <- -as.numeric( term1*prod_KM_f + term2*prod_KA*term3 )/kcatf[j]
+  for (int i = 0; i < _nc; i++)
+  {
+    int    y     = i+_nx;
+    double ci    = c_data[i * c_stride];
+    double term1 = ka_data[y * ka_stride]/(ci*ci);
+    double term2 = km_data[y * km_stride]/(ci*ci);
+    double term3 = _prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
+    gsl_matrix_set(_ditau_j, j, i, -(term1*_prod_KM_f+term2*_prod_KA*term3)/kcatf);
+  }
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Manage pointers                */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  ka_data = NULL;
+  km_data = NULL;
+  c_data  = NULL;
   xc_data = NULL;
 }
 
@@ -1791,249 +1965,27 @@ void Model::iMMia( int j )
   const double* xc_data   = _xc->data;
   const size_t  xc_stride = _xc->stride;
   double        kcatf     = gsl_vector_get(_kcat_f, j);
-  double        prod_KI   = 1.0;
-  double        prod_KA   = 1.0;
-  double        prod_KM_f = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 2) Calculate kinetics             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  _prod_KM_f = 1.0;
+  _prod_KA   = 1.0;
+  _prod_KI   = 1.0;
   for (int i = 0; i < _ni; i++)
   {
     double rKI  = (ki_data[i * ki_stride] > _tol ? 1.0/ki_data[i * ki_stride] : 0.0);
     double xci  = xc_data[i * xc_stride];
-    prod_KI    *= 1.0 + xci*rKI;
-    prod_KA    *= 1.0 + ka_data[i * ka_stride]/xci;
-    prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
+    _prod_KM_f *= 1.0 + km_data[i * km_stride]/xci;
+    _prod_KA   *= 1.0 + ka_data[i * ka_stride]/xci;
+    _prod_KI   *= 1.0 + xci*rKI;
   }
-  gsl_vector_set(_tau_j, j, prod_KI*prod_KA*prod_KM_f/kcatf);
+  gsl_vector_set(_tau_j, j, _prod_KI*_prod_KA*_prod_KM_f/kcatf);
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   /* 3) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   ki_data = NULL;
   ka_data = NULL;
   km_data = NULL;
-  xc_data = NULL;
-}
-
-/**
- * \brief    Reversible Michaelis-Menten kinetics
- * \details  Formula: tau_j = 1/[ kcat_f[j]/prod(1+Km_f[,j]/xc) - kcat_b[j]/prod(1+Km_b[,j]/xc) ]
- * \param    int j
- * \return   \e void
- */
-void Model::rMM( int j )
-{
-  // rMM <- 1 / ( kcatf[j]/prod(1 + KS[,j]/xc) - kcatb[j]/prod(1 + KP[,j]/xc)  )
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Initialize vectors and scalars */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  const double* kmf_data   = gsl_matrix_const_column(_KM_f, j).vector.data;
-  const size_t  kmf_stride = gsl_matrix_const_column(_KM_f, j).vector.stride;
-  const double* kmb_data   = gsl_matrix_const_column(_KM_b, j).vector.data;
-  const size_t  kmb_stride = gsl_matrix_const_column(_KM_b, j).vector.stride;
-  const double* xc_data    = _xc->data;
-  const size_t  xc_stride  = _xc->stride;
-  double        kcatf      = gsl_vector_get(_kcat_f, j);
-  double        kcatb      = gsl_vector_get(_kcat_b, j);
-  double        prod_KM_f  = 1.0;
-  double        prod_KM_b  = 1.0;
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Calculate kinetics             */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  for (int i = 0; i < _ni; i++)
-  {
-    double xci  = xc_data[i * xc_stride];
-    prod_KM_f  *= 1.0 + kmf_data[i * kmf_stride]/xci;
-    prod_KM_b  *= 1.0 + kmb_data[i * kmb_stride]/xci;
-  }
-  gsl_vector_set(_tau_j, j, 1.0/(kcatf/prod_KM_f-kcatb/prod_KM_b));
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Manage pointers                */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  kmf_data = NULL;
-  kmb_data = NULL;
-  xc_data  = NULL;
-}
-
-/**
- * \brief    Compute tau_j
- * \details  --
- * \param    int j
- * \return   \e void
- */
-void Model::compute_tau( int j )
-{
-  //gMM(j);
-  //return;
-  switch(_type[j])
-  {
-    case IMM:
-      iMM(j);
-      break;
-    case IMMI:
-      iMMi(j);
-      break;
-    case IMMA:
-      iMMa(j);
-      break;
-    case IMMIA:
-      iMMia(j);
-      break;
-    case RMM:
-      rMM(j);
-      break;
-  }
-}
-
-/**
- * \brief    Derivative of iMM with respect to metabolite concentrations
- * \details  Formula: --
- * \param    int j
- * \return   \e void
- */
-void Model::diMM( int j )
-{
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Initialize vectors and scalars */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double* km_data   = gsl_matrix_const_column(_KM_f, j).vector.data;
-  size_t  km_stride = gsl_matrix_const_column(_KM_f, j).vector.stride;
-  double* c_data    = _c->data;
-  size_t  c_stride  = _c->stride;
-  double* xc_data   = _xc->data;
-  size_t  xc_stride = _xc->stride;
-  double  kcatf     = gsl_vector_get(_kcat_f, j);
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Prepare product variables      */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double KM_prod_y_total = 1.0;
-  for (int i = 0; i < _ni; i++)
-  {
-    KM_prod_y_total *= 1.0 + km_data[i * km_stride]/xc_data[i * xc_stride];
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Calculate kinetics             */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  for (int i = 0; i < _nc; i++)
-  {
-    int    y         = i+_nx;
-    double ci        = c_data[i * c_stride];
-    double KM_c2     = km_data[y * km_stride]/(ci*ci);
-    double KM_prod_y = KM_prod_y_total/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
-    gsl_matrix_set(_ditau_j, j, i, -KM_c2*KM_prod_y/kcatf);
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Manage pointers                */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  km_data = NULL;
-  c_data  = NULL;
-  xc_data = NULL;
-}
-
-/**
- * \brief    Derivative of iMMi with respect to metabolite concentrations
- * \details  Formula: --
- * \param    int j
- * \return   \e void
- */
-void Model::diMMi( int j )
-{
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Initialize vectors and scalars */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double* ki_data   = gsl_matrix_const_column(_KI, j).vector.data;
-  size_t  ki_stride = gsl_matrix_const_column(_KI, j).vector.stride;
-  double* km_data   = gsl_matrix_const_column(_KM_f, j).vector.data;
-  size_t  km_stride = gsl_matrix_const_column(_KM_f, j).vector.stride;
-  double* c_data    = _c->data;
-  size_t  c_stride  = _c->stride;
-  double* xc_data   = _xc->data;
-  size_t  xc_stride = _xc->stride;
-  double  kcatf     = gsl_vector_get(_kcat_f, j);
-  double  prod_KI   = 1.0;
-  double  prod_KM_f = 1.0;
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Prepare product variables      */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  for (int i = 0; i < _ni; i++)
-  {
-    double rKI  = (ki_data[i * ki_stride] > _tol ? 1.0/ki_data[i * ki_stride] : 0.0);
-    double xci  = xc_data[i * xc_stride];
-    prod_KI    *= 1.0 + xci*rKI;
-    prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Calculate kinetics             */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  // ditauj[i2] <- ( rKI[y,j] * prod_KM_f - prod_KI * (KS[y,j]/(c[i2]^2)) * prod(1 + KS[-y,j]/xc[-y]) )/kcatf[j]
-  for (int i = 0; i < _nc; i++)
-  {
-    int    y     = i+_nx;
-    double rKI   = (ki_data[y * ki_stride] > _tol ? 1.0/ki_data[y * ki_stride] : 0.0);
-    double ci    = c_data[i * c_stride];
-    double term1 = km_data[y * km_stride]/(ci*ci);
-    double term2 = prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
-    gsl_matrix_set(_ditau_j, j, i, (rKI*prod_KM_f-prod_KI*term1*term2)/kcatf);
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Manage pointers                */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  ki_data = NULL;
-  km_data = NULL;
-  c_data  = NULL;
-  xc_data = NULL;
-}
-
-/**
- * \brief    Derivative of iMMa with respect to metabolite concentrations
- * \details  Formula: --
- * \param    int j
- * \return   \e void
- */
-void Model::diMMa( int j )
-{
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 1) Initialize vectors and scalars */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  double* ka_data   = gsl_matrix_const_column(_KA, j).vector.data;
-  size_t  ka_stride = gsl_matrix_const_column(_KA, j).vector.stride;
-  double* km_data   = gsl_matrix_const_column(_KM_f, j).vector.data;
-  size_t  km_stride = gsl_matrix_const_column(_KM_f, j).vector.stride;
-  double* c_data    = _c->data;
-  size_t  c_stride  = _c->stride;
-  double* xc_data   = _xc->data;
-  size_t  xc_stride = _xc->stride;
-  double  kcatf     = gsl_vector_get(_kcat_f, j);
-  double  prod_KA   = 1.0;
-  double  prod_KM_f = 1.0;
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Prepare product variables      */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  for (int i = 0; i < _ni; i++)
-  {
-    double xci  = xc_data[i * xc_stride];
-    prod_KA    *= 1.0 + ka_data[i * ka_stride]/xci;
-    prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Calculate kinetics             */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  // ditauj[i2] <- -as.numeric( term1*prod_KM_f + term2*prod_KA*term3 )/kcatf[j]
-  for (int i = 0; i < _nc; i++)
-  {
-    int    y     = i+_nx;
-    double ci    = c_data[i * c_stride];
-    double term1 = ka_data[y * ka_stride]/(ci*ci);
-    double term2 = km_data[y * km_stride]/(ci*ci);
-    double term3 = prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
-    gsl_matrix_set(_ditau_j, j, i, -(term1*prod_KM_f+term2*prod_KA*term3)/kcatf);
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Manage pointers                */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  ka_data = NULL;
-  km_data = NULL;
-  c_data  = NULL;
   xc_data = NULL;
 }
 
@@ -2059,22 +2011,8 @@ void Model::diMMia( int j )
   double* xc_data   = _xc->data;
   size_t  xc_stride = _xc->stride;
   double  kcatf     = gsl_vector_get(_kcat_f, j);
-  double  prod_KI   = 1.0;
-  double  prod_KA   = 1.0;
-  double  prod_KM_f = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Prepare product variables      */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  for (int i = 0; i < _ni; i++)
-  {
-    double rKI  = (ki_data[i * ki_stride] > _tol ? 1.0/ki_data[i * ki_stride] : 0.0);
-    double xci  = xc_data[i * xc_stride];
-    prod_KI    *= 1.0 + xci*rKI;
-    prod_KA    *= 1.0 + ka_data[i * ka_stride]/xci;
-    prod_KM_f  *= 1.0 + km_data[i * km_stride]/xci;
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Calculate kinetics             */
+  /* 2) Calculate kinetics             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   for (int i = 0; i < _nc; i++)
   {
@@ -2083,17 +2021,57 @@ void Model::diMMia( int j )
     double ci    = c_data[i * c_stride];
     double term2 = -ka_data[y * ka_stride]/(ci*ci);
     double term3 = -km_data[y * km_stride]/(ci*ci);
-    double term4 = prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
-    gsl_matrix_set(_ditau_j, j, i, (rKI*prod_KA*prod_KM_f+prod_KI*term2*prod_KM_f+prod_KI*prod_KA*term3*term4)/kcatf);
+    double term4 = _prod_KM_f/(1.0 + km_data[y * km_stride]/xc_data[y * xc_stride]);
+    gsl_matrix_set(_ditau_j, j, i, (rKI*_prod_KA*_prod_KM_f+_prod_KI*term2*_prod_KM_f+_prod_KI*_prod_KA*term3*term4)/kcatf);
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Manage pointers                */
+  /* 3) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   ki_data = NULL;
   ka_data = NULL;
   km_data = NULL;
   c_data  = NULL;
   xc_data = NULL;
+}
+
+/**
+ * \brief    Reversible Michaelis-Menten kinetics
+ * \details  Formula: tau_j = 1/[ kcat_f[j]/prod(1+Km_f[,j]/xc) - kcat_b[j]/prod(1+Km_b[,j]/xc) ]
+ * \param    int j
+ * \return   \e void
+ */
+void Model::rMM( int j )
+{
+  // rMM <- 1 / ( kcatf[j]/prod(1 + KS[,j]/xc) - kcatb[j]/prod(1 + KP[,j]/xc)  )
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 1) Initialize vectors and scalars */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  const double* kmf_data   = gsl_matrix_const_column(_KM_f, j).vector.data;
+  const size_t  kmf_stride = gsl_matrix_const_column(_KM_f, j).vector.stride;
+  const double* kmb_data   = gsl_matrix_const_column(_KM_b, j).vector.data;
+  const size_t  kmb_stride = gsl_matrix_const_column(_KM_b, j).vector.stride;
+  const double* xc_data    = _xc->data;
+  const size_t  xc_stride  = _xc->stride;
+  double        kcatf      = gsl_vector_get(_kcat_f, j);
+  double        kcatb      = gsl_vector_get(_kcat_b, j);
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 2) Calculate kinetics             */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  _prod_KM_f = 1.0;
+  _prod_KM_b = 1.0;
+  for (int i = 0; i < _ni; i++)
+  {
+    double xci  = xc_data[i * xc_stride];
+    _prod_KM_f *= 1.0 + kmf_data[i * kmf_stride]/xci;
+    _prod_KM_b *= 1.0 + kmb_data[i * kmb_stride]/xci;
+  }
+  gsl_vector_set(_tau_j, j, 1.0/(kcatf/_prod_KM_f-kcatb/_prod_KM_b));
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /* 3) Manage pointers                */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  kmf_data = NULL;
+  kmb_data = NULL;
+  xc_data  = NULL;
 }
 
 /**
@@ -2117,22 +2095,11 @@ void Model::drMM( int j )
   size_t  xc_stride  = _xc->stride;
   double  kcatf      = gsl_vector_get(_kcat_f, j);
   double  kcatb      = gsl_vector_get(_kcat_b, j);
-  double  prod_KM_f  = 1.0;
-  double  prod_KM_b  = 1.0;
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 2) Prepare product variables      */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  for (int i = 0; i < _ni; i++)
-  {
-    double xci  = xc_data[i * xc_stride];
-    prod_KM_f  *= 1.0 + kmf_data[i * kmf_stride]/xci;
-    prod_KM_b  *= 1.0 + kmb_data[i * kmb_stride]/xci;
-  }
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 3) Calculate kinetics             */
+  /* 2) Calculate kinetics             */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   //double tau_j_2 = 1.0 / gsl_pow_int(kcatf/prod_KM_f-kcatb/prod_KM_b, 2);
-  double tau_j = 1.0/(kcatf/prod_KM_f-kcatb/prod_KM_b);
+  double tau_j = 1.0/(kcatf/_prod_KM_f-kcatb/_prod_KM_b);
   for (int i = 0; i < _nc; i++)
   {
     int    y      = i+_nx;
@@ -2141,48 +2108,18 @@ void Model::drMM( int j )
     double kmby   = kmb_data[y * kmb_stride];
     double term1  = kmfy/((ci+kmfy)*(ci+kmfy));
     double term2  = kmby/((ci+kmby)*(ci+kmby));
-    double prodf  = prod_KM_f/(1.0 + kmf_data[y * kmf_stride]/xc_data[y * xc_stride]);
-    double prodb  = prod_KM_b/(1.0 + kmb_data[y * kmb_stride]/xc_data[y * xc_stride]);
+    double prodf  = _prod_KM_f/(1.0 + kmf_data[y * kmf_stride]/xc_data[y * xc_stride]);
+    double prodb  = _prod_KM_b/(1.0 + kmb_data[y * kmb_stride]/xc_data[y * xc_stride]);
     double ditauj = (kcatf/prodf)*term1 - (kcatb/prodb)*term2;
     gsl_matrix_set(_ditau_j, j, i, -ditauj*tau_j*tau_j);
   }
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /* 4) Manage pointers                */
+  /* 3) Manage pointers                */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   kmf_data = NULL;
   kmb_data = NULL;
   c_data   = NULL;
   xc_data  = NULL;
-}
-
-/**
- * \brief    Compute ditau_j
- * \details  --
- * \param    int j
- * \return   \e void
- */
-void Model::compute_dtau( int j )
-{
-  //dgMM(j);
-  //return;
-  switch(_type[j])
-  {
-    case IMM:
-      diMM(j);
-      break;
-    case IMMI:
-      diMMi(j);
-      break;
-    case IMMA:
-      diMMa(j);
-      break;
-    case IMMIA:
-      diMMia(j);
-      break;
-    case RMM:
-      drMM(j);
-      break;
-  }
 }
 
 /**
@@ -2282,43 +2219,6 @@ void Model::compute_Gamma( void )
   gsl_vector_scale(_Gamma, gsl_vector_get(_dmu_dq, 0)/gsl_vector_get(_sM, 0));
   gsl_vector_scale(_Gamma, -1.0);
   gsl_vector_add(_Gamma, _dmu_dq);
-}
-
-/**
- * \brief    Calculate all first order variables from the f vector
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::calculate_first_order_terms( void )
-{
-  compute_c();
-  compute_xc();
-  for (int j = 0; j < _nj; j++)
-  {
-    compute_tau(j);
-  }
-  compute_mu();
-  compute_v();
-  compute_p();
-  compute_b();
-  compute_density();
-}
-
-/**
- * \brief    Calculate all secon order variables from the f vector
- * \details  --
- * \param    void
- * \return   \e void
- */
-void Model::calculate_second_order_terms( void )
-{
-  for (int j = 0; j < _nj; j++)
-  {
-    compute_dtau(j);
-  }
-  compute_dmu_dq();
-  compute_Gamma();
 }
 
 /**
