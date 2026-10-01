@@ -3,7 +3,6 @@
 *.Rhistory
 *.Rapp.history
 clean_folders.sh
-copy_mmsyn_model.sh
 xcode/**
 tests/**
 models/JCVISYN3A/**
