@@ -1590,7 +1590,7 @@ void Model::initialize_dynamic_variables( void )
   _dmu_dq       = gsl_vector_alloc(_nj);
   _Gamma        = gsl_vector_alloc(_nj);
   _dmu_dq_term2 = gsl_vector_alloc(_nj);
-  _dmu_dq_term3 = gsl_matrix_alloc(_nj, _nj);
+  _dmu_dq_term3 = gsl_matrix_alloc(1, _nc);
   _dmu_dq_term4 = gsl_vector_alloc(_nj);
   _dmu_dq_term5 = gsl_vector_alloc(_nj);
   /*** Initialize all variables to zero ***/
@@ -2196,8 +2196,9 @@ void Model::compute_dmu_dq( void )
   gsl_matrix_get_row(_dmu_dq_term2, _M, _a);
   gsl_vector_scale(_dmu_dq_term2, 1.0/_mu);
   /*--------*/
-  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, _rho, _ditau_j, _M, 0.0, _dmu_dq_term3);
-  gsl_blas_dgemv(CblasTrans, 1.0, _dmu_dq_term3, _q, 0.0, _dmu_dq_term4);
+  gsl_vector_view dmu_dq_scratch = gsl_matrix_row(_dmu_dq_term3, 0);
+  gsl_blas_dgemv(CblasTrans, 1.0, _ditau_j, _q, 0.0, &dmu_dq_scratch.vector);
+  gsl_blas_dgemv(CblasTrans, _rho, _M, &dmu_dq_scratch.vector, 0.0, _dmu_dq_term4);
   /*--------*/
   gsl_vector_memcpy(_dmu_dq_term5, _tau_j);
   /*--------*/
@@ -2315,4 +2316,3 @@ void Model::block_reactions( void )
     gsl_vector_set(_Gamma, j, 0.0);
   }
 }
-
